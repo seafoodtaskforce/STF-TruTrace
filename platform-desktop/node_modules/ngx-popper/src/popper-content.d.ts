@@ -1,0 +1,37 @@
+import { ChangeDetectorRef, ElementRef, EventEmitter, OnDestroy, Renderer2, ViewContainerRef } from "@angular/core";
+import Popper from 'popper.js';
+import { PopperContentOptions } from './popper-model';
+export declare class PopperContent implements OnDestroy {
+    elemRef: ElementRef;
+    private renderer;
+    private viewRef;
+    private CDR;
+    popperOptions: PopperContentOptions;
+    referenceObject: HTMLElement;
+    isMouseOver: boolean;
+    onHidden: EventEmitter<{}>;
+    text: string;
+    popperInstance: Popper;
+    displayType: string;
+    opacity: number;
+    ariaHidden: string;
+    arrowColor: string | null;
+    onUpdate: Function;
+    state: boolean;
+    private globalResize;
+    popperViewRef: ElementRef;
+    onMouseOver(): void;
+    showOnLeave(): void;
+    onDocumentResize(): void;
+    constructor(elemRef: ElementRef, renderer: Renderer2, viewRef: ViewContainerRef, CDR: ChangeDetectorRef);
+    ngOnDestroy(): void;
+    clean(): void;
+    show(): void;
+    private determineArrowColor;
+    update(): void;
+    scheduleUpdate(): void;
+    hide(): void;
+    toggleVisibility(state: boolean): void;
+    extractAppliedClassListExpr(classList?: string): Object | null;
+    private clearGlobalResize;
+}
