@@ -1,0 +1,194 @@
+/* 
+  Localizable.strings
+  TruTracePOC
+
+  Created by Republic Systems on 2020-01-30.
+  Copyright © 2020 Republic Systems. All rights reserved.
+*/
+
+//
+// General Global Strings
+"ios_general_document_status_DRAFT" = "ร่าง";
+"ios_general_document_status_SUBMITTED" = "ส่ง";
+"ios_general_document_status_PENDING" = "รอดำเนินการ";
+"ios_general_document_status_ACCEPTED" = "ยอมรับ";
+"ios_general_document_status_REJECTED" = "ปฏิเสธ";
+"ios_general_document_status_RESUBMITTED" = "ส่งอีกครั้ง";
+
+/*--------------------------------------------------------------------
+Bottom TAB
+*/
+"ios_bottom_tabs_label_home" = "หน้าหลัก";
+"ios_bottom_tabs_label_profile" = "ข้อมูลส่วนตัว";
+"ios_bottom_tabs_label_mydocs" = "เอกสารของฉัน";
+"ios_bottom_tabs_label_docfeeds" = "ฟีดเอกสาร";
+
+/*
+ Login Page
+ */
+
+/* text field hint username text */
+"ios_login_page_hint_text_username" = "ชื่อผู้ใช้งาน";
+
+/* text field hint password text */
+"ios_login_page_hint_text_password" = "รหัสผ่าน";
+
+/* header for the alert when login fails due to bad credentials */
+"ios_login_page_error_authentication_header" = "ข้อผิดพลาดการตรวจสอบ";
+
+/* the text for the user to see to help them correct the issue with authentication */
+"ios_login_page_error_authentication_message" = "โปรดป้อนข้อมูลรับรองที่ถูกต้อง!";
+
+/* The authentication failure alert OK button */
+"ios_login_page_error_authentication_button_OK" = "ตกลง";
+
+/* The login button */
+"ios_login_page_authentication_button_LOGIN" = "เข้าสู่ระบบ";
+
+/*--------------------------------------------------------------------
+User Data Page
+*/
+"ios_user_data_page_navigation_header" = "ข้อมูลผู้ใช้";
+"ios_user_data_page_navigation_button_logout" = "ออกจากระบบ";
+"ios_user_data_page_button_change_profile" = "เปลี่ยนโปรไฟล์";
+
+"ios_user_data_page_section_header_personal_info" = "ข้อมูลส่วนบุคคล";
+"ios_user_data_page_section_personal_info_label_first_name" = "ชื่อจริง";
+"ios_user_data_page_section_personal_info_label_last_name" = "นามสกุล";
+"ios_user_data_page_section_personal_info_label_nickname" = "ชื่อเล่น";
+
+"ios_user_data_page_section_header_organization_info" = "ข้อมูลองค์กร";
+"ios_user_data_page_section_organization_info_label_organization" = "องค์กร";
+"ios_user_data_page_section_organization_info_label_lineid" = "LINE ID";
+"ios_user_data_page_section_organization_info_label_email" = "อีเมล";
+
+"ios_user_data_page_section_header_security_info" = "ข้อมูลความปลอดภัย";
+"ios_user_data_page_section_security_info_Label_password" = "รหัสผ่าน";
+
+"ios_user_data_page_section_header_storage_info" = "ข้อมูลการจัดเก็บ";
+"ios_user_data_page_section_storge_info_Label_offline" = "ออฟไลน์";
+"ios_user_data_page_section_storge_info_Label_online" = "ออนไลน์";
+
+//
+// Personal Data Page
+"ios_user_personal_data_navigation_header" = "ข้อมูลส่วนบุคคล";
+"ios_user_personal_data_section_label_personal_information" = "ข้อมูลส่วนบุคคล";
+"ios_user_personal_data_navigation_button_save" = "บันทึก";
+"ios_user_personal_data_label_first" = "ชื่อจริง";
+"ios_user_personal_data_label_last" = "นามสกุล";
+"ios_user_personal_data_label_nick" = "ชื่อเล่น";
+
+//
+// Organization Data Page
+"ios_user_organization_data_navigation_header" = "ข้อมูลองค์กร";
+"ios_user_organization_data_section_label_organization_information" = "ข้อมูลองค์กร";
+"ios_user_organization_data_navigation_button_save" = "บันทึก";
+"ios_user_organization_data_label_linerid" = "LINE ID";
+"ios_user_organizationdata_label_email" = "email";
+
+//
+// Security Data Page
+"ios_user_security_data_navigation_header" = "ข้อมูลความปลอดภัย";
+"ios_user_security__data_section_label_security_information" = "ข้อมูลความปลอดภัย";
+"ios_user_security__data_section_label_security_information_footer" = "รหัสผ่านของคุณควรมีความยาวอย่างน้อย 8 ตัวอักษร";
+"ios_user_security_data_navigation_button_save" = "บันทึก";
+"ios_user_security_data_label_new" = "ใหม่";
+"ios_user_security_data_label_verify" = "ตรวจสอบ";
+"ios_user_security_data_label_hint_new" = "ใส่รหัสผ่านใหม่";
+"ios_user_security_data_label_hint_verify" = "ใส่รหัสผ่านอีกครั้ง";
+
+//
+// Profile Docs Page
+"ios_profile_docs_Page_navigation_header" = "เอกสารโปรไฟล์";
+"ios_profile_docs_Page_navigation_button_new" = "ใหม่";
+"ios_profile_docs_Page_navigation_button_filter" = "กรอง";
+
+//
+// My Docs Page
+"ios_my_docs_Page_navigation_header" = "เอกสารของฉัน";
+"ios_my_docs_Page_navigation_button_new" = "ใหม่";
+"ios_my_docs_Page_navigation_button_filter" = "กรอง";
+
+//
+// Feed Docs Page
+"ios_feed_docs_page_navigation_header" = "ฟีดเอกสาร";
+"ios_feed_docs_page_navigation_button_filter" = "กรอง";
+
+
+//
+// Document Cell
+"ios_doc_cell_document_type" = "";
+"ios_doc_cell_organization" = "";
+"ios_doc_cell_doc_status" = "";
+
+//
+// Profile Docs Page Filter
+"ios_profile_docs_filter_page_navigation_header" = "ตัวกรองเอกสารโปรไฟล์";
+"ios_profile_docs_filter_page_navigation_button_done" = "เสร็จสิ้น";
+
+"ios_profile_docs_filter_page_section_label_date_range" = "ช่วงวันที่";
+"ios_profile_docs_filter_page_section_label_date_range_footer" = "โปรดป้อนช่วงวันที่ที่จะค้นหา โปรดทราบว่าวันที่จะถูก จำกัด วันที่ที่มีอยู่สำหรับเอกสารทั้งหมด";
+"ios_profile_docs_filter_page_label_date_range_from" = "วันที่จาก";
+"ios_profile_docs_filter_page_label_date_range_to" = "วันที่ถึง";
+
+"ios_profile_docs_filter_page_section_label_doc_type" = "ประเภทเอกสาร";
+"ios_profile_docs_filter_page_section_label_doc_type_footer" = "โปรดเลือกประเภทเอกสารเฉพาะหรือผู้ใช้ (ไม่มี) หากไม่ต้องการ";
+"ios_profile_docs_filter_page_label_doc_type" = "ประเภทเอกสาร";
+
+"ios_profile_docs_filter_page_section_label_submitter_recipient" = "ส่ง / ผู้รับ";
+"ios_profile_docs_filter_page_section_label_submitter_recipient_footer" = "โปรดเลือกผู้ส่งและ/หรือผู้รับเพื่อกรอง";
+"ios_profile_docs_filter_page_label_submitter" = "ส่ง";
+"ios_profile_docs_filter_page_label_recipient" = "ผู้รับ";
+
+"ios_profile_docs_filter_page_section_label_tag" = "แท็ก";
+"ios_profile_docs_filter_page_section_label_tag_footer" = "โปรดเลือกแท็กเพื่อกรอง";
+"ios_profile_docs_filter_page_label_tag" = "แท็ก";
+
+//
+// My Docs Page Filter
+"ios_my_docs_filter_page_navigation_header" = "ตัวกรองเอกสารของฉัน";
+
+//
+// Doc Feed Page Filter
+"ios_feed_docs_filter_page_navigation_header" = "ตัวกรองฟีดเอกสาร";
+
+//
+// Profile Docs Page Details
+"ios_profile_docs_detail_page_navigation_header" = "รายละเอียด";
+"ios_profile_docs_detail_page_navigation_button_cancel" = "ยกเลิก";
+"ios_profile_docs_detail_page_navigation_button_save" = "บันทึก";
+
+"ios_profile_docs_detail_page_section_label_summary" = "สรุป";
+"ios_profile_docs_detail_page_doc_label_type" = "ประเภทเอกสาร";
+"ios_profile_docs_detail_page_doc_type" = "";
+"ios_profile_docs_detail_page_doc_status" = "";
+
+"ios_profile_docs_detail_page_section_label_page_gallery" = "หน้าคลังภาพ";
+"ios_profile_docs_detail_page_gallery_page" = "หน้า";
+
+"ios_profile_docs_detail_page_section_label_recipients" = "ผู้รับ";
+
+"ios_profile_docs_detail_page_section_label_tags" = "แท็ก";
+
+"ios_profile_docs_detail_page_section_label_linked_docs" = "เอกสารที่เชื่อมโยง";
+
+"ios_profile_docs_detail_page_section_label_backup_docs" = "การสำรองเอกสาร";
+
+"ios_profile_docs_detail_page_action_save_as_draft" = "บันทึกเป็นร่าง";
+"ios_profile_docs_detail_page_action_save_as_submit" = "บันทึกและส่งมอบ";
+"ios_profile_docs_detail_page_action_save_cancel" = "ยกเลิก";
+"ios_profile_docs_detail_page_action_save_title" = "บันทึกตัวเลือก";
+"ios_profile_docs_detail_page_action_save_message" = "เลือกบันทึกตัวเลือก";
+
+//
+// Document Cell Page
+"ios_page_cell_page" = "หน้า";
+
+//
+// Page Details
+"ios_page_detail_navigation_header" = "หน้า";
+"ios_page_detail_page" = "หน้า";
+
+//
+// New Profile Docs Page Details
+"ios_new_profile_docs_detail_page_navigation_header" = "เอกสารใหม่";

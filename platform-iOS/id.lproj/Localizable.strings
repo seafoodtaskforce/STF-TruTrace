@@ -1,0 +1,201 @@
+/* 
+  Localizable.strings
+  TruTracePOC
+
+  Created by Republic Systems on 2020-01-30.
+  Copyright © 2020 Republic Systems. All rights reserved.
+*/
+
+//
+// General Global Strings
+"ios_general_document_status_DRAFT" = "KONSEP";
+"ios_general_document_status_SUBMITTED" = "DIAJUKAN";
+"ios_general_document_status_PENDING" = "TERTUNDA";
+"ios_general_document_status_ACCEPTED" = "DITERIMA";
+"ios_general_document_status_REJECTED" = "DITOLAK";
+"ios_general_document_status_RESUBMITTED" = "DIUBUNGKAN";
+
+/*--------------------------------------------------------------------
+Bottom TAB
+*/
+"ios_bottom_tabs_label_home" = "Beranda";
+"ios_bottom_tabs_label_profile" = "Profil";
+"ios_bottom_tabs_label_mydocs" = "Dokumen Saya";
+"ios_bottom_tabs_label_docfeeds" = "Konten Dok";
+
+
+/*
+ Login Page
+ */
+
+/* text field hint username text */
+"ios_login_page_hint_text_username" = "ID Pengguna";
+
+/* text field hint password text */
+"ios_login_page_hint_text_password" = "Sandi";
+
+/* header for the alert when login fails due to bad credentials */
+"ios_login_page_error_authentication_header" = "Kesalahan otentikasi";
+
+/* the text for the user to see to help them correct the issue with authentication */
+"ios_login_page_error_authentication_message" = "Silakan masukkan kredensial yang benar!";
+
+/* The authentication failure alert OK button */
+"ios_login_page_error_authentication_button_OK" = "OK";
+
+/* The login button */
+"ios_login_page_authentication_button_LOGIN" = "MASUK";
+
+/*--------------------------------------------------------------------
+User Data Page
+*/
+"ios_user_data_page_navigation_header" = "Data Pengguna";
+"ios_user_data_page_navigation_button_logout" = "Keluar";
+"ios_user_data_page_button_change_profile" = "Ubah Profil";
+
+"ios_user_data_page_section_header_personal_info" = "Informasi Pribadi";
+"ios_user_data_page_section_personal_info_label_first_name" = "nama depan";
+"ios_user_data_page_section_personal_info_label_last_name" = "nama keluarga";
+"ios_user_data_page_section_personal_info_label_nickname" = "nama panggilan ID";
+
+"ios_user_data_page_section_header_organization_info" = "Informasi Organisasi";
+"ios_user_data_page_section_organization_info_label_organization" = "organisasi";
+"ios_user_data_page_section_organization_info_label_lineid" = "id line";
+"ios_user_data_page_section_organization_info_label_email" = "surel";
+
+"ios_user_data_page_section_header_security_info" = "Informasi Keamanan";
+"ios_user_data_page_section_security_info_Label_password" = "sandi";
+
+"ios_user_data_page_section_header_storage_info" = "Informasi Penyimpanan";
+"ios_user_data_page_section_storge_info_Label_offline" = "offline";
+"ios_user_data_page_section_storge_info_Label_online" = "on line";
+
+//
+// Personal Data Page
+"ios_user_personal_data_navigation_header" = "Personal Data";
+"ios_user_personal_data_section_label_personal_information" = "Personal Information";
+"ios_user_personal_data_navigation_button_save" = "Save";
+"ios_user_personal_data_label_first" = "First";
+"ios_user_personal_data_label_last" = "Last";
+"ios_user_personal_data_label_nick" = "Nick";
+
+//
+// Organization Data Page
+"ios_user_organization_data_navigation_header" = "";
+"ios_user_organization_data_section_label_organization_information" = "Organization Data";
+"ios_user_organization_data_navigation_button_save" = "Save";
+"ios_user_organization_data_label_linerid" = "LINE ID";
+"ios_user_organizationdata_label_email" = "email";
+
+//
+// Security Data Page
+"ios_user_security_data_navigation_header" = "Security Data";
+"ios_user_security__data_section_label_security_information" = "Security Information";
+"ios_user_security__data_section_label_security_information_footer" = "Your password should be at least 8 characters long.";
+"ios_user_security_data_navigation_button_save" = "Save";
+"ios_user_security_data_label_new" = "New";
+"ios_user_security_data_label_verify" = "Verify";
+"ios_user_security_data_label_hint_new" = "enter new password";
+"ios_user_security_data_label_hint_verify" = "re-enter password";
+
+//
+// Profile Docs Page
+"ios_profile_docs_Page_navigation_header" = "Profile Docs";
+"ios_profile_docs_Page_navigation_button_new" = "New";
+"ios_profile_docs_Page_navigation_button_filter" = "Saring";
+
+//
+// My Docs Page
+"ios_my_docs_Page_navigation_header" = "My Docs";
+"ios_my_docs_Page_navigation_button_new" = "New";
+"ios_my_docs_Page_navigation_button_filter" = "Saring";
+
+//
+// Feed Docs Page
+"ios_feed_docs_page_navigation_header" = "Umpan Doc";
+"ios_feed_docs_page_navigation_button_filter" = "Saring";
+
+
+//
+// Document Cell
+"ios_doc_cell_document_type" = "";
+"ios_doc_cell_organization" = "";
+"ios_doc_cell_doc_status" = "";
+
+//
+// Profile Docs Page Filter
+"ios_profile_docs_filter_page_navigation_header" = "Profile Docs Filter";
+"ios_profile_docs_filter_page_navigation_button_done" = "DOne";
+
+"ios_profile_docs_filter_page_section_label_date_range" = "Date Range";
+"ios_profile_docs_filter_page_section_label_date_range_footer" = "Please enter the range of dates to search against. Note that the dates are restricted to the dates available for all documents.";
+"ios_profile_docs_filter_page_label_date_range_from" = "Date From";
+"ios_profile_docs_filter_page_label_date_range_to" = "Date To";
+
+"ios_profile_docs_filter_page_section_label_doc_type" = "Document Type";
+"ios_profile_docs_filter_page_section_label_doc_type_footer" = "Please choose the specific document type or user (none) if not needed";
+"ios_profile_docs_filter_page_label_doc_type" = "Type";
+
+"ios_profile_docs_filter_page_section_label_submitter_recipient" = "Submitter/Recipient";
+"ios_profile_docs_filter_page_section_label_submitter_recipient_footer" = "Please choose the Submitter and/or Recipient to filter against.";
+"ios_profile_docs_filter_page_label_submitter" = "Submitter";
+"ios_profile_docs_filter_page_label_recipient" = "Recipient";
+
+"ios_profile_docs_filter_page_section_label_tag" = "Tag";
+"ios_profile_docs_filter_page_section_label_tag_footer" = "Please choose the Tag to filter against.";
+"ios_profile_docs_filter_page_label_tag" = "Tag";
+
+//
+// My Docs Page Filter
+"ios_my_docs_filter_page_navigation_header" = "Filter Dokumen Saya";
+
+//
+// Doc Feed Page Filter
+"ios_feed_docs_filter_page_navigation_header" = "Filter Umpan Dokumen";
+
+//
+// Profile Docs Page Details
+"ios_profile_docs_detail_page_navigation_header" = "Details";
+"ios_profile_docs_detail_page_navigation_button_cancel" = "Cancel";
+"ios_profile_docs_detail_page_navigation_button_save" = "Save";
+
+"ios_profile_docs_detail_page_section_label_summary" = "Summary";
+"ios_profile_docs_detail_page_doc_label_type" = "Type";
+"ios_profile_docs_detail_page_doc_type" = "";
+"ios_profile_docs_detail_page_doc_status" = "";
+
+"ios_profile_docs_detail_page_section_label_page_gallery" = "Page Gallery";
+"ios_profile_docs_detail_page_gallery_page" = "Page";
+
+"ios_profile_docs_detail_page_section_label_recipients" = "Recipients";
+
+"ios_profile_docs_detail_page_section_label_tags" = "Tags";
+
+"ios_profile_docs_detail_page_section_label_linked_docs" = "Linked Docs";
+
+"ios_profile_docs_detail_page_section_label_backup_docs" = "Backing Docs";
+
+"ios_profile_docs_detail_page_action_save_as_draft" = "Simpan sebagai draf";
+"ios_profile_docs_detail_page_action_save_as_submit" = "Simpan dan KIRIM";
+"ios_profile_docs_detail_page_action_save_cancel" = "Membatalkan";
+"ios_profile_docs_detail_page_action_save_title" = "Simpan Opsi";
+"ios_profile_docs_detail_page_action_save_message" = "Pilih Simpan Opsi";
+
+//
+// New Profile Docs Page Details
+"ios_new_profile_docs_detail_page_navigation_header" = "Dokumen Baru";
+
+//
+// Feed Docs Page
+"ios_feed_docs_page_navigation_header" = "Umpan Doc";
+
+//
+// Document Cell Page
+"ios_page_cell_page" = "Laman";
+
+//
+// Page Details
+"ios_page_detail_navigation_header" = "Laman";
+"ios_page_detail_page" = "Laman";
+
+
