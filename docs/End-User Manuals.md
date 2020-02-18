@@ -44,4 +44,4 @@ Below you will find the links to all of the end-user manuals in multiple languag
 - [Hindi Android App Manual](http://bit.ly/Hindi-Android-App-Manual "Hindi-Android-App-Manual")
 - [Hindi iOS App Manual](http://bit.ly/Hindi-iOS-App-Manual "Hindi-iOS-App-Manual")
 - [Hindi Desktop Manual](http://bit.ly/Hindi-Desktop-Manual "Hindi-Desktop-Manual")
-- [Admin Portal Manual](http://bit.ly/Hindi-Admin-Portal-Manual "Hindi-Admin-Portal-Manual")
+- [Hindi Admin Portal Manual](http://bit.ly/Hindi-Admin-Portal-Manual "Hindi-Admin-Portal-Manual")
