@@ -13,17 +13,17 @@ Below you will find the links to all of the end-user manuals in multiple languag
 
 ## Vietnamese:  ##
 
-- [http://bit.ly/Vietnamese-Android-App-Manual](http://bit.ly/Vietnamese-Android-App-Manual  "Vietnamese-Android-App-Manual ")
-- [http://bit.ly/Vietnamese-iOS-App-Manual](http://bit.ly/Vietnamese-iOS-App-Manual "Vietnamese-iOS-App-Manual")
-- [http://bit.ly/Vietnamese-Desktop-Manual](http://bit.ly/Vietnamese-Desktop-Manual "Vietnamese-Desktop-Manual")
-- [http://bit.ly/Vietnamese-Admin-Portal-Manual](http://bit.ly/Vietnamese-Admin-Portal-Manual "Vietnamese-Admin-Portal-Manual")
+- [Android App Manual](http://bit.ly/Vietnamese-Android-App-Manual  "Vietnamese-Android-App-Manual ")
+- [Vietnamese iOS App Manual](http://bit.ly/Vietnamese-iOS-App-Manual "Vietnamese-iOS-App-Manual")
+- [Vietnamese Desktop Manual](http://bit.ly/Vietnamese-Desktop-Manual "Vietnamese-Desktop-Manual")
+- [Vietnamese Admin Portal Manual](http://bit.ly/Vietnamese-Admin-Portal-Manual "Vietnamese-Admin-Portal-Manual")
 
 ## Thai: ##
 
-- [http://bit.ly/Thai-Android-App-Manual](http://bit.ly/Thai-Android-App-Manual  "Thai-Android-App-Manual ")
-- [http://bit.ly/Thai-iOS-App-Manual](http://bit.ly/Thai-iOS-App-Manual  "Thai-iOS-App-Manual ")
-- [http://bit.ly/Thai-Desktop-Manual](http://bit.ly/Thai-Desktop-Manual  "Thai-Desktop-Manual ")
-- [http://bit.ly/Thai-Admin-Portal-Manual](http://bit.ly/Thai-Admin-Portal-Manual "Thai-Admin-Portal-Manual")
+- [Thai Android App Manual](http://bit.ly/Thai-Android-App-Manual  "Thai-Android-App-Manual ")
+- [Thai iOS-App Manual](http://bit.ly/Thai-iOS-App-Manual  "Thai-iOS-App-Manual ")
+- [Thai Desktop Manual](http://bit.ly/Thai-Desktop-Manual  "Thai-Desktop-Manual ")
+- [Thai Admin Portal Manual](http://bit.ly/Thai-Admin-Portal-Manual "Thai-Admin-Portal-Manual")
 
 ## Spanish: ##
  
