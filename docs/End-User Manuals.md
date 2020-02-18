@@ -1,6 +1,6 @@
-# User Manuals #
+# End-User Manuals #
 
-Below you will find the links to all of the user manuals in multiple languages.
+Below you will find the links to all of the end-user manuals in multiple languages.
 
 **NOTE:** These documents will be continually updated as features are rolled out and bugs are fixed.
 
