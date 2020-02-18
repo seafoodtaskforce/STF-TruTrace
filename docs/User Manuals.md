@@ -2,7 +2,7 @@
 
 Below you will find the links to all of the user manuals in multiple languages.
 
-**NOTE:** This will be continually updated as features are rolled out and bugs are fixed.
+**NOTE:** These documents will be continually updated as features are rolled out and bugs are fixed.
 
 ## English: ##
 
