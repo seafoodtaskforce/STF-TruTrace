@@ -1,0 +1,42 @@
+<div>
+    <div>
+      <ba-card baCardClass="with-scroll">
+          <!-- Profile Details -->
+          <div class="row">
+      
+            <input #search class="search col-sm-2" type="text" placeholder="Search..." (keydown.enter)="onSearch(search.value)">
+            <label for="stage001" class="col-sm-1 offset-sm-5 form-control-label">Language</label>
+            <!-- Left Column Language -->
+            <div class="col-sm-2">
+                <select class="form-control" id="languageColumn001" (change)="setChosenLanguage1($event)">
+                    <option *ngFor="let lang of languages">{{lang.value}}</option>
+                </select>
+            </div>
+            <!-- Right Column Language -->
+            <div class="col-sm-2">
+                <select class="form-control" id="languageColumn002" (change)="setChosenLanguage2($event)">
+                    <option *ngFor="let lang of languages">{{lang.value}}</option>
+                </select>
+            </div>
+          </div>
+      </ba-card>
+      <div class="separator"></div> 
+      <ng2-smart-table [settings]="settings" 
+          [source]="source" 
+          (deleteConfirm)="onDeleteConfirm($event)"
+          (rowSelect)="onRowSelect($event)"
+          (createConfirm)="onCreateConfirm($event)"
+          (editConfirm)="onEditConfirm($event)"
+          >
+      </ng2-smart-table>   
+    </div> 
+    <div class="separator"></div> 
+
+    <!-- ---------------------------------------- -->
+    <!-- User Admin Details Card                  -->
+    <!--                                          -->
+    <ba-card baCardClass="with-scroll">
+      <!-- Profile Details -->
+
+    </ba-card>
+</div>

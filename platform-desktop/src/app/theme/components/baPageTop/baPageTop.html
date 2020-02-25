@@ -1,0 +1,88 @@
+<div class="page-top clearfix" baScrollPosition maxHeight="50" (scrollChange)="scrolledChanged($event)"
+     [ngClass]="{scrolled: isScrolled}">
+  <a routerLink="/pages/dashboard" class="al-logo clearfix"><span>TruTrace-</span>admin</a>
+  <a href (click)="toggleMenu()" class="collapse-menu-link ion-navicon"></a>
+
+  <div class="search">
+    <i class="ion-ios-search-strong" ng-click="startSearch()"></i>
+    <input id="searchInput" type="text" placeholder="Search for...">
+  </div>
+
+  
+  <div class="user-profile clearfix">
+    
+    <div class="dropdown al-user-profile">
+      <a class="profile-toggle-link dropdown-toggle" id="user-profile-dd" data-toggle="dropdown" aria-expanded="false">
+        <img src="{{serverURI}}/user/profileimage?user_name={{loggedName}}">
+      </a>
+
+      <ul class="dropdown-menu top-dropdown-menu profile-dropdown" aria-labelledby="user-profile-dd">
+        <li class="dropdown-item"><a href><i class="fa fa-spinner fa-spin fa-1x fa-fw"></i>{{loggedName}}</a></li>
+        <li class="dropdown-divider"></li>
+        <li class="dropdown-item"><a href="#/pages/profile"><i class="fa fa-user"></i>Profile</a></li>
+        <li class="dropdown-item"><a href><i class="fa fa-cog"></i>Settings</a></li>
+        <li class="dropdown-item"><a (click)=signOut() href="#/login" class="signout"><i class="fa fa-power-off"></i>Sign out</a></li>
+      </ul>
+    </div>
+
+    <!-- Language and internationalization choices -->
+    <div class="dropdown al-user-profile">
+      <a class="profile-toggle-link dropdown-toggle" id="user-profile-flag" data-toggle="dropdown" aria-expanded="false">
+        <span class={{getCurrentFlag()}}></span>
+      </a>
+
+      <ul class="dropdown-menu top-dropdown-menu profile-dropdown" aria-labelledby="user-profile-flag">
+        <li class="dropdown-divider"></li>
+
+        <li class="dropdown-item">
+          <a (click)="changeLanguage('English')"
+              [ngStyle]="{'background-color':getBackgroundColorHighlight('English')}" >
+            <!-- <i *ngIf="isCurrentFlag('English')" class="fa fa-check"></i> -->
+            <span 
+                [ngClass]="getFlag('English')">
+            </span>
+            English
+          </a>
+        </li>
+        
+        <li class="dropdown-item">
+          <a (click)="changeLanguage('Thai')"
+              [ngStyle]="{'background-color':getBackgroundColorHighlight('Thai')}" >
+            <!-- <i *ngIf="isCurrentFlag('Thai')" class="fa fa-check"></i> -->
+
+            <span 
+                [ngClass]="getFlag('Thai')">
+            </span>
+            Thai
+          </a>
+        </li>
+
+        <li class="dropdown-item">
+          <a (click)="changeLanguage('Bahasa')"
+              [ngStyle]="{'background-color':getBackgroundColorHighlight('Bahasa')}" >
+            <!-- <i *ngIf="isCurrentFlag('Thai')" class="fa fa-check"></i> -->
+
+            <span 
+                [ngClass]="getFlag('Bahasa')">
+            </span>
+            Bahasa
+          </a>
+        </li>
+
+        <li class="dropdown-item">
+          <a (click)="changeLanguage('Vietnamese')"
+              [ngStyle]="{'background-color':getBackgroundColorHighlight('Vietnamese')}" >
+            <!-- <i *ngIf="isCurrentFlag('sh')" class="fa fa-check"></i> -->
+
+            <span 
+                [ngClass]="getFlag('Vietnamese')">
+            </span>
+            Vietnamese
+          </a>
+        </li>
+
+      </ul>
+    </div>
+    <ba-msg-center></ba-msg-center>
+  </div>
+</div>

@@ -1,0 +1,20 @@
+<div>
+  <div>
+    <ng2-smart-table [settings]="settings" 
+        [source]="source" 
+        (deleteConfirm)="onDeleteConfirm($event)"
+        (createConfirm)="onCreateConfirm($event)"
+        (editConfirm)="onEditConfirm($event)"
+        >
+    </ng2-smart-table>   
+  </div> 
+  <div class="separator"></div> 
+
+  <!-- ---------------------------------------- -->
+  <!-- Tag Admin Details Card                  -->
+  <!--                                          -->
+  <ba-card baCardClass="with-scroll">
+    <!-- Profile Details -->
+
+  </ba-card>
+</div>

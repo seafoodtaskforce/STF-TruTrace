@@ -1,0 +1,131 @@
+<div>
+    <div>
+      <ng2-smart-table [settings]="settings" 
+          [source]="source" 
+          (deleteConfirm)="onDeleteConfirm($event)"
+          (rowSelect)="onRowSelect($event)"
+          (createConfirm)="onCreateConfirm($event)"
+          (editConfirm)="onEditConfirm($event)"
+          >
+      </ng2-smart-table>   
+    </div> 
+    <div class="separator"></div> 
+
+    <!-- ---------------------------------------- -->
+    <!-- User Admin Details Card                  -->
+    <!--                                          -->
+    <ba-card baCardClass="with-scroll">
+      <!-- Profile Details -->
+      <div class="row">
+      <div class="col-6">
+        <div class="row">
+            <div class="col-sm-2">
+              <div class="form-group">
+                <label for="inputFirstName">First Name</label>
+                <input type="text" class="form-control" id="inputFirstName" placeholder="First Name" 
+                        value={{getCurrentUserFirstName()}}>
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="form-group">
+                <label for="inputLastName">Last Name</label>
+                <input type="text" class="form-control" id="inputLastName" placeholder="Last Name"
+                        value={{getCurrentUserLastName()}}>
+              </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                  <label for="inputUserName">Username</label>
+                  <input type="text" class="form-control" id="inputUserName" placeholder="Username"
+                        value={{getCurrentUserUserName()}}>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group">
+                  <label for="inputCellNumber">Cell#</label>
+                  <input type="text" class="form-control" id="inputCellNumber" placeholder="Cell#"
+                      value={{getCurrentUserCellNumber()}}>
+                </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-4">
+              <div class="form-group">
+                <label for="inputEmail">Email</label>
+                <input type="email" class="form-control" id="inputEmail" placeholder="Email"
+                      value={{getCurrentUserEmail()}}>
+              </div>
+            </div>
+            <div class="col-sm-5">
+              <div class="form-group">
+                  <label for="inputOrganization">Organization</label>
+                  <input type="text" class="form-control" id="inputOrganization" placeholder="inputOrganization" disabled
+                        value={{getCurrentUserOrganizationType()}} [ngStyle]="{'color':'black'}">
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Details Table with Additional Data - Tree-like view--> 
+        <div class="col-6">
+            <div class="horizontal-scroll">
+                <table class="table table-bordered">
+                  <thead>
+                  <tr>
+                    <th style="width:50px"></th>
+                    <th style="width:120px">User Type</th>
+                    <th style="width:400px" class="align-left">Doc Type</th>
+                    <th class="align-left">Permissions</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <ng-container *ngFor="let role of currUserRoles; let i = index">
+                      <ng-container *ngFor="let docType of role.docTypes; let j = index">
+                          
+                        <tr *ngIf="j === 0 || (showRoleAdminDetails === true && role === currUserRole )">
+                          <td class="align-right" *ngIf="j===0">
+                            <input type="checkbox" [(ngModel)]="role.isActive" />
+                          </td>
+                          <td class="align-right" *ngIf="j!=0">
+                            <!-- Empty--> 
+                          </td>
+
+                          <td *ngIf="j===0" ngClass="nowrap" 
+                              (click)="showDetails(role)"
+                              onmouseover="" style="cursor: pointer;"
+                              [ngStyle]="{'background-color': getBackgroundColorHighlight(role.id)}">
+                              {{ role.roleName }}
+                          </td>
+                          <td *ngIf="j != 0" ngClass="nowrap">
+                            <!-- Empty--> 
+                          </td> 
+
+                          <td class="align-left" *ngIf="showRoleAdminDetails === true && role === currUserRole">
+                              {{docType.docTypeName + " - " + docType.value}}
+                          </td>
+                          <td class="align-left" *ngIf="!(showRoleAdminDetails === true && role === currUserRole)">
+
+                          </td>
+                          <td class="align-left" *ngIf="showRoleAdminDetails === true && role === currUserRole"
+                              (click)="showPermissionDetails(docType.permissions)">
+                              {{getShortenedPermissions(docType.permissions)}}
+                          </td>
+                          <td class="align-left" *ngIf="!(showRoleAdminDetails === true && role === currUserRole)">
+                          </td>
+                        </tr>
+                      </ng-container>
+                  </ng-container>
+                  </tbody>
+                </table>
+              </div>
+        </div>
+      </div>
+      <div>
+        <button type="submit" class="btn btn-primary col-1" style="float: down; padding:10px; margin-top:10px">Save</button>
+        <div class="form-group col-6" style="float: right; padding-top:10px; margin-left:40px">
+            <input type="text" class="form-control" id="inputPremissionsDetails" placeholder="Permission Details" disabled
+                  value={{currPermissionDetails}} [ngStyle]="{'color':'black'}">
+        </div>
+      </div>
+    </ba-card>
+</div>

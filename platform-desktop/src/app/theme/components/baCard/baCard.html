@@ -1,0 +1,24 @@
+<div *ngIf="cardVisible" baCardBlur class="animated fadeIn card {{cardType}} {{baCardClass || ''}}" zoom-in>
+    <div *ngIf="cardTitle" class="card-header clearfix">
+        <h3 class="card-title" translate>
+            {{cardTitle}}
+            <button *ngIf="showButton" type="button" class="btn btn-danger btn-with-icon btn-xs" style="float: right, bottom;" 
+                id="traceBtn" (click)="dismissWindow($event)">
+                <i class="ion-ios-browsers-outline"></i>
+                {{showButtonTitle}}
+            </button>
+            <button *ngIf="showDocsFilterButton" type="button" class="btn btn-default btn-xs" style="float: right, bottom;" 
+                id="docsFilterBtn" (click)="filterDocsWindow($event)">
+                {{showDocsFilterButtonTitle}}
+            </button>
+            <button *ngIf="showAllDocTraceFilterButton" type="button" class="btn btn-default btn-xs" style="float: right, bottom;" 
+                id="docsTraceFilterBtn" (click)="filterTraceDocsWindow($event)">
+                {{showAllDocTraceFilterButtonTitle}}
+            </button>
+        </h3>
+        
+    </div>
+    <div class="card-body">
+        <ng-content></ng-content>
+    </div>
+</div>

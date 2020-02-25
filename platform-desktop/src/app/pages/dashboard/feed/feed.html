@@ -1,0 +1,38 @@
+<div class="feed-messages-container">
+  <div class="feed-message" *ngFor="let document of documents" (click)="showDetails(document.id)">
+    <div class="message-icon">
+      <img class="photo-icon" src="/assets/img/app/profile/thai_man.png">
+    </div>
+    <div class="text-block text-message ">
+      <div class="message-header">
+        <span class="author">{{ document.owner }}</span>
+      </div>
+      <div class="message-content line-clamp accent" >
+        {{ document.documentType }}
+      </div>
+      <div class="message-time">
+        <div class="post-time">
+          {{ document.creationTimestamp }}
+        </div>
+        <div class="ago-time">
+          {{ document.syncID.substring(0,23) }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div>
+  <div *ngIf="flag">
+    <ul>
+      <li *ngFor="let page of currentDocument.pages">
+        {{page.id}} | {{page.number}}
+      </li>
+    </ul>
+  {{currentDocument.pages}}
+    <ul>
+      <li *ngFor="let document of documents">
+        {{document.id}} | {{document.owner}}
+      </li>
+    </ul>
+  </div>
+</div>

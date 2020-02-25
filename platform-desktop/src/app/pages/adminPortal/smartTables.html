@@ -1,0 +1,111 @@
+<div class="widgets">
+
+  <div class="row">
+    <ba-card cardTitle="Admin Portal" baCardClass="with-scroll" class="smart-table-container">
+      <div>
+        <ul id="admin-portal-nav" class="nav nav-pills" role="tablist">
+             
+            <!-- User Admin Tab -->
+            <li class="nav-item" (click)="tabClick($event, 'User Admin')">
+                <a class="nav-link active" href="#users" id="users-tab" role="tab" data-toggle="tab" aria-controls="users" aria-expanded="true">
+                    Manage Users
+                </a>
+            </li>
+
+            <!-- Tag Tab -->
+            <li class="nav-item" (click)="tabClick($event, 'Tags Admin')">
+                <a class="nav-link" href="#tags" id="tags-tab" role="tab" data-toggle="tab" aria-controls="tags">
+                    Manage Tags 
+                </a>
+            </li>    
+            
+            
+            <!-- Notification Tab -->
+            <li class="nav-item" (click)="tabClick($event, 'Notifications Admin')">
+                <a class="nav-link" href="#notifications" id="notifications-tab" role="tab" data-toggle="tab" aria-controls="notifications">
+                    Manage Notifications
+                </a>
+            </li>    
+            
+            <!-- Organization Type Admin Tab -->
+            <li *ngIf="loggedInUser.roles[0].value ==='Super Admin'" class="nav-item" (click)="tabClick($event, 'Organization Type Admin')">
+                <a class="nav-link" href="#organization-types" role="tab" id="organization-types-tab" data-toggle="tab" aria-controls="organization-types">
+                    Manage Required Documents
+                </a>
+            </li>
+
+            <!-- Document Type Admin Tab -->
+            <li *ngIf="loggedInUser.roles[0].value ==='Super Admin'" class="nav-item" (click)="tabClick($event, 'Document Type Admin')">
+                <a class="nav-link" href="#doc-types" role="tab" id="doc-types-tab" data-toggle="tab" aria-controls="doc-types">
+                    Document Creation Management
+                </a>
+            </li>
+
+            <!-- Organization Admin Tab -->
+            <li *ngIf="loggedInUser.roles[0].value ==='Super Admin'" class="nav-item" (click)="tabClick($event, 'Organizations Admin')">
+                <a class="nav-link" href="#organizations" role="tab" id="organizations-tab" data-toggle="tab" aria-controls="organizations">
+                    Manage Organizations
+                </a>
+            </li>
+
+            <!-- Stages Admin Tab -->
+            <li class="nav-item" (click)="tabClick($event, 'Stages Admin')">
+                <a class="nav-link" href="#stages" role="tab" id="stages-tab" data-toggle="tab" aria-controls="stages">
+                    Stage Management
+                </a>
+            </li>
+
+
+        </ul>
+
+        <!-- Content Panel -->
+        <div id="admin-portal-nav-content" class="tab-content">
+
+            <!-- User Admin Content -->
+            <div *ngIf="loggedInUser.roles[0].value ==='Super Admin'" role="tabpanel" class="tab-pane fade show active" id="users" aria-labelledby="users-tab">
+                <user-admin-table></user-admin-table>
+            </div>
+            <div *ngIf="loggedInUser.roles[0].value !=='Super Admin'" role="tabpanel" class="tab-pane fade show active" id="users" aria-labelledby="users-tab">
+                <user-org-admin-table></user-org-admin-table>
+            </div>
+
+            <!-- Tag Content -->
+            <div role="tabpanel" class="tab-pane fade" id="tags" aria-labelledby="tags-tab">
+                <tag-admin-table></tag-admin-table>
+            </div>    
+            
+            <!-- Notifications Content -->
+            <div role="tabpanel" class="tab-pane fade" id="notifications" aria-labelledby="notifications-tab">
+                <notification-admin-table></notification-admin-table>
+            </div>  
+            
+            <!-- Linked Docs Content -->
+            <div role="tabpanel" class="tab-pane fade" id="organization-types" aria-labelledby="organization-types-tab">
+                
+                <organization-type-admin-table></organization-type-admin-table>
+            </div>
+            
+            <!-- Organization Admin Content -->
+            <div role="tabpanel" class="tab-pane fade" id="organizations" aria-labelledby="organizations-tab">
+                <organization-admin-table></organization-admin-table>
+            </div>
+
+            <!-- Doc Types Admin Content -->
+            <div role="tabpanel" class="tab-pane fade" id="doc-types" aria-labelledby="doc-types-tab">
+                <doc-type-admin-table></doc-type-admin-table>
+            </div>
+
+            <!-- Stages Admin Content -->
+            <div role="tabpanel" class="tab-pane fade" id="stages" aria-labelledby="stages-tab">
+                <stages-admin-table></stages-admin-table>
+            </div>
+
+        </div>
+
+      </div>
+
+
+    </ba-card>
+  </div>
+
+</div>
