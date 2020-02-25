@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#00838f</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <!--
+    <color name="colorAccent">#ffffff</color> -->
+    <color name="colorAccent">#02aceb</color>
+    <color name="app_primary">#1976D2</color>
+    <color name="app_primary_dark">#1565C0</color>
+    <color name="grey">#DDDDDD</color>
+    <color name="light_grey">#EEEEEE</color>
+    <color name="white_transparent">#99FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="teal_background">#00838F</color>
+    <color name="purple_background">#34213d</color>
+
+
+    <color name="white_text">#ffffff</color>
+    <color name="login_hint_highlight">#862479</color>
+
+    <!-- FAB Colors -->
+    <color name="colorFAB5">#E040FB</color>     <!-- Fishmeal Lot Traceability Color -->
+    <color name="colorFAB4">#ffff00</color>     <!-- Feed Lot Sheet Color -->
+    <color name="colorFAB3">#ff0000</color>     <!-- Fishing Log Book Color -->
+    <color name="colorFAB2">#F2AB00</color>     <!-- Captain Statement Color -->
+    <color name="colorFAB1">#0033cc</color>     <!-- MCPD Color -->
+    <color name="colorFABMenu">#33cc33</color>
+
+    <color name="colorFAB5Pressed">#e250fb</color>
+    <color name="colorFAB4Pressed">#e6e600</color>
+    <color name="colorFAB3Pressed">#ff3333</color>
+    <color name="colorFAB2Pressed">#cc8f00</color>
+    <color name="colorFAB1Pressed">#0040ff</color>
+    <color name="colorFABMenuPressed">#2eb82e</color>
+
+    <!-- Document Filter Colors -->
+    <color name="colorPeekSection_DocumentFilter">#D00099CC</color>
+    <color name="colorBodySection_DocumentFilter">#D0aaaaaa</color>
+
+    <!-- Background Dimmer -->
+    <color name="colorBackgroundDimmer">#CC000000</color>
+
+    <!-- Open CV Note Scanner -->
+    <color name="black_overlay">#66000000</color>
+
+    <!-- DOC STATUS COLORS -->
+    <color name="color_DRAFT">#5BC0DE</color>
+    <color name="color_SUBMITTED">#428BCA</color>
+    <color name="color_PENDING">#F0AD4E</color>
+    <color name="color_ACCEPTED">#5CB85C</color>
+    <color name="color_REJECTED">#D9534F</color>
+    <color name="color_RESUBMITTED">#428BCA</color>
+
+    <color name="solidCircle">#AAFFFFFF</color>
+
+    <color name="circleBorder">#50FFFFFF</color>
+    <!--
+    <color name="light_grey_custom">#Cb3b3b3</color> -->
+    <color name="light_grey_custom">#f2f2f2</color>
+
+
+
+</resources>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/context_menu_document_tag"
+        android:icon="@drawable/ic_document_tag"
+        android:title="@string/document_tag_management"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/context_menu_document_link"
+        android:icon="@drawable/ic_document_link"
+        android:title="@string/document_linked_document_management"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/context_menu_document_attach"
+        android:icon="@drawable/ic_attach"
+        android:title="@string/document_attached_document_management"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/context_menu_document_add_recipients"
+        android:icon="@drawable/ic_group_add_black_24dp"
+        android:title="@string/document_recipients_document_management"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/context_menu_document_delete"
+        android:icon="@drawable/ic_document_context_menu_delete_black"
+        android:title="@string/document_context_menu_delete"
+        app:showAsAction="always"/>
+
+</menu>

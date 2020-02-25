@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A CardView that contains a TextView -->
+<android.support.v7.widget.CardView
+xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_view_chosenTag"
+    android:layout_width="wrap_content"
+    android:layout_height="35dp"
+    card_view:cardElevation="10dp"
+    card_view:cardCornerRadius="4dp"
+    android:clickable="true"
+    android:layout_margin="1dp">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/relativeLayoutChosenTags"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/tv_chosenTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alphabet text"
+            android:textSize="16sp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:layout_alignParentTop="true"
+
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true" />
+
+        <Button
+            android:id="@+id/buttonDeleteTag"
+            android:layout_width="29dp"
+            android:layout_height="29dp"
+            android:background="@android:drawable/ic_delete"
+            android:layout_toRightOf="@+id/tv_chosenTag"
+            android:elevation="5dp"
+            android:gravity="center"
+            android:text="" />
+    </RelativeLayout>
+</android.support.v7.widget.CardView>
+
+
+
+
+

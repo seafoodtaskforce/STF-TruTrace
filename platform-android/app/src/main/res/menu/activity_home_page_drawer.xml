@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_profile"
+            android:icon="@drawable/ic_profile_edit"
+            android:title="@string/profile_menu_option" />
+
+        <!--
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/home"
+            android:title="@string/home_menu_option" />
+        <item
+            android:id="@+id/nav_documents"
+            android:icon="@drawable/my_document"
+            android:title="@string/my_documents_menu_option" />
+        <item
+            android:id="@+id/nav_search"
+            android:icon="@drawable/search_for_top_nav"
+            android:title="@string/search_menu_option" />
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/setting"
+            android:title="@string/settings_menu_option" />
+            -->
+        <item
+            android:id="@+id/nav_logout"
+            android:icon="@drawable/log_out"
+            android:title="@string/logout_menu_option" />
+    </group>
+</menu>

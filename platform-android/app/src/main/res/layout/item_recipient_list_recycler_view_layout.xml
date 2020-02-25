@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A CardView that contains a TextView -->
+<android.support.v7.widget.CardView
+xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="70dp"
+    card_view:cardElevation="10dp"
+    card_view:cardCornerRadius="4dp"
+    android:clickable="true"
+    android:layout_margin="1dp">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/relativeLayoutRecipientCard"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:id="@+id/layoutRightPanel"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_toRightOf="@+id/checkBox"
+            android:orientation="horizontal"
+            android:paddingLeft="@dimen/fab_labels_margin">
+
+            <TextView
+                android:id="@+id/textViewRecipientOrganization"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/textViewRecipientName"
+                android:layout_alignParentTop="true"
+                android:text="TextView" />
+
+            <TextView
+                android:id="@+id/textViewRecipientName"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_alignParentBottom="true"
+                android:layout_gravity="left"
+                android:text="Alphabet text"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <CheckBox
+            android:id="@+id/checkBox"
+            android:layout_width="29dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentBottom="true"
+            android:text=""
+            android:theme="@style/CheckBoxFilterStyle" />
+    </RelativeLayout>
+</android.support.v7.widget.CardView>
+
+
+
+
+

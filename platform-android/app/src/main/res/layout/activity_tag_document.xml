@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".DocumentTaggingActivity">
+
+    <TextView
+        android:id="@+id/tv_activityLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:background="@color/colorPrimary"
+        android:padding="6dp"
+        android:text="@string/document_tag_management"
+        android:textColor="@android:color/background_light"
+        android:textStyle="bold" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerViewChosenTags"
+        android:scrollbars="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_below="@id/tv_activityLabel"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerViewTagList"
+        android:scrollbars="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/recyclerViewChosenTags"
+        android:layout_above="@+id/buttonCancelTagging" />
+
+    <com.viethoa.RecyclerViewFastScroller
+        android:id="@+id/fast_scroller"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/recyclerViewChosenTags"
+        android:layout_above="@+id/buttonSaveTagging"/>
+    <View
+        android:id="@+id/dividerTop"
+        android:layout_below="@id/recyclerViewChosenTags"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"/>
+
+    <View
+        android:id="@+id/dividerBottom"
+        android:layout_below="@id/recyclerViewTagList"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"/>
+
+    <Button
+        android:id="@+id/buttonSaveTagging"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/document_tag_save_tagging"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_toLeftOf="@+id/recyclerViewChosenTags"
+        style="?android:attr/borderlessButtonStyle"/>
+
+    <Button
+        android:id="@+id/buttonCancelTagging"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/buttonSaveTagging"
+        android:layout_toStartOf="@+id/buttonSaveTagging"
+        android:text="@string/document_tag_cancel_tagging"
+        style="?android:attr/borderlessButtonStyle"/>
+
+    <Button
+        android:id="@+id/buttonCreateNewTag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/buttonCancelTagging"
+        android:layout_toStartOf="@+id/buttonCancelTagging"
+        android:text="@string/document_tag_create_new"
+        style="?android:attr/borderlessButtonStyle"/>
+
+
+</RelativeLayout>

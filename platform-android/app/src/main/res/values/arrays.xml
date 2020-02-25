@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="custom_tag_prefixes">
+        <item>@string/tag_prefix_empty</item>
+        <item>@string/tag_prefix_invoice</item>
+        <item>@string/tag_prefix_md</item>
+        <item>@string/tag_prefix_fmd</item>
+        <item>@string/tag_prefix_fif</item>
+    </string-array>
+</resources>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".DocumentRecipientsActivity">
+
+    <TextView
+        android:id="@+id/tv_activityLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:background="@color/colorPrimary"
+        android:padding="6dp"
+        android:text="@string/document_recipients_document_management"
+        android:textColor="@android:color/background_light"
+        android:textStyle="bold" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="16dp"
+        android:indeterminate="true"
+        android:layout_below="@id/tv_activityLabel"
+        android:visibility="invisible" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerViewChosenRecipients"
+        android:scrollbars="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_below="@id/tv_activityLabel"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerViewRecipientsList"
+        android:scrollbars="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/recyclerViewChosenRecipients"
+        android:layout_above="@+id/buttonCancelRecipients" />
+
+    <com.viethoa.RecyclerViewFastScroller
+        android:id="@+id/fast_scroller"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/recyclerViewChosenRecipients"
+        android:layout_above="@+id/buttonSaveRecipients"/>
+    <View
+        android:id="@+id/dividerTop"
+        android:layout_below="@id/recyclerViewChosenRecipients"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"/>
+
+    <View
+        android:id="@+id/dividerBottom"
+        android:layout_below="@id/recyclerViewRecipientsList"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"/>
+
+    <Button
+        android:id="@+id/buttonSaveRecipients"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/document_tag_save_tagging"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_toLeftOf="@+id/recyclerViewChosenRecipients"
+        style="?android:attr/borderlessButtonStyle"/>
+
+    <Button
+        android:id="@+id/buttonCancelRecipients"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/buttonSaveRecipients"
+        android:layout_toStartOf="@+id/buttonSaveRecipients"
+        android:text="@string/document_tag_cancel_tagging"
+        style="?android:attr/borderlessButtonStyle"/>
+
+
+</RelativeLayout>
