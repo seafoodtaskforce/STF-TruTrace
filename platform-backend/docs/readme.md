@@ -23,7 +23,7 @@ The project is provided as an eclipse source code project with Maven dependencie
 You will need to setup tomcat (or other J2EE) server to host the RESTful services which can be deployed as WAR file.
 
 ```
-Do that directly from eclipse by right-clicking on the project, choosing "Export" option and then "WAR file" as the output.  
+Right-click on the project in Eclipse, choose "Export" option, and then "WAR file" as the output.  
 ```
 
 Once you have the WAR file you can simply:
