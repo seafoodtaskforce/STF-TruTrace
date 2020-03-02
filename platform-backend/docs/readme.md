@@ -1,4 +1,4 @@
-# # TruTrace - Backend Services
+# TruTrace - Backend Services
 
 The goal of this software application (SA) is to provide a simple, easy-to-use, free SA that can be used on a mobile device or desktop to house and provide ease of flow of documentation throughout the supply chain that is required under the ***Seafood Task Force's*** (STF) electronic traceability (i.e. track and trace) program.
 
@@ -7,15 +7,15 @@ This is a collection of RESTful services which wrap around a number of DAO servi
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See \STF-TruTrace\docs\deployment for notes on how to deploy the project on a live system without the need for code.
 
 ### Prerequisites
 
-Please read the general architecture and deployment documents in the \STF-TruTrace\docs\architecture and \STF-TruTrace\docs\deployment directories respectively on how to build and deploy this project as well as what technology is utilized.
+If you want to know more about the code and customization of the application then please read the general architecture and deployment documents in the \platform-backend\docs\architecture and \platform-backend\docs\deployment directories respectively on how to build and deploy this project as well as what technology is utilized.
 
 This project is the back-end set of RESTful services which other clients such as android, iOS, or Html could utilize as long as they follow the provided RESTful contracts. 
 
-The project is provided as an eclipse source code project with Maven dependencies configuration. You will find it in the \STF-TruTrace\platform-backend directory and you should be able to import it into eclipse as a project.
+The project is provided as an eclipse source code project with Maven dependencies configuration. You will find it in the \platform-backend directory and you should be able to import it into eclipse as a project.
 
 
 ### Installing and Running the code
@@ -85,7 +85,9 @@ You can query the server version through this RESTful URL:
 ```
 http://localhost:8080/WWFShrimpProject_v2/api_v2/server/version
 ```
-NOTE:The path specified above (**WWFShrimpProject_v2/api_v2/**) can be configured toyour specfic needs.
+
+**NOTE:** The path specified above (**WWFShrimpProject_v2/api_v2/**) can be configured to your specific needs.
+
 ## Authors
 
 * **Republic Systems** - *Phase 1* - [RepublicSystems](http://republicsystems.com/)
