@@ -27,7 +27,7 @@ Please read [Server-Side-README.md](https://github.com/republic-systems/deloitte
 Make sure to configure the client with proper server URL which would be best set as a secure, https based, url.  
 ```
 ### Securing the client
-When setting the client with RESTful access, if the backend services are provided through an *https* URL prefix then the Android client needs to simply point to that https based URL.
+When setting the client with RESTful access, if the backend services are provided through an *https* URL prefix then the Android client needs to simply point to that *https* based URL.
 
 ## Deployment
 
