@@ -82,7 +82,7 @@ Once the server has started you should be able to run the desktop as follows:
 
 You should see a login screen:
 
-![Login Page Sample Blank](https://github.com/seafoodtaskforce/STF-TruTrace/blob/master/deployment/artifacts/desktop.login.page.filled.png)
+![Login Page Sample Blank](https://github.com/seafoodtaskforce/STF-TruTrace/blob/master/deployment/artifacts/desktop.login.page.png)
 
 Login with Admin and admin as your user-name and password:
 
