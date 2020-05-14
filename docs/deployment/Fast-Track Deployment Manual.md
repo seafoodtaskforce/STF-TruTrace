@@ -88,6 +88,6 @@ Login with Admin and admin as your user-name and password:
 
 ![Login Page Sample Filled](https://github.com/seafoodtaskforce/STF-TruTrace/blob/master/deployment/artifacts/desktop.login.page.filled.png)
 
-##Summary##
+## Summary ##
 Once you have been able to set this up you will be able to add users and documents and see traces. Please refer to the specific manuals for learning how to use the application.
 
