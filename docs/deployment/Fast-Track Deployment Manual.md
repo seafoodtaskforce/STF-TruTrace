@@ -1,4 +1,4 @@
-# Fast-Track Deployment Document#
+# Fast-Track Deployment Document #
 
 This document will outline a fast-track version of setting up the application environment for the database, Back-End services, and the web-application. At the end of this process you should have accomplished the following:
 
@@ -82,11 +82,11 @@ Once the server has started you should be able to run the desktop as follows:
 
 You should see a login screen:
 
-![alt text](https://github.com/[seafoodtaskforce]/[STF-TruTrace]/blob/[deployment]/[artifacts]/desktop.login.page.png?raw=true)
+![alt text](https://github.com/STF-TruTrace/blob/master/deployment/artifacts/desktop.login.page.png)
 
 Login with Admin and admin as your user-name and password:
 
-![alt text](https://github.com/[seafoodtaskforce]/[STF-TruTrace]/blob/[deployment]/[artifacts]/desktop.login.page.png?raw=true)
+![alt text](https://github.com/STF-TruTrace/blob/master/deployment/artifacts/desktop.login.page.filled.png)
 
 ##Summary##
 Once you have been able to set this up you will be able to add users and documents and see traces. Please refer to the specific manuals for learning how to use the application.

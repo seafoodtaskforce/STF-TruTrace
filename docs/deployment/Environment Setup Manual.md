@@ -1,4 +1,4 @@
-# Application Environment Setup Document#
+# Application Environment Setup Document #
 
 This document will outline the setting up of the environment for the Java Virtual Machine, Database, and Application Server and the Web-Based Desktop application. At the end of this process you should have accomplished the following:
 
@@ -47,7 +47,7 @@ We will need to setup the database environment for our data layer. We will be in
 
 You can install it from here: [MySQL Workbench Installer](https://dev.mysql.com/downloads/workbench/ "MySQL Workbench Installer")
 
-# Application Server Environment#
+# Application Server Environment #
 We will need to setup the server environment which will run the back-end services as well as the desktop web-application. We will be using Tomcat Application server version 7.x (we tested it on this version)
 
 **NOTE:** This step depends on having properly setup the Java Environment outlined above.
