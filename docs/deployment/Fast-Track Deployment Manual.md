@@ -23,7 +23,8 @@ Here what we will do is setup the table structure for the database which will cr
 	2. Alternatively, you can do this through the command line as shown here: [Generate DB from SQL using command line](https://stackoverflow.com/questions/8940230/how-to-run-sql-script-in-mysql)
 
 **Ensure Admin Access**
-The script should create a Super Admin which will have a `user-name: "admin" and password: "admin"` which you will use later to log into the Admin Portal. 
+
+The script should create a `Super Admin` which will have a `user-name: "admin" and password: "admin"` which you will use later to log into the Admin Portal. 
 
 
 ## Deploy The Back-end Services ##
@@ -54,7 +55,7 @@ which should produce something like this:
 
 Once this setup is done and the server is running you can then run the web-Based Desktop Application.
 
-**NOTE** if you have setup the back-end services remotely then you should be able to hit the services through a public IPv4 address (for example):
+**NOTE:** if you have setup the back-end services to be accessed remotely, then you should be able to hit the services through a public IPv4 address (for example):
 
 `http://www.somedomain.com:8080/WWFShrimpProject_v2/api_v2/server/summary`
 
