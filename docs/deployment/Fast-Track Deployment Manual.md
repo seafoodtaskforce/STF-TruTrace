@@ -82,11 +82,11 @@ Once the server has started you should be able to run the desktop as follows:
 
 You should see a login screen:
 
-![alt text](https://github.com/STF-TruTrace/blob/master/deployment/artifacts/desktop.login.page.png)
+![Login Page Sample Blank](https://github.com/seafoodtaskforce/STF-TruTrace/blob/master/deployment/artifacts/desktop.login.page.filled.png)
 
 Login with Admin and admin as your user-name and password:
 
-![alt text](https://github.com/STF-TruTrace/blob/master/deployment/artifacts/desktop.login.page.filled.png)
+![Login Page Sample Filled](https://github.com/seafoodtaskforce/STF-TruTrace/blob/master/deployment/artifacts/desktop.login.page.filled.png)
 
 ##Summary##
 Once you have been able to set this up you will be able to add users and documents and see traces. Please refer to the specific manuals for learning how to use the application.
