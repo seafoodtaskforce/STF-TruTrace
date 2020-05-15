@@ -1,6 +1,9 @@
 # Introduction #
+Effective traceability tools—that can be widely adopted at scale—must be low cost and developed to maximize ease of use by companies and less sophisticated producers and processors along their supply chain. 
 
-    <TODO>
+TruTrace is a cloud-based smartphone app and web portal that can connect entire supply chains from beginning to end. 
+To ensure the app is equally accessible to each stage of the supply chain, it is open source and publicly available here on GitHub for any supply chain actor to utilize. This way farmers, consumers, and everyone in between can utilize the app without paying licensing fees that have hindered traceability efforts in the past.
+  
 
 # How This Application's Code Is Organized #
 
