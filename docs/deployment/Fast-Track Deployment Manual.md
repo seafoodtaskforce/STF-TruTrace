@@ -24,7 +24,7 @@ Here what we will do is setup the table structure for the database which will cr
 
 **Ensure Admin Access**
 
-The script should create a `Super Admin` which will have a `user-name: "admin" and password: "admin"` which you will use later to log into the Admin Portal. 
+The script should create a `Super Admin` which will have a `user-name: "trutrace.admin" and password: "admin"` which you will use later to log into the Admin Portal. 
 
 
 ## Deploy The Back-end Services ##
