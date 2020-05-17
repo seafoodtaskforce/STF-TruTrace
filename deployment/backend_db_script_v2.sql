@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 5.7.9, for Win32 (AMD64)
+﻿-- MySQL dump 10.13  Distrib 5.7.9, for Win32 (AMD64)
 --
 -- Host: localhost    Database: wwf_shrimp_database_v2
 -- ------------------------------------------------------
@@ -571,6 +571,17 @@ CREATE TABLE `organization` (
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+
+--
+-- Dumping data for table `organization`
+--
+
+LOCK TABLES `organization` WRITE;
+/*!40000 ALTER TABLE `organization` DISABLE KEYS */;
+INSERT INTO `organization` VALUES (1,'Organization-0','Default Organization', 0);
+/*!40000 ALTER TABLE `organization` ENABLE KEYS */;
+UNLOCK TABLES;
+
 --
 -- Table structure for table `organization_group_rel_tree`
 --
@@ -653,6 +664,16 @@ CREATE TABLE `role` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `role`
+--
+
+LOCK TABLES `role` WRITE;
+/*!40000 ALTER TABLE `role` DISABLE KEYS */;
+INSERT INTO `role` VALUES (1,'Admin','Admin'),(2,'Super Admin','Super Admin'),(3,'General','General'),(4,'General','General'),(5,'Auditor','Auditor'),(6,'User','User');
+/*!40000 ALTER TABLE `role` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `role_permission`
 --
 
@@ -720,6 +741,16 @@ CREATE TABLE `supported_languages` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='name - the iso code for the language\nvalue - the full name of the supported language';
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `supported_languages`
+--
+
+LOCK TABLES `supported_languages` WRITE;
+/*!40000 ALTER TABLE `supported_languages` DISABLE KEYS */;
+INSERT INTO `supported_languages` VALUES (1,'en','English'),(2,'th','Thai - ภาษาไทย'),(3,'vi','Vietnamese'),(4,'in','Indonesian'),(5,'te','Telagu'),(6,'hi','Hindi');
+/*!40000 ALTER TABLE `supported_languages` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `supported_languages_org_rel`
@@ -822,6 +853,16 @@ CREATE TABLE `user` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `user`
+--
+
+LOCK TABLES `user` WRITE;
+/*!40000 ALTER TABLE `user` DISABLE KEYS */;
+INSERT INTO `user` VALUES (1,'trutrace.admin','admin',0,NULL);
+/*!40000 ALTER TABLE `user` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `user_contact`
 --
 
@@ -842,6 +883,16 @@ CREATE TABLE `user_contact` (
   CONSTRAINT `fk_user_contact_user1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=157 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_contact`
+--
+
+LOCK TABLES `user_contact` WRITE;
+/*!40000 ALTER TABLE `user_contact` DISABLE KEYS */;
+INSERT INTO `user_contact` VALUES (1,'truetrace.admin@pilot.org','0000000000',1,'admin','admin','admin',NULL);
+/*!40000 ALTER TABLE `user_contact` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `user_group`
@@ -880,6 +931,16 @@ CREATE TABLE `user_organization` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `user_organization`
+--
+
+LOCK TABLES `user_organization` WRITE;
+/*!40000 ALTER TABLE `user_organization` DISABLE KEYS */;
+INSERT INTO `user_organization` VALUES (1,1);
+/*!40000 ALTER TABLE `user_organization` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `user_role`
 --
 
@@ -896,6 +957,16 @@ CREATE TABLE `user_role` (
   CONSTRAINT `fk_user_role_user1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_role`
+--
+
+LOCK TABLES `user_role` WRITE;
+/*!40000 ALTER TABLE `user_role` DISABLE KEYS */;
+INSERT INTO `user_role` VALUES (1,2);
+/*!40000 ALTER TABLE `user_role` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Dumping events for database 'wwf_shrimp_database_v2'
