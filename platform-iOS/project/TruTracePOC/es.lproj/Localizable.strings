@@ -1,0 +1,214 @@
+/* 
+  Localizable.strings
+  TruTracePOC
+
+  Created by Republic Systems on 2020-01-30.
+  Copyright © 2020 Republic Systems. All rights reserved.
+*/
+
+
+//
+// General Global Strings
+"ios_general_document_status_DRAFT" = "BORRADOR";
+"ios_general_document_status_SUBMITTED" = "REMITIDO";
+"ios_general_document_status_PENDING" = "PENDIENTE";
+"ios_general_document_status_ACCEPTED" = "ACEPTADO";
+"ios_general_document_status_REJECTED" = "RECHAZADO";
+"ios_general_document_status_RESUBMITTED" = "REENVIADO";
+
+/*--------------------------------------------------------------------
+Bottom TAB
+*/
+"ios_bottom_tabs_label_home" = "Inicio";
+"ios_bottom_tabs_label_profile" = "Perfil";
+"ios_bottom_tabs_label_mydocs" = "Mis Documentos";
+"ios_bottom_tabs_label_docfeeds" = "Doc Feed";
+
+
+/*--------------------------------------------------------------------
+ Login Page
+ */
+
+/* text field hint username text */
+"ios_login_page_hint_text_username" = "Nombre De Usuario";
+
+/* text field hint password text */
+"ios_login_page_hint_text_password" = "Clave";
+
+/* header for the alert when login fails due to bad credentials */
+"ios_login_page_error_authentication_header" = "Error de autenticación";
+
+/* the text for the user to see to help them correct the issue with authentication */
+"ios_login_page_error_authentication_message" = "Por favor ingrese las credenciales correctas!";
+
+/* The authentication failure alert OK button */
+"ios_login_page_error_authentication_button_OK" = "OK";
+
+/* The login button */
+"ios_login_page_authentication_button_LOGIN" = "Ingreso";
+
+
+//
+// User Data Page
+"ios_user_data_page_navigation_header" = "Datos del usuario";
+"ios_user_data_page_navigation_button_logout" = "Salida";
+"ios_user_data_page_button_change_profile" = "Cambiar el perfil";
+
+"ios_user_data_page_section_header_personal_info" = "Informacion personal";
+"ios_user_data_page_section_personal_info_label_first_name" = "nombre";
+"ios_user_data_page_section_personal_info_label_last_name" = "apellido";
+"ios_user_data_page_section_personal_info_label_nickname" = "sobrenombre";
+
+"ios_user_data_page_section_header_organization_info" = "Información de la organización";
+"ios_user_data_page_section_organization_info_label_organization" = "Organización";
+"ios_user_data_page_section_organization_info_label_lineid" = "LINE ID";
+"ios_user_data_page_section_organization_info_label_email" = "email";
+
+"ios_user_data_page_section_header_security_info" = "Informacion de seguridad";
+"ios_user_data_page_section_security_info_Label_password" = "Clave";
+
+"ios_user_data_page_section_header_storage_info" = "Información de almacenamiento";
+"ios_user_data_page_section_storge_info_Label_offline" = "Fuera de línea";
+"ios_user_data_page_section_storge_info_Label_online" = "En Línea";
+
+//
+// Personal Data Page
+"ios_user_personal_data_navigation_header" = "Datos personales";
+"ios_user_personal_data_section_label_personal_information" = "Informacion personal";
+"ios_user_personal_data_navigation_button_save" = "Guardar";
+"ios_user_personal_data_label_first" = "Nombre de pila";
+"ios_user_personal_data_label_last" = "Apellido";
+"ios_user_personal_data_label_nick" = "Apodo";
+
+//
+// Organization Data Page
+"ios_user_organization_data_navigation_header" = "Datos de la organización";
+"ios_user_organization_data_section_label_organization_information" = "Información de la organización";
+"ios_user_organization_data_navigation_button_save" = "Guardar";
+"ios_user_organization_data_label_linerid" = "LINE ID";
+"ios_user_organizationdata_label_email" = "email";
+
+//
+// Security Data Page
+"ios_user_security_data_navigation_header" = "Datos de seguridad";
+"ios_user_security__data_section_label_security_information" = "Informacion de seguridad";
+"ios_user_security__data_section_label_security_information_footer" = "Su contraseña debe tener al menos 8 caracteres.";
+"ios_user_security_data_navigation_button_save" = "Guardar";
+"ios_user_security_data_label_new" = "Nuevo";
+"ios_user_security_data_label_verify" = "Verificar";
+"ios_user_security_data_label_hint_new" = "ingrese nueva clave";
+"ios_user_security_data_label_hint_verify" = "Escriba la contraseña otra vez";
+
+//
+// Profile Docs Page
+"ios_profile_docs_Page_navigation_header" = "Documentos de perfil";
+"ios_profile_docs_Page_navigation_button_new" = "Nuevo";
+"ios_profile_docs_Page_navigation_button_filter" = "Filtrar";
+
+//
+// My Docs Page
+"ios_my_docs_Page_navigation_header" = "Mis Documentos";
+"ios_my_docs_Page_navigation_button_new" = "Nuevo";
+"ios_my_docs_Page_navigation_button_filter" = "Filtrar";
+"ios_my_docs_page_permission_alert_header" = "Error de Autorización";
+"ios_my_docs_page_permission_alert_message" = "No tienes permiso para Eliminar este documento";
+"ios_my_docs_page_permission_alert_button_OK" = "OK";
+"ios_my_docs_page_dynamic_doc_info" = "Información del documento";
+
+//
+// Feed Docs Page
+"ios_feed_docs_page_navigation_header" = "Documentos";
+"ios_feed_docs_page_navigation_button_filter" = "Filtrar";
+
+//
+// Document Cell
+"ios_doc_cell_document_type" = "";
+"ios_doc_cell_organization" = "";
+"ios_doc_cell_doc_status" = "";
+
+//
+// Profile Docs Page Filter
+"ios_profile_docs_filter_page_navigation_header" = "Filtro de documentos de perfil";
+"ios_profile_docs_filter_page_navigation_button_done" = "Ejecutado";
+
+"ios_profile_docs_filter_page_section_label_date_range" = "Rango de fechas";
+"ios_profile_docs_filter_page_section_label_date_range_footer" = "Ingrese el rango de fechas para buscar. Tenga en cuenta que las fechas están restringidas a las fechas disponibles para todos los documentos.";
+"ios_profile_docs_filter_page_label_date_range_from" = "Fecha desde";
+"ios_profile_docs_filter_page_label_date_range_to" = "Fecha hasta";
+
+"ios_profile_docs_filter_page_section_label_doc_type" = "Tipo de Documento";
+"ios_profile_docs_filter_page_section_label_doc_type_footer" = "Elija el tipo de documento específico o usuario (ninguno) si no es necesario";
+"ios_profile_docs_filter_page_label_doc_type" = "Tipo";
+
+"ios_profile_docs_filter_page_section_label_submitter_recipient" = "Remitente/Destinatario";
+"ios_profile_docs_filter_page_section_label_submitter_recipient_footer" = "Elija el remitente y/o el destinatario para filtrar.";
+"ios_profile_docs_filter_page_label_submitter" = "Remitente";
+"ios_profile_docs_filter_page_label_recipient" = "Destinatario";
+
+"ios_profile_docs_filter_page_section_label_tag" = "Etiqueta";
+"ios_profile_docs_filter_page_section_label_tag_footer" = "Elija la etiqueta para filtrar";
+"ios_profile_docs_filter_page_label_tag" = "Etiqueta";
+
+//
+// My Docs Page Filter
+"ios_my_docs_filter_page_navigation_header" = "Filtro de Mis Documentos";
+
+//
+// Doc Feed Page Filter
+"ios_feed_docs_filter_page_navigation_header" = "Filtro de documentos";
+
+//
+// Profile Docs Page Details
+"ios_profile_docs_detail_page_navigation_header" = "Detalles";
+"ios_profile_docs_detail_page_navigation_button_cancel" = "Cancelar";
+"ios_profile_docs_detail_page_navigation_button_save" = "Guardar";
+
+"ios_profile_docs_detail_page_section_label_summary" = "Resumen";
+"ios_profile_docs_detail_page_doc_label_type" = "Tipo";
+"ios_profile_docs_detail_page_doc_type" = "";
+"ios_profile_docs_detail_page_doc_status" = "";
+
+"ios_profile_docs_detail_page_section_label_page_gallery" = "Galería de páginas";
+"ios_profile_docs_detail_page_gallery_page" = "Página";
+
+"ios_profile_docs_detail_page_section_label_recipients" = "Destinatarios";
+
+"ios_profile_docs_detail_page_section_label_tags" = "Etiquetas";
+
+"ios_profile_docs_detail_page_section_label_linked_docs" = "Documentos Enlazados";
+
+"ios_profile_docs_detail_page_section_label_backup_docs" = "Documentos de Perfil";
+
+"ios_profile_docs_detail_page_action_save_as_draft" = "Guardar como BORRADOR";
+"ios_profile_docs_detail_page_action_save_as_submit" = "Guardar y ENVIAR";
+"ios_profile_docs_detail_page_action_save_cancel" = "Cancelar";
+"ios_profile_docs_detail_page_action_save_title" = "Guardar opciones";
+"ios_profile_docs_detail_page_action_save_message" = "Elija Opción Guardar";
+
+//
+// New Profile Docs Page Details
+"ios_new_profile_docs_detail_page_navigation_header" = "Nuevo documento";
+
+//
+// Document Cell Page
+"ios_page_cell_page" = "Página";
+
+//
+// Page Details
+"ios_page_detail_navigation_header" = "Página";
+"ios_page_detail_page" = "Página";
+
+//
+// Rejection Notes
+"ios_page_detail_document_button_reject" = "RECHAZAR";
+"ios_page_detail_document_button_accept" = "ACEPTAR";
+"ios_page_detail_document_reject_sheet_header" = "Encabezado";
+"ios_page_detail_document_reject_sheet_body" = "Cuerpo";
+"ios_page_detail_document_reject_sheet_footer" = "PIngrese el motivo de rechazo en forma de nota. Use el encabezado para proporcionar un título y el texto con el motivo principal de rechazo.";
+"ios_page_detail_document_reject_sheet_button_cancel" = "Cancelar";
+"ios_page_detail_document_reject_sheet_button_confirm" = "Confirmar";
+"ios_page_detail_document_reject_sheet_title" = "Notas de rechazo";
+"ios_page_detail_document_reject_show_notes_label" = "Mostrar notas";
+
+
+
