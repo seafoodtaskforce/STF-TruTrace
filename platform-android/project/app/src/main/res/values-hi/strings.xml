@@ -1,0 +1,373 @@
+<resources>
+    <string name="app_name">TruTrace</string>
+
+    <string name="navigation_drawer_open">नेविगेशन दराज खोलें</string>
+    <string name="navigation_drawer_close">नेविगेशन ड्रावर बंद करें</string>
+
+    <string name="action_settings">समायोजन</string>
+
+    <!-- Camera -->
+    <string name="camera_use_still_shot">छवि सहेजें</string>
+    <string name="camera_confirm_shot">पुष्टि करें</string>
+    <string name="camera_retake">पुन: प्रयास करें</string>
+
+    <!-- Login Activity -->
+    <string name="username_field_hint">उपयोगकर्ता नाम</string>
+    <string name="password_field_hint">कुंजिका</string>
+    <string name="password_failed_message">कृपया अपनी साख जांचें</string>
+    <string name="login_button">लॉग इन करें</string>
+
+
+    <!-- Profile Edit Activity -->
+    <string name="profile_update_password_change_button">पासवर्ड बदलें</string>
+    <string name="profile_update_password_cancel_change_button">रद्द करना</string>
+    <string name="profile_update_password_text_header">पासवर्ड बदलें</string>
+    <string name="profile_update_password_button_cancel">रद्द करना</string>
+    <string name="profile_update_password_button_save">सहेजें</string>
+    <string name="profile_update_error_passwords_do_not_match">आपके पासवर्ड मेल नहीं खाते</string>
+    <string name="profile_update_error_passwords_cannot_be_empty">पासवर्ड खाली है</string>
+
+    <string name="profile.email.header">Email</string>
+    <string name="profile.phone.header">फ़ोन नंबर</string>
+    <string name="profiler.lineid.header">LineId</string>
+    <string name="profile.nickname.header">उपनाम</string>
+    <string name="profile.password.header">कुंजिका</string>
+
+    <!-- Drawer -->
+    <string name="home_menu_option">मकान</string>
+    <string name="my_documents_menu_option">दस्तावेज़</string>
+    <string name="profile_menu_option">प्रोफ़ाइल</string>
+    <string name="search_menu_option">खोज</string>
+    <string name="settings_menu_option">समायोजन</string>
+    <string name="language_menu_option">भाषा</string>
+    <string name="logout_menu_option">लॉग आउट</string>
+
+    <!--                -->
+    <!-- Document Types -->
+    <!--                -->
+    <string name="mcpd_document_type">Bill of Lading</string>
+    <string name="fishing_logbook_document_type">Fishing Log Book</string>
+    <string name="ship_license_document_type">Ship License</string>
+    <string name="feed_lot_sheet_document_type">Feed Lot Trace</string>
+    <string name="fishmeal_lot_traceability_document_type">Fishmeal Lot Trace</string>
+    <string name="captain_statement_type">Captain Statement</string>
+
+    <string name="movement_document_bill_of_lading">Bill of Lading</string>
+    <string name="movement_document_document_type">Movement Document</string>
+    <string name="movement_document_crew_documents">Crew Documents</string>
+    <string name="movement_document_farm_documents">Farm Documents</string>
+    <string name="movement_document_feed_documents">Feed Documents</string>
+    <string name="movement_document_fish_meal_documents">Fishmeal Documents</string>
+
+    <!-- New Document Types -->
+    <string name="vessel_captains_statement">Captains Statement</string>
+    <string name="vessel_crew_documents">Crew Documents</string>
+    <string name="vessel_dolphin_safe_book">Dolphin Safe Statement</string>
+    <string name="vessel_fishing_log_book">Fishing Logbook</string>
+    <string name="vessel_fisheries_cert_of_origin">Fisheries Cert of Origin</string>
+    <string name="vessel_mcpd">Marine Catch Purchasing Document</string>
+    <string name="vessel_port_in_out">Port-In /Port-Out Document</string>
+    <string name="vessel_list">Vessel List</string>
+    <string name="vessel_driver_license_document">Vessel Driver License</string>
+
+    <string name="port_docking_bill">Docking Bill</string>
+    <string name="port_docking_logbook">Docking Logbook</string>
+    <string name="port_info_of_conveyance">Info of Conveyance</string>
+    <string name="port_crew_documents">Crew Documents</string>
+    <string name="port_port_in_out">Port In / Out</string>
+    <string name="port_weighing_records">Weighing Record</string>
+
+    <string name="fish_broker_mcpd">MCPD</string>
+
+    <string name="fishmeal_plant_mcpd">Fishmeal MCPD</string>
+    <string name="fishmeal_plant_summary_certification">Fishmeal Certification Of Origin</string>
+    <string name="fishmeal_plant_supply_chain_doc_foreign_fishmeal">Foreign Fishmeal Documents</string>
+    <string name="fishmeal_plant_packing_list_foreign_fishmeal">Fishmeal Packing List</string>
+    <string name="fishmeal_plant_captain_statement">Captain Statement</string>
+    <string name="fishmeal_plant_dolphin_safe_statement">Dolphin Safe Statement</string>
+    <string name="fishmeal_plant_fisheries_cert_of_origin">Fisheries Certification Of Origin</string>
+
+    <string name="fishmeal_broker_fishmeal_mcpd">Fishmeal MCPD</string>
+
+    <string name="feed_mill_feed_lot_shipping_documents">Feed Lot Shipping Document</string>
+    <string name="feed_mill_feed_ingredient_list">Feed Ingredient List</string>
+    <string name="feed_mill_fishmeal_supplychain_document">Fishmeal Supply Chain Doc</string>
+    <string name="feed_mill_fishmeal_packing_list">Fishmeal Packing List</string>
+    <string name="feed_mill_fishmeal_summary_certification">Fishmeal Summary Cert</string>
+    <string name="feed_mill_lot_traceability">Lot Traceability</string>
+    <string name="feed_mill_fishmeal_mcpd">Fishmeal MCPD A,B,C,D</string>
+
+    <string name="feed_broker_feedlot_shipping_documents">Feed Lot Shipping Doc</string>
+
+    <string name="hatchery_fry_movement_document">Fry Movement Document</string>
+    <string name="hatchery_good_aquaculture_practices">Good Aquaculture Practices Cert</string>
+
+    <string name="farm_fry_movement_document">Fry Movement Doc</string>
+    <string name="farm_movement_document">Movement Document</string>
+    <string name="farm_pond_feed_info_sheet">Feed Information Form</string>
+    <string name="farm_good_aquaculture_practices_cert">Good Aquaculture Practices Cert</string>
+    <string name="farmer_license_tor_bor_document">Farmer License (Tor Bor 1)</string>
+    <string name="farm_license_document">खेत का लाइसेंस</string>
+
+    <string name="shrimp_broker_movement_document">Movement Document</string>
+
+    <string name="processor_shrimp_lot_traceability">Shrimp Lot Traceability</string>
+    <string name="processor_shipping_documents">Shipping Documents</string>
+    <string name="processor_bill_of_lading">Bill of Lading</string>
+    <string name="processor_commercial_invoice">Commercial Invoice</string>
+    <string name="processor_batch_sheet_for_lot_of_shrimp">Shrimp Lot Traceability</string>
+    <string name="processor_movement_document">Movement Document</string>
+
+    <string name="dof_labor_certification">DOF Labor Certification</string>
+    <string name="farmer_id_card">Farmer ID Card</string>
+    <string name="code_of_conduct_document">आचार संहिता</string>
+    <string name="hatchery_license_document">हैचरी का लाइसेंस</string>
+    <string name="vessel_registration_document">Vessel Registration</string>
+
+    <string name="factory_license_document">फैक्टरी लाइसेंस</string>
+
+    <string name="importer_bill_of_lading">Bill Of Lading</string>
+    <string name="importer_retail_package_document">Retail Package</string>
+    <string name="importer_container_loading_report">Container Loading Report</string>
+    <string name="processor_phys_org_color_odor_checklist">Phys/Org/Color/Odor Checklist</string>
+    <string name="processor_packing_list">Packing List</string>
+    <string name="processor_rm_inspect_report">R/M Inspect Report</string>
+    <string name="processor_package_inspect_report">Package Inspect Report</string>
+    <string name="feed_inspection_document">Feed Inspection</string>
+    <string name="feed_pellet_mill_report">Pellet Mill Report</string>
+    <string name="feed_production_run_time_document">Production Run time</string>
+    <string name="feed_raw_material_report">Raw Material Report</string>
+
+    <!-- Dialog Box Text -->
+    <string name="logout_dialog_title">लॉगआउट पुष्टि</string>
+    <string name="logout_dialog_text">कृपया पुष्टि करें कि आप लॉगआउट करना चाहते हैं</string>
+    <string name="logout_dialog_button_confirm">लॉग आउट</string>
+    <string name="logout_dialog_button_cancel">रद्द करना</string>
+
+    <!-- Tabs for Documents -->
+    <string name="my_documents_tab_text">मेरे डॉक्स</string>
+    <string name="other_documents_tab_text">दस्तावेज़ फ़ीड</string>
+    <string name="profile_documents_tab_text">दस्तावेज़ प्रोफ़ाइल</string>
+    <string name="profile_doc_type">प्रोफ़ाइल</string>
+    <string name="passthrough_doc_type">निकासी</string>
+
+    <!-- Error Messages -->
+    <string name="error_system_general">सिस्टम में गड़बड़ी</string>
+    <string name="error_system_server_connection">क्लाउड सर्वर से कनेक्ट नहीं हो सकता। आप इंटरनेट से जुडे हैं कृपया यह सुनिश्चित कीजिए।</string>
+    <string name="error_system_unsynced_document">यह दस्तावेज़ अभी तक आपके डिवाइस के साथ समन्वयित नहीं किया गया है।</string>
+
+    <!-- General Dialog Messages -->
+    <string name="dialog_general_OK">ठीक</string>
+    <string name="dialog_general_DONE">किया हुआ</string>
+    <string name="dialog_general_ROTATE">घुमाएँ</string>
+    <string name="dialog_general_SAVE">सहेजें</string>
+
+
+    <!-- Settings Menu Options -->
+    <string name="menu_settings_about">अनुप्रयोग के बारे में</string>
+
+    <!-- Document Context Dialog Menu Options -->
+    <string name="document_context_menu_delete">दस्तावेज़ हटाएँ</string>
+
+    <!-- Multi-Page Custom Document Dialog -->
+    <string name="document_custom_dialog_cancel_heading">दस्तावेज़ निर्माण रद्द करें</string>
+    <string name="document_custom_dialog_cancel_button">रद्द करना</string>
+    <string name="document_custom_dialog_done_button">सहेजें</string>
+    <string name="document_custom_dialog_submit_button">प्रस्तुत</string>
+    <string name="document_custom_dialog_cancel_message">क्या आप वाकई इस दस्तावेज़ के निर्माण को रद्द करना चाहते हैं?</string>
+    <string name="document_custom_dialog_cancel_yes">हाँ</string>
+    <string name="document_custom_dialog_cancel_no">नहीं</string>
+    <string name="document_custom_dialog_cancel_toast_message">दस्तावेज़ निर्माण रद्द करना</string>
+    <string name="document_custom_dialog_done_toast_message">नया दस्तावेज़ बनाना</string>
+    <string name="document_custom_dialog_submit_toast_message">एक दस्तावेज जमा करना</string>
+    <string name="document_custom_dialog_new_page_toast_message">एक नया पेज बनाना</string>
+
+    <string name="document_custom_dialog_tab_details">विवरण</string>
+    <string name="document_custom_dialog_tab_gallery">गैलरी</string>
+    <string name="document_custom_dialog_tab_notes">टिप्पणियाँ</string>
+    <string name="document_custom_dialog_tab_page">पृष्ठ</string>
+
+    <!-- Multi-Page Custom Document Dialog Summary Page -->
+    <string name="document_custom_dialog_summary_document_type">दस्तावेज़ का प्रकार</string>
+    <string name="document_custom_dialog_summary_number_of_pages">पृष्ठों की संख्या: </string>
+    <string name="document_custom_dialog_summary_owner">मालिक</string>
+    <string name="document_custom_dialog_creation_timestamp">समय-चिह्न</string>
+
+    <!-- Multi-Page Custom App Quit Dialog -->
+    <string name="document_custom_dialog_quit_application_heading">आवेदन छोड़ो</string>
+    <string name="document_custom_dialog_quit_app_cancel_button">रद्द करना</string>
+    <string name="document_custom_dialog_quit_app_quit_button">छोड़ना</string>
+    <string name="document_custom_dialog_quit_application_message">क्या आप वाकई आवेदन छोड़ना और बाहर निकलना चाहते हैं?</string>
+
+    <!-- Document Filter Options -->
+    <string name="document_filter_all_user_options">-- सभी उपयोगकर्ताओं</string>
+    <string name="document_filter_all_doctypes_options">-- सभी दस्तावेज़ प्रकार</string>
+    <string name="document_filter_label_doc_types">दस्तावेज़ प्रकार चुनें</string>
+    <string name="document_filter_label_doc_creators">उपयोगकर्ता</string>
+    <string name="document_filter_label_number_of_records">रिकॉर्ड की संख्या:</string>
+    <string name="document_filter_button_dismiss">X</string>
+    <string name="document_filter_label_none">एन / ए</string>
+
+    <!-- Tagging Options -->
+    <string name="document_tag_management">टैग प्रबंधित करें</string>
+    <string name="document_tag_summary_label">टैग</string>
+    <string name="document_tag_cancel_tagging">रद्द करना</string>
+    <string name="document_tag_save_tagging">सहेजें</string>
+    <string name="document_tag_create_new">नया</string>
+    <string name="document_tag_prefix_selection">टैग उपसर्ग का चयन करें</string>
+    <string name="document_tag_dialog_label_new_tag">नया टैग बनाएं</string>
+    <string name="document_tag_dialog_label_enter_custom_tag">कस्टम टैग दर्ज करें</string>
+
+    <!-- Document Linking Options -->
+    <string name="document_linked_document_management">लिंक किए गए दस्तावेज़ प्रबंधित करें</string>
+    <string name="document_linked_document_summary_label">लिंक किए गए दस्तावेज़</string>
+    <string name="document_linked_document_link_button">संपर्क</string>
+    <string name="document_linked_document_unlink_button">अन लिंक</string>
+
+    <!-- Document Attaching Options -->
+    <string name="document_attached_document_management">बैक-अप दस्तावेज़ प्रबंधित करें</string>
+    <string name="document_attached_document_summary_label">बैक-अप दस्तावेज़</string>
+    <string name="document_attached_document_attach_button">संलग्न करें</string>
+    <string name="document_attached_document_unattach_button">अन अटैच</string>
+
+    <!-- Document Recipients Options -->
+    <string name="document_recipients_document_management">दस्तावेज़ प्राप्तकर्ता प्रबंधित करें</string>
+    <string name="document_recipients_document_summary_label">दस्तावेज़ प्राप्तकर्ता</string>
+
+    <!-- Custom Tag Prefixes -->
+    <string name="tag_prefix_mcpd_number">MCPD#</string>
+    <string name="tag_prefix_lot_number">LOT#</string>
+    <string name="tag_prefix_fif_number">FIF#</string>
+    <string name="tag_prefix_empty">New Tag</string>
+    <string name="tag_prefix_invoice">Invoice #</string>
+    <string name="tag_prefix_md">MD:</string>
+    <string name="tag_prefix_fmd">FMD:</string>
+    <string name="tag_prefix_fif">FIF:</string>
+
+
+
+
+    <!-- Document Notes -->
+    <string name="document_notes_header">दस्तावेज़ नोट्स हैडर</string>
+    <string name="document_notes_content">दस्तावेज़ नोट्स विवरण</string>
+    <string name="document_notes_dialog_label_enter_doc_notes">दस्तावेज़ नोट दर्ज करें</string>
+
+    <!-- Document Acceptance Workflow -->
+    <string name="document_acceptance_workflow_status_DRAFT">प्रारूप</string>
+    <string name="document_acceptance_workflow_status_SUBMITTED">SUBMITTED</string>
+    <string name="document_acceptance_workflow_status_PENDING">PENDING</string>
+    <string name="document_acceptance_workflow_status_ACCEPTED">स्वीकार किए जाते हैं</string>
+    <string name="document_acceptance_workflow_status_REJECTED">REJECTED</string>
+    <string name="document_acceptance_workflow_status_RESUBMITTED">RESUBMITTED</string>
+    <string name="document_acceptance_workflow_dialog_accept">क्या आप वाकई इस दस्तावेज़ को स्वीकार करना चाहते हैं?</string>
+    <string name="document_acceptance_workflow_dialog_delete">क्या आप वाकई इस दस्तावेज़ को हटाना चाहते हैं?</string>
+    <string name="document_acceptance_workflow_dialog_submit">क्या आप वाकई इस दस्तावेज़ को सबमिट करना चाहते हैं?</string>
+    <string name="document_acceptance_workflow_dialog_reject">क्या आप वाकई इस दस्तावेज़ को तैयार करना चाहते हैं?</string>
+
+    <string name="document_acceptance_workflow_button_reject">REJECT</string>
+    <string name="document_acceptance_workflow_button_accept">स्वीकार करना</string>
+    <string name="document_acceptance_workflow_button_submit">प्रस्तुत</string>
+    <string name="document_acceptance_workflow_button_cancel">रद्द करना</string>
+
+    <string name="document_page_deletion_button_delete">हटाएं</string>
+
+    <!-- Open CV Note Scanner Custom -->
+    <string name="processing_open_note_scanner_autocrop_failure">पृष्ठभूमि की फसल का प्रयास</string>
+
+    <!-- Open CV Note Scanner -->
+    <string name="title_activity_open_note_scanner">TruTrace दस्तावेज़ स्कैनर</string>
+    <string name="title_activity_gallery">गैलरी</string>
+
+    <string name="title_activity_full_image">स्कैन की गई छवि दर्शक</string>
+    <string name="images_scanned">चित्र स्कैन किए गए</string>
+    <string name="action_share">Share</string>
+    <string name="action_delete">हटाएं</string>
+    <string name="confirm_title">पुष्टि करें</string>
+    <string name="confirm_delete_text">क्या आप इस छवि को हटाना चाहते हैं?</string>
+    <string name="answer_yes">Yes</string>
+    <string name="answer_no">नहीं</string>
+    <string name="confirm_delete_multiple_text">क्या आप चयनित छवियों को हटाना चाहते हैं?</string>
+    <string name="share_snackbar">Share images through</string>
+    <string name="action_about">के बारे में</string>
+    <string name="about_filename">about.md</string>
+    <string name="install_opencv">Install OpenCV Manager</string>
+    <string name="confirm_install_opencv">Do you want to download OpenCV Manager from GitHub?</string>
+    <string name="answer_cancel">रद्द करना</string>
+    <string name="downloading">Downloading</string>
+    <string name="downloading_opencv">Downloading OpenCV Manager</string>
+    <string name="scanningToast">दस्तावेज़ के लिए खोज\nपूरी छवि को स्कैन करने के लिए फिर से टैप करें</string>
+    <string name="colorMode">रंग मोड</string>
+    <string name="bwMode"><![CDATA[ब्लैक एंड व्हाइट मोड]]></string>
+    <string name="autoMode">स्वचालित मोड</string>
+    <string name="manualMode">मैन्युअल तरीके से</string>
+    <string name="share_app">संवाद बंद करें</string>
+    <string name="share_app_using">Share link through</string>
+
+    <string name="filterModeOn">छवि प्रोसेसर पर</string>
+    <string name="filterModeOff">छवि प्रोसेसर बंद</string>
+    <string name="action_tag">टैग</string>
+    <string name="storage_folder">भंडारण फ़ोल्डर</string>
+    <string name="storage_folder_summary">सेट जहां स्कैन किए गए दस्तावेज़ संग्रहीत किए जाने चाहिए</string>
+
+    <!-- Notifications Alert -->
+    <string name="alert_document_header_submission">दस्तावेज़ प्रस्तुत करना</string>
+    <string name="alert_document_header_re_submission">डॉक्यूमेंट रिजुविनेशन</string>
+    <string name="alert_document_header_rejection">दस्तावेज़ अस्वीकृति</string>
+    <string name="alert_document_header_acceptance">दस्तावेज़ स्वीकृति</string>
+    <string name="alert_document_header_individual">नई कस्टम अधिसूचना</string>
+
+    <string name="alert_content_title_submitted">दस्तावेज़ को आपकी समीक्षा के लिए प्रस्तुत किया गया था: </string>
+    <string name="alert_content_title_rejected">आपके दस्तावेज़ को अस्वीकार कर दिया गया था: </string>
+    <string name="alert_content_title_accepted">आपके दस्तावेज़ द्वारा स्वीकार किया गया था: </string>
+    <string name="alert_content_title_re_submitted">दस्तावेज़ फिर से सबमिट किया गया: </string>
+    <string name="alert_content_title_individual">नई अधिसूचना</string>
+
+    <string name="alert_content_line_doc_id">आईडी के साथ: </string>
+    <string name="alert_content_custom_text">संदेश: </string>
+    <string name="alert_content_custom_from">से: </string>
+    <string name="alert_content_big_title_alert_details">चेतावनी विवरण: </string>
+    <string name="alert_content_header">आपको नया TruTrace अलर्ट प्राप्त हुआ है</string>
+    <string name="alert_content_ticker">नई TruTrace चेतावनी!</string>
+
+
+    <!-- OpenCV Misc -->
+    <string name="share_app_body">"Take a look at this great app that scans notes, drawings and documents through your camera: "</string>
+    <string name="share_app_subject">Great app to scan notes and documents</string>
+    <string name="settings">Settings</string>
+    <string name="basic_settings">मूल सेटिंग्स</string>
+    <string name="automatic_tagging">स्वचालित टैगिंग</string>
+    <string name="automatic_tagging_summary">विशेष पेज टेम्पलेट का उपयोग करके चिह्नित स्कैन पर लागू होने वाले स्वचालित टैग को परिभाषित करें</string>
+    <string name="match_aspect">मैच पूर्वावलोकन पहलू अनुपात</string>
+    <string name="match_aspect_summary">अधिकांश डिवाइसों में पूर्वावलोकन एक से भिन्न उच्चतम रिज़ॉल्यूशन वाला चित्र पहलू अनुपात होता है, यह सेटिंग उच्चतम चित्र रिज़ॉल्यूशन का चयन करेगी जो कि प्रीव्यू अनुपात के पहलू अनुपात से मेल खाती है</string>
+    <string name="bug_rotate">Rotate Image 180º</string>
+    <string name="bug_rotate_summary">Some devices have the camera upside down, this setting adjusts everything to make sense</string>
+    <string name="usage_stats">Usage Statistics</string>
+    <string name="usage_stats_summary">Send various usage statistics to developer. No content data will be sent</string>
+    <string name="send_message">Send Message</string>
+    <string name="send_message_summary">Send message to developer</string>
+    <string name="stats_optin_title">Usage Stats</string>
+    <string name="stats_optin_text">Do you want to enable Document Scanner to send anonymous usage statistics to the developer?\n\nYou can change this anytime on the settings screen.</string>
+    <string name="answer_later">Later</string>
+    <string name="ask_install_opencv">In order to work, Document Scanner needs the services of OpenCV Manager, which is not installed yet.</string>
+    <string name="googleplay">Google Play</string>
+    <string name="githubdownload">सीधा डाउनलोड करें</string>
+    <string name="activateunknown">सेटिंग्स में जाओ</string>
+    <string name="messageactivateunknown">Google Play isn\'t available and Install from Unknown Sources is disabled, please go to Settings and activate it.</string>
+    <string name="github_project">Project on GitHub</string>
+    <string name="github_project_summary">This application is open source, you can help to improve it with feedback, issue reports, code and translations through the GitHub project\'s page</string>
+    <string name="donate">Buy me a coffee</string>
+    <string name="donate_summary">If you like this application and think it is useful, you may consider making a donation</string>
+    <string name="telegram">Telegram Group</string>
+    <string name="telegram_summary">Chat about the project on Telegram</string>
+    <string name="feedback_and_contributions">Feedback and contributions</string>
+    <string name="bitcoin_summary">Donate using Bitcoin cryptocurrency</string>
+    <string name="dogecoin_summary">Wow, such app, many useful</string>
+    <string name="paypal_summary">Many credit cards accepted</string>
+    <string name="profile_edit_image_request_cancel">User cancelled image capture</string>
+
+    <!-- Notifications -->
+    <string name="channel_name">TruTrace सूचनाएं</string>
+    <string name="channel_description">चैनल TruTrace सूचनाएं प्रदान करता था</string>
+
+
+</resources>
