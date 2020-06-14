@@ -49,4 +49,7 @@ In general any documentation that deals with deployment/setup, as well as any ar
 
 ![git directory structure](https://github.com/seafoodtaskforce/STF-TruTrace/blob/master/deployment/artifacts/github.dir.structure.png)
 
-     <TODO>
+1. **Setup the Android Client:** [Setting Up Android Client Application](https://github.com/seafoodtaskforce/STF-TruTrace/blob/master/docs/deployment/Android%20(Advanced)%20Deployment%20Manual.md "Setting Up Android Client Application")
+	1. **NOTE:** Android versions supported: 5+
+2. **Setup the iOS Client:** [Setting Up iOS Client Application](https://github.com/seafoodtaskforce/STF-TruTrace/blob/master/docs/deployment/iOS%20(Advanced)%20Deployment%20Manual.md "Setting Up iOS Client Application")
+	1. **NOTE:** iPhones 6s and up are supported.
