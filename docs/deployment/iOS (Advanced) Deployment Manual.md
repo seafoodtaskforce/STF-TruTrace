@@ -35,7 +35,7 @@ Once the database and the back-end services have been setup we will setup the co
 
 **Create the .IPA to be deployed**
 
-1. Create the .AIP file which can then be deployed and run against the server.
+1. Create the .IPA file which can then be deployed and run against the server.
 
 Once you start the application on your device you will be able to log in with the admin credentials you obtained when you created the back-end environment. The back-end script should have created a `Super Admin` which will have a `user-name: "trutrace.admin" and password: "admin"` which you can use to log in using the Android application.
 
