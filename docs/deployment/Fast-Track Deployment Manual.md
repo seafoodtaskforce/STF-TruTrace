@@ -89,7 +89,7 @@ Once the database and the back-end services have been setup we will setup and de
 
 Once the server has started you should be able to run the desktop as follows:
 
-`http://localhost:8080/TruTraceDesktopApplication//#/login`
+`http://localhost:8080/TruTraceDesktopApplication/#/login`
 
 You should see a login screen:
 
@@ -98,6 +98,16 @@ You should see a login screen:
 Login with Admin and admin as your user-name and password:
 
 ![Login Page Sample Filled](https://github.com/seafoodtaskforce/STF-TruTrace/blob/master/deployment/artifacts/desktop.login.page.filled.png)
+
+**Troubleshooting deployment issues - Unable to login**
+
+There are a few checkpoints to go through to ensure that the desktop will work:
+
+1. Make sure that TomCat server is up and running.
+2. Make sure the database is up and running and you have properly setup the credentials for the application to connect to it.
+3. Make sure that the MySQL Database version you are running is no later than `5.7.32` - newer versions of MySQL have an issue with Connection Pooling which will be resolved in next iteration of TruTrace.
+4. Make sure that the Desktop application points to the back-end server (i.e. where the WAR file was deployed)
+
 
 ## Summary ##
 Once you have been able to set this up you will be able to add users and documents and see traces. Please refer to the specific manuals for learning how to use the application.

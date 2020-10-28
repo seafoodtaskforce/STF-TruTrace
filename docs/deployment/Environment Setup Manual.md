@@ -28,15 +28,17 @@ Once you have installed the java environment (or you already have it) proceed to
 # Database Environment #
 We will need to setup the database environment for our data layer. We will be installing the MySQL database server and client.
 
-1. Windows - [Install MySQL on Windows](https://dev.mysql.com/doc/refman/8.0/en/windows-installation.html "Install MySQL on Windows")
-2. Mac - [Install MySQL on Mac](https://dev.mysql.com/doc/refman/8.0/en/osx-installation.html "Install MySQL on Mac")
-3. Linux - [Install MySQL on Linux](https://dev.mysql.com/doc/refman/8.0/en/linux-installation.html "Install MySQL on Linux")
+**NOTE:** currently only up to version `5.7.32` of MySQL is supported.
+
+1. Windows - [Install MySQL on Windows](https://dev.mysql.com/doc/refman/5.7/en/windows-installation.html "Install MySQL on Windows") 
+2. Mac - [Install MySQL on Mac](https://dev.mysql.com/doc/refman/5.7/en/osx-installation.html "Install MySQL on Mac")
+3. Linux - [Install MySQL on Linux](https://dev.mysql.com/doc/refman/5.7/en/linux-installation.html "Install MySQL on Linux")
 
 **To check and verify your installation** please follow these instructions:
 
-1. [General Tutorial](https://dev.mysql.com/doc/refman/8.0/en/tutorial.html)
-2. [Check your server installation](https://dev.mysql.com/doc/refman/8.0/en/connecting-disconnecting.html)
-3. [Run Queries](https://dev.mysql.com/doc/refman/8.0/en/entering-queries.html)
+1. [General Tutorial](https://dev.mysql.com/doc/refman/5.7/en/tutorial.html)
+2. [Check your server installation](https://dev.mysql.com/doc/refman/5.7/en/connecting-disconnecting.html)
+3. [Run Queries](https://dev.mysql.com/doc/refman/5.7/en/entering-queries.html)
 
 **Note Down Root access**
 
