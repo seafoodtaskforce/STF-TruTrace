@@ -21,7 +21,7 @@ Here what we will do is setup the table structure for the database which will cr
 2. Run this script in the MySQL database.
 	1. You can do this through MySQL Workbench as shown here: [Generate DB from SQL in Workbench](https://dev.mysql.com/doc/workbench/en/wb-reverse-engineer-create-script.html)
 	2. Alternatively, you can do this through the command line as shown here: [Generate DB from SQL using command line](https://stackoverflow.com/questions/8940230/how-to-run-sql-script-in-mysql)
-	3. **NOTE:**: Your database name will be ` wwf_shrimp_database_v2` as defined in the SQL script file.
+	3. **NOTE:** Your database name will be ` wwf_shrimp_database_v2` as defined in the SQL script file.
 
 **Ensure Admin Access**
 
