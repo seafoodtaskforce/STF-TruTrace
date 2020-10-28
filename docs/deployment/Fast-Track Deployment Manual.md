@@ -21,6 +21,7 @@ Here what we will do is setup the table structure for the database which will cr
 2. Run this script in the MySQL database.
 	1. You can do this through MySQL Workbench as shown here: [Generate DB from SQL in Workbench](https://dev.mysql.com/doc/workbench/en/wb-reverse-engineer-create-script.html)
 	2. Alternatively, you can do this through the command line as shown here: [Generate DB from SQL using command line](https://stackoverflow.com/questions/8940230/how-to-run-sql-script-in-mysql)
+	3. **NOTE:**: Your database name will be ` wwf_shrimp_database_v2` as defined in the SQL script file.
 
 **Ensure Admin Access**
 
@@ -37,17 +38,17 @@ Once the database has been setup we will setup the back-end services. This will 
 3. Copy this file to a temporary directory.
 4. Open up the .WAR file with a zip program (i.e. unzip it)
 5. You will see a set of files and directories.
-	1. Locate the following file: 'WWFShrimpProject_v2\META-INF\context.xml'
+	1. Locate the following file: 'META-INF\context.xml'
 	2. Change the following line in this file with your root name and password data:
 		1. `username="root" password="your password"` 
 		2. Save the file
-	3. Zip the whole `WWFShrimpProject_v2` directory into a new file and overwrite the existing .WAR file.
+	3. Zip the whole `WWFShrimpProject_v2` sub-directory into a new file and overwrite the existing .WAR file.
 4. Take the modified .WAR file and drop it into the Drop it into tomcat's `\webapps directory`
 5. Restart Tomcat.
 
 Once the application is deployed you can test if the server is live with a simple GET HTTP call from your browser:
 
-`http://localhost:8080/WWFShrimpProject_v2/api_v2/server/summary`
+`http://localhost:8080/WWFShrimpProject_v2/api_v2/server/verify`
 
 which should produce something like this:
 
@@ -58,6 +59,15 @@ Once this setup is done and the server is running you can then run the web-Based
 **NOTE:** if you have setup the back-end services to be accessed remotely, then you should be able to hit the services through a public IPv4 address (for example):
 
 `http://www.somedomain.com:8080/WWFShrimpProject_v2/api_v2/server/summary`
+
+**Troubleshooting deployment issues - WAR File issues**
+
+If you get an error from TomCat deployment that the `WAR` file cannot be read, or seems corrupted then please make sure that the proper set of directories has been zipped. At the top level of your WAR file you should only see the `META-INF` and `WEB-INF` and their proper sub-directories. If you have a different level of directories then you need to re-zip your directory structure.
+In some cases your computer system might zip an extra directory level (so you would see an extra directory that contains these two directories)
+
+This is what your structure should look like at the top level of your `WAR` file (at the root level)
+
+![WAR file top-level structure](https://github.com/seafoodtaskforce/STF-TruTrace/blob/master/deployment/artifacts/war-file-structure.png)
 
 
 ## Deploy The Desktop Application ##
