@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+    http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	version="3.0">
+	<display-name>WWFShrimpProject</display-name>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>default.html</welcome-file>
+		<welcome-file>default.htm</welcome-file>
+		<welcome-file>default.jsp</welcome-file>
+	</welcome-file-list>
+	
+	<!-- CORS -->
+	<filter>
+		<filter-name>CORS</filter-name>
+		<filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class>
+		<init-param>
+			<param-name>cors.allowOrigin</param-name>
+			<param-value>*</param-value>
+		</init-param>
+		<init-param>
+			<param-name>cors.supportedMethods</param-name>
+			<param-value>GET, POST, HEAD, PUT, DELETE, OPTIONS</param-value>
+		</init-param>
+		<init-param>
+			<param-name>cors.supportedHeaders</param-name>
+			<param-value>Accept, Origin, X-Requested-With, Content-Type,
+                Last-Modified, WWW-Authenticate, user-name, groupId, allowedDocs, user-type, doc-id, notification-scope,
+                notification-text, notification-description ,user-target, group-target,custom_tag,doc-type,gps_location, org-id</param-value>
+		</init-param>
+		<init-param>
+			<param-name>cors.exposedHeaders</param-name>
+			<param-value>Set-Cookie</param-value>
+		</init-param>
+		<init-param>
+			<param-name>cors.supportsCredentials</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>CORS</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+ 
+	<servlet>
+		<servlet-name>WWF Shrimp Project Back-End Application</servlet-name>
+		<servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+		<init-param>
+    		<param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
+    		<param-value>com.wwf.shrimp.application.services.main.rest.filters.SecurityInterceptingFilter</param-value>
+		</init-param>
+		
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>WWF Shrimp Project Back-End Application</servlet-name>
+		<url-pattern>/api_v2/*</url-pattern>
+	</servlet-mapping>
+	
+	<!--  Backend JNDI -->
+	<resource-ref>
+  		<res-ref-name>jdbc/Backend_DATA</res-ref-name>
+ 		 <res-type>javax.sql.DataSource</res-type>
+  			<res-auth>Container</res-auth>
+	</resource-ref>
+	
+	
+</web-app>

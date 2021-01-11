@@ -6,14 +6,22 @@
   <packaging>war</packaging>
   <name>WWF Shrimp Project</name>
   <description>This is the back-end services (REST) for the WWF Shrimp Project</description>
-  <properties> 
-  	<org.slf4j-version>1.6.6</org.slf4j-version> 
+  <properties>
+  	<org.slf4j-version>1.6.6</org.slf4j-version>
   </properties>
-  
-  
+
+
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
+
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argline>-javaagent:${session.executionRootDirectory}/lib/appmap.jar</argline>
+        </configuration>
+      </plugin>
+
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.3</version>
@@ -32,40 +40,40 @@
       </plugin>
     </plugins>
   </build>
-  
+
   <dependencies>
 		<dependency>
 			<groupId>asm</groupId>
 			<artifactId>asm-all</artifactId>
 			<version>3.3.1</version>
 		</dependency>
-		
+
 		<!-- Image Scaler -->
 		<dependency>
     		<groupId>org.imgscalr</groupId>
     		<artifactId>imgscalr-lib</artifactId>
     		<version>4.2</version>
 		</dependency>
-		
+
 		<dependency>
     		<groupId>com.mortennobel</groupId>
     		<artifactId>java-image-scaling</artifactId>
     		<version>0.8.6</version>
 		</dependency>
-		
+
 		<dependency>
   			<groupId>net.coobird</groupId>
   			<artifactId>thumbnailator</artifactId>
   			<version>0.4.8</version>
 		</dependency>
-		
+
 		<!--  CORS -->
 		<dependency>
     		<groupId>com.thetransactioncompany</groupId>
     		<artifactId>cors-filter</artifactId>
     		<version>2.6</version>
 		</dependency>
-		
+
 		<!-- Jersey Dependencies -->
  		<dependency>
             <groupId>com.sun.jersey</groupId>
@@ -83,7 +91,7 @@
     		<artifactId>jersey-multipart</artifactId>
     		<version>1.19.4</version>
 		</dependency>
-		
+
 		<dependency>
     	<groupId>com.sun.jersey.oauth</groupId>
     		<artifactId>oauth-signature</artifactId>
@@ -101,7 +109,7 @@
     		<artifactId>gson</artifactId>
     		<version>2.8.1</version>
 		</dependency>
-		
+
 		<!-- Apache Commons -->
 		<dependency>
     		<groupId>org.apache.commons</groupId>
@@ -118,41 +126,41 @@
 		    <artifactId>commons-codec</artifactId>
 		    <version>1.8</version>
 		</dependency>
-		
+
 		<!-- Logging -->
-		<dependency> 
-			<groupId>org.slf4j</groupId> 
-			<artifactId>slf4j-api</artifactId> 
-			<version>${org.slf4j-version}</version> 
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${org.slf4j-version}</version>
 		</dependency>
-		<dependency> 
-			<groupId>org.slf4j</groupId> 
-			<artifactId>jcl-over-slf4j</artifactId> 
-			<version>${org.slf4j-version}</version> 
-			<scope>runtime</scope> 
-		</dependency> 
-			
-		<dependency> 
-			<groupId>org.slf4j</groupId> 
-			<artifactId>slf4j-log4j12</artifactId> 
-			<version>${org.slf4j-version}</version> 
-			<scope>runtime</scope> 
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${org.slf4j-version}</version>
+			<scope>runtime</scope>
 		</dependency>
-		
-		
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${org.slf4j-version}</version>
+			<scope>runtime</scope>
+		</dependency>
+
+
 		<dependency>
     		<groupId>log4j</groupId>
     		<artifactId>log4j</artifactId>
     		<version>1.2.17</version>
 		</dependency>
-		
+
 		<!-- MYSQL -->
 		<dependency>
     		<groupId>mysql</groupId>
     		<artifactId>mysql-connector-java</artifactId>
     		<version>6.0.6</version>
 		</dependency>
-		
+
 		<!--  PDF API -->
 		<dependency>
     		<groupId>org.apache.pdfbox</groupId>
@@ -170,6 +178,6 @@
     		<version>0.6.0</version>
 		</dependency>
 
-		
+
 	</dependencies>
 </project>

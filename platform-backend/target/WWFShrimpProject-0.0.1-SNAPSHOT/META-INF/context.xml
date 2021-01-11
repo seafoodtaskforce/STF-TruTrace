@@ -1,0 +1,27 @@
+<Context>
+	<Resource 
+	    	name="jdbc/Backend_DATA" 
+	    	auth="Container"
+	    	type="javax.sql.DataSource" 
+	    	
+	    	initialSize="34"
+	    	
+	    	maxActive="377"
+    		maxIdle="233"
+    		minIdle="89"
+    		
+    		timeBetweenEvictionRunsMillis="34000"
+    	  	minEvictableIdleTimeMillis="55000"
+    	  	
+    	  	validationInterval="34000"
+    	  	testOnBorrow="true"
+    	  	removeAbandoned="true"
+    	 	removeAbandonedTimeout="55"
+    	  
+    		maxWait="10000"
+          	
+          	driverClassName="com.mysql.jdbc.Driver"
+          	username="root" password="irae2358MS"
+          	url="jdbc:mysql://localhost:3306/wwf_shrimp_database_v2?serverTimezone=UTC&amp;useSSL=false"
+    />
+</Context>
