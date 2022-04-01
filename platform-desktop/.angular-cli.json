@@ -30,8 +30,11 @@
         "../node_modules/handsontable/dist/handsontable.full.css",
         "../node_modules/ng2-slim-loading-bar/style.css",
         "../node_modules/lightbox2/dist/css/lightbox.css",
+        "../node_modules/jquery.magnify/dist/jquery.magnify.css",
         "app/theme/theme.scss",
-        "styles.scss"
+        "../node_modules/dragula/dist/dragula.css",
+        "styles.scss",
+        "../node_modules/ng2-image-viewer/imageviewer.scss"
       ],
       "scripts": [
         "../node_modules/jquery/dist/jquery.js",
@@ -41,7 +44,8 @@
         "../node_modules/bootstrap/dist/js/bootstrap.js",
         "../node_modules/handsontable/dist/handsontable.full.js",
         "../node_modules/chroma-js/chroma.js",
-        "../node_modules/lightbox2/dist/js/lightbox.js"
+        "../node_modules/lightbox2/dist/js/lightbox.js",
+        "../node_modules/jquery.magnify/dist/jquery.magnify.js"
       ],
       "environmentSource": "environments/environment.ts",
       "environments": {
