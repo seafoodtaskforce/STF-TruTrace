@@ -91,7 +91,19 @@ export class BaPageTop {
       return "flag-icon flag-icon-vi flag-icon-squared";
     }
 
+    if(language === 'Spanish'){
+      return "flag-icon flag-icon-es flag-icon-squared";
+    }
+
     if(language === 'Bahasa'){
+      return "flag-icon flag-icon-id flag-icon-squared";
+    }
+
+    if(language === 'Hindi'){
+      return "flag-icon flag-icon-in flag-icon-squared";
+    }
+
+    if(language === 'Telugu'){
       return "flag-icon flag-icon-in flag-icon-squared";
     }
   }

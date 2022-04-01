@@ -6,6 +6,7 @@ import { NgaModule } from '../../theme/nga.module';
 import { DocumentsComponent } from './documents.component';
 import { routing } from './documents.routing';
 
+import { InterComponentDataService } from "../../utils/inter.component.data.service";
 import { DocumentService } from './document.service';
 import {SlimLoadingBarModule} from 'ng2-slim-loading-bar';
 
@@ -28,6 +29,31 @@ import { Ng2SmartTableModule } from 'ng2-smart-table';
 import {NgxPopperModule} from 'ngx-popper';
 import { ToasterService } from '../../toaster-service.service';
 
+//
+// New Lightbox with rotation
+import { NgxGalleryModule } from 'ngx-gallery';
+
+//
+// Context Menu
+import { ContextMenuModule } from '../../../../node_modules/angular2-contextmenu';
+
+/**
+ * Drag and Drop
+ */
+import { DragulaModule , DragulaService} from 'ng2-dragula/ng2-dragula';
+
+/**
+ * Mapping
+ */
+import { LeafletMaps } from './leafletMaps/leafletMaps.component';
+
+
+
+/**
+ * Image Viewing
+ */
+ import { ImageViewerModule } from "ngx-image-viewer";
+
 
 @NgModule({
   imports: [
@@ -39,17 +65,24 @@ import { ToasterService } from '../../toaster-service.service';
     FilterPipeModule,
     SlimLoadingBarModule.forRoot(),
     AngularMultiSelectModule,
-    Ng2SmartTableModule
+    Ng2SmartTableModule,
+    NgxGalleryModule,
+    ContextMenuModule,
+    DragulaModule,
+    ImageViewerModule.forRoot(),
     
     ],
   declarations: [
     DocumentsComponent,
+    LeafletMaps,
   ],
   providers: [
     DocumentService,
     DatePipe,
     DataLoadService,
     ToasterService,
+    DragulaService
+    //InterComponentDataService
   ],
 })
 export class DocumentsModule {}

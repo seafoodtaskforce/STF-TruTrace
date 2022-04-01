@@ -9,11 +9,12 @@ import { NotificationData } from '../../../models/notificationData';
 
 // import global data
 import * as AppGlobals from '../../../config/globals';
+import { ServerUtils } from 'app/utils/server.utils';
 
 @Injectable()
 export class BaMsgCenterService {
 
-  readonly ALL_NOTIFICATIONS_URL: string = this.getServerURI().concat('/notification/fetchall');
+  readonly ALL_NOTIFICATIONS_URL: string = '/notification/fetchall';
 
    constructor(private http: Http) {
 
@@ -88,14 +89,18 @@ export class BaMsgCenterService {
   public getAllNotifications(): Observable<NotificationData[]> {
     let headers = new Headers({ 'Content-Type': 'text/plain' });
     headers.append('user-name', localStorage.getItem('username'));
+    if(localStorage.getItem('username') == null) {
+      return null;
+    }
     let options = new RequestOptions({ headers: headers });
 
     console.log('[Msg Center Service] GET ALL NOTIFICATIONS RESTFUL '.concat(JSON.stringify(options)));
 
-    return this.http.get(this.ALL_NOTIFICATIONS_URL, options)
+    return this.http.get(this.getServerURI().concat(this.ALL_NOTIFICATIONS_URL), options)
         .map( (res: Response) => res.json() )
         .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Server Error' ));
   }
+  
   public getMessages():Array<Object> {
     return this._messages;
   }
@@ -105,6 +110,7 @@ export class BaMsgCenterService {
   }
 
   getServerURI() {
-    return AppGlobals.SERVER_URI;
+    // return AppGlobals.SERVER_URI;
+    return localStorage.getItem(ServerUtils.BACK_END_SERVER_URL)
   }
 }

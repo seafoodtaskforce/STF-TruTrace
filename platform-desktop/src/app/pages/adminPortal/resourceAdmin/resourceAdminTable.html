@@ -1,0 +1,25 @@
+<div>
+  <div>
+    <ng2-smart-table [settings]="settings" 
+        [source]="source" 
+        (deleteConfirm)="onDeleteConfirm($event)"
+        (createConfirm)="onCreateConfirm($event)"
+        (editConfirm)="onEditConfirm($event)"
+        (rowSelect)="onRowSelect($event)"
+        >
+    </ng2-smart-table>   
+  </div> 
+  <div class="separator"></div> 
+
+  <!-- ---------------------------------------- -->
+  <!-- Tag Admin Details Card                  -->
+  <!--                                          -->
+    <!-- Profile Details -->
+    <div class="row">
+      <div class="col-md-12">
+        <ba-card cardTitle="Editor" baCardClass="with-scroll">
+          <ckeditor [(ngModel)]="ckeditorContent" [config]="config"></ckeditor>
+        </ba-card>
+      </div>
+    </div>
+</div>

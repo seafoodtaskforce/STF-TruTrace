@@ -1,9 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { NotificationData } from '../../../models/notificationData';
+import { SimpleNotification } from '../../../models/simple.notification';
 
 import {BaMsgCenterService} from './baMsgCenter.service';
 import { GlobalState } from '../../../global.state';
 import {SimpleTimer} from 'ng2-simple-timer';
+import { InterComponentDataService } from "../../../utils/inter.component.data.service";
+
+import { Router } from '@angular/router'; 
+// import global data
+import * as AppGlobals from '../../../config/globals';
+import { User } from 'app/models/user';
 
 @Component({
   selector: 'ba-msg-center',
@@ -13,7 +20,7 @@ import {SimpleTimer} from 'ng2-simple-timer';
 })
 export class BaMsgCenter implements OnInit {
 
-  public notifications: Array<Object> = new Array<Object>();
+  public notifications: Array<SimpleNotification> = new Array<SimpleNotification>();
   public messages: Array<Object>;
   public backEndNotifications: NotificationData[];
   ticks: number = 0;
@@ -25,23 +32,37 @@ export class BaMsgCenter implements OnInit {
   loggedName: string;
   language:string = 'English';
 
- 	timer0Id: string;
-
-  constructor(private _state: GlobalState, private _baMsgCenterService:BaMsgCenterService) {
-    // this.notifications = this._baMsgCenterService.getNotifications();
-    this.messages = this._baMsgCenterService.getMessages();
+   timer0Id: string;
+     /**
+   * Notification Session ID for Document Detail
+   */
+  notificationbasedDcumentSessionId : string = null;
+   
+  /**
+   * Constructor
+   * @param _state  - the global state that sholds all the main data
+   * @param _baMsgCenterService - top part of the UI with messaging service for notifications
+   * @param _documentDetailTrigger -
+   * @param router - routing for the application
+   */
+  constructor(private _state: GlobalState, private _baMsgCenterService:BaMsgCenterService,
+              protected _documentDetailTrigger: InterComponentDataService, private router : Router) {
+    //
+    // Init data
+    let user: User;
+    user = JSON.parse(localStorage.getItem('user'));
     this.loggedName = localStorage.getItem('username');
+    this.messages = this._baMsgCenterService.getMessages();
   }
-
-
-
 
   ngOnInit() {
 		this.st.newTimer('1sec',30);
-		this.subscribeTimer0();
-
+    this.subscribeTimer0();
   }
 
+  /**
+   * Get all the notifications
+   */
   getAllNotifications() {
     this._baMsgCenterService.getAllNotifications().subscribe(
       data => { 
@@ -72,10 +93,12 @@ export class BaMsgCenter implements OnInit {
                   message = 'New Notification: '.concat(notification.notificationText);
                 }
 
-                const myNotification: any = {
+                const myNotification: SimpleNotification = {
                   name: notification.auditData.actor.name,
                   text: notification.auditData.actor.name + ' ' + message,
                   time: notification.creationTimestamp,
+                  docSyncID : notification.auditData.itemId,
+                  item : notification.item
                 };
                 this.notifications.push(myNotification);
 
@@ -86,14 +109,26 @@ export class BaMsgCenter implements OnInit {
 
   }
 
+  /**
+   * Remove the clicked on notification
+   * @param clickedNotification  - the clicked notification to remove
+   */
+  removeNotification(clickedNotification : SimpleNotification){
+    let index = this.notifications.indexOf(clickedNotification);
+    if(index != -1){
+      console.log('[Msg Center Component] Removing Notification '
+        .concat(JSON.stringify(this.notifications[index])));
+      this.notifications.splice(index, 1);
+      
+    }
+  }
+
   subscribeTimer0() {
 			// Subscribe if timer Id is undefined
 			this.timer0Id = this.st.subscribe('1sec', () => this.timer0callback());
 			console.log('timer 0 Subscribed.');
    		console.log(this.st.getSubscription());
 	}
-
-  
   	timer0callback() {
       this.ticks++;
       this.getAllNotifications();
@@ -101,7 +136,6 @@ export class BaMsgCenter implements OnInit {
     
   getServerURI() {
     return this._baMsgCenterService.getServerURI();
-    // return this.SERVER_URI_LOCAL;
   }
 
   public getLanguage(){
@@ -139,9 +173,22 @@ export class BaMsgCenter implements OnInit {
       return "flag-icon flag-icon-vi flag-icon-squared";
     }
 
+    if(language === 'Spanish'){
+      return "flag-icon flag-icon-es flag-icon-squared";
+    }
+
     if(language === 'Bahasa'){
+      return "flag-icon flag-icon-id flag-icon-squared";
+    }
+
+    if(language === 'Hindi'){
       return "flag-icon flag-icon-in flag-icon-squared";
     }
+
+    if(language === 'Telugu'){
+      return "flag-icon flag-icon-in flag-icon-squared";
+    }
+
   }
 
    /**
@@ -154,6 +201,34 @@ export class BaMsgCenter implements OnInit {
     }else {
       return '#fff';
     }
+  }
+
+  /**
+   * Notification clicked handler
+   * @param msg -  the message for the notification
+   */
+  notificationClicked(msg: SimpleNotification) {
+    console.log('[Msg Center Component] <start> Triggering Session ID: '
+                .concat(msg.docSyncID));
+
+        console.log('[Msg Center Component] Current Route '.concat(this.router.url));
+    //this._documentDetailTrigger.showDocumentDetails(sessionId) 
+    if(this.router.url.includes(AppGlobals.DOCUMENTS_PAGE_ROUTE )) {
+      console.log('[Msg Center Component] <actual> Current Route '.concat(this.router.url));
+      this.removeNotification(msg);
+      this._documentDetailTrigger.showDocumentDetailsMessage.next(msg.item);
+      
+    } else {
+      console.log('[Msg Center Component] <actual> Current Route '.concat(this.router.url));
+      this._documentDetailTrigger.showDocumentDetailsMessage.next(AppGlobals.EMITTER_SEED_VALUE);
+    }
+  }
+
+  /**
+   * Clear all notifications
+   */
+  clearNotifications(){
+    this.notifications = [];
   }
 
 }

@@ -48,3 +48,8 @@ declare var AmCharts:any;
 declare var Chart:any;
 declare var Chartist:any;
 declare const chroma: any;
+
+declare module "*.json" {
+  const value: any;
+  export default value;
+}

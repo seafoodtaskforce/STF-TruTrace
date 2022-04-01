@@ -1,0 +1,30 @@
+<div>
+  <div>
+    <ng2-smart-table [settings]="settings" 
+        [source]="source" 
+        (rowSelect)="onRowSelect($event)"
+        >
+    </ng2-smart-table>   
+  </div> 
+  <div class="separator"></div> 
+
+  <!-- ---------------------------------------- -->
+  <!-- Tag Admin Details Card                  -->
+  <!--                                          -->
+    <!-- Profile Details -->
+    <div class="row">
+      <div class="col-md-12">
+        <ba-card cardTitle="Actions" baCardClass="with-scroll">
+          <div class="row">
+            <button type="button" class="btn btn-info btn-xs btn-with-icon btn-raised" placement="right" style="float: right;"
+                  ngbPopover="Use this button to export your chosen data into a CVS Format" 
+                  popoverTitle="Export Data"
+                  container="body"
+                  (click)="downloadFileToCSV()"> 
+                  <i class="ion-archive"></i>Export Data
+              </button>
+          </div>
+        </ba-card>
+      </div>
+    </div>
+</div>

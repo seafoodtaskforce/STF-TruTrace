@@ -3,7 +3,7 @@ import { FormGroup, AbstractControl, FormBuilder, Validators } from '@angular/fo
 import { Router } from '@angular/router';
 import { GlobalState } from '../../global.state';
 import { Injectable } from '@angular/core';
-import { LocaleUtils } from '../../utils/LocaleUtils';
+import { LocaleUtils } from '../../utils/locale.utils';
 
 // session management
 // import { LocalStorageService } from '../../../../node_modules/angular2-localstorage/LocalStorageEmitter';
@@ -73,8 +73,6 @@ export class Login implements OnInit {
   ngOnInit() {
   }
 
-
-
  getCredentials(user: User, inPassword: string) {
     this._loginService.getCredentials(user, inPassword)
       .subscribe( 
@@ -91,6 +89,8 @@ export class Login implements OnInit {
             .concat(JSON.stringify(this.credentials.credentials.token)));
 
             this.currUser = response.json();
+            // make the username lower case
+            this.currUser.name = this.currUser.name.toLowerCase()
             console.log('[Login currentUser -- in getCredentials#3] POST RESTFUL '
             .concat(JSON.stringify(this.currUser)));
             
@@ -99,7 +99,7 @@ export class Login implements OnInit {
               //
               // 
               this.showLoginAlert = false;
-              localStorage.setItem('username', user.name);
+              localStorage.setItem('username', this.currUser.name);
               localStorage.setItem('user', JSON.stringify(this.currUser));
               //
               // Set the App Resources

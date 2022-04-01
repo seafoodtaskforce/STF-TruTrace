@@ -8,11 +8,11 @@ import { User } from '../../../models/User';
 import { AppResource } from '../../../models/AppResource';
 
 import { ToasterService } from '../../../toaster-service.service';
-
-
-
-
-import { LocaleUtils } from '../../../utils/LocaleUtils';
+import { LocaleUtils } from '../../../utils/locale.utils';
+//
+// Drag and Drop
+import { DragulaService } from 'ng2-dragula/ng2-dragula';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'stages-admin-table',
@@ -71,6 +71,22 @@ export class StagesAdminTable {
     areStagesLocked: boolean = false;
     previewIsOn: boolean = true;
 
+    //
+    // Drag and Drop
+    public groups: Array<any> = [
+      {
+        name: 'Group A',
+        items: [{name: 'Item A'},{name: 'Item B'},{name: 'Item C'},{name: 'Item D'}]
+      },
+      {
+        name: 'Group B',
+        items: [{name: 'Item 1'},{name: 'Item 2'},{name: 'Item 3'},{name: 'Item 4'}]
+      }
+    ];
+    permissionsSourceOptions : any = {
+      copy : true
+    }
+
 
     /**
      * Initialization of the component
@@ -97,7 +113,11 @@ export class StagesAdminTable {
    * @param _documentService 
    */
   constructor(protected _dataService : DataLoadService, protected _documentService: DocumentService,
-              protected _toasterService:ToasterService) {
+              protected _toasterService:ToasterService, private dragulaService: DragulaService) {
+                //
+                // SET UP DRAG/DROP
+
+                
   }
 
   /** Internationalization */
@@ -241,6 +261,27 @@ export class StagesAdminTable {
   }
 
   /**
+   * Get the text that the user has placed
+   * @param langauge - the langauge being used
+   * @param index - the stage index (column)
+   */
+   getSparseHeaders(columnLanguageIndex: number){
+    if(this.allStagesLanguageMapped == null){
+      return new Array<OrganizationStage>();
+    }
+     if(this.allStagesLanguageMapped.get(this.selectedLanguageChoices[columnLanguageIndex]) == null) {
+       return new Array<OrganizationStage>();
+     }
+    console.log('STAGE PREVIEW ---> : '.concat(this.languages[columnLanguageIndex].name + ' ' + columnLanguageIndex + ' ').concat(JSON.stringify(this.allStagesLanguageMapped.get(this.languages[columnLanguageIndex].name))));
+    // return this.stagesMap.get(this.languages[columnLanguageIndex]);
+
+    var filtered = this.allStagesLanguageMapped.get(this.selectedLanguageChoices[columnLanguageIndex]).filter(function (el) {
+      return (el != null && el.value.length != 0);
+    });
+    return filtered;
+  }
+
+  /**
    * Will return the place holder for the stage input box
    * @param language  - the language column name
    * @param index  - the index of the stage
@@ -302,6 +343,7 @@ export class StagesAdminTable {
   stagesLockedEventHandler(event: any){
     this.areStagesLocked = !this.areStagesLocked;
     console.log('SELECT LOCKED EDIT ---> : '.concat(JSON.stringify(event.target)));
+    console.log('SELECT LOCKED EDIT ---> : '.concat(JSON.stringify(this.areStagesLocked )));
   }
 
   showDeleteStageButton(index:number){
@@ -373,7 +415,10 @@ export class StagesAdminTable {
       {'id' : 1, 'name' : 'en', 'value': 'English'},
       {'id': 2, 'name' : 'vi', 'value': 'Vietnamese'},
       {'id': 3, 'name' : 'th', 'value': 'Thai'},
-      {'id': 4, 'name' : 'th', 'value': 'Bahasa'},
+      {'id': 4, 'name' : 'in', 'value': 'Bahasa'},
+      {'id': 5, 'name' : 'es', 'value': 'Spanish'},
+      {'id': 6, 'name' : 'hi', 'value': 'Hindi'},
+      {'id': 7, 'name' : 'te', 'value': 'Telugu'},
 
     ]
   }

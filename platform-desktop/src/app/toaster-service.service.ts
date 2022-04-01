@@ -24,6 +24,10 @@ export class ToasterService {
     toastr.info(title, message);
   }
 
+  Notification(title:string, message?:string){
+    toastr.info(title, message);
+  }
+
   setting(){
     toastr.options = {
       "closeButton": false,

@@ -1,13 +1,10 @@
 import { Component, ViewContainerRef } from '@angular/core';
-import * as $ from 'jquery';
 
 import { GlobalState } from './global.state';
 import { BaImageLoaderService, BaThemePreloader, BaThemeSpinner } from './theme/services';
 import { BaThemeConfig } from './theme/theme.config';
-import { layoutPaths } from './theme/theme.constants';
 import { ToasterService } from './toaster-service.service';
-
-
+import { google } from '@google/maps';
 
 /*
  * App Component

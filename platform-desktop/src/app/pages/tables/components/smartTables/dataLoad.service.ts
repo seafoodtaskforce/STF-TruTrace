@@ -16,6 +16,7 @@ import { ScrollToService, ScrollToConfigOptions } from '@nicky-lenaers/ngx-scrol
 
 // import global data
 import * as AppGlobals from '../../../../config/globals';
+import { ServerUtils } from 'app/utils/server.utils';
 
 @Injectable()
 export class DataLoadService {
@@ -41,7 +42,8 @@ export class DataLoadService {
 
 
   getServerURI() {
-    return AppGlobals.SERVER_URI;
+    //return AppGlobals.SERVER_URI;
+    return localStorage.getItem(ServerUtils.BACK_END_SERVER_URL)
   }
 
   /**

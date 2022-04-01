@@ -5,4 +5,6 @@ export class UserContact extends IdentifiableEntity {
     cellNumber: string='';
     firstName: string='';
     lastName: string='';
+    activated: boolean=false;
+    verified: boolean=false;
 }

@@ -16,7 +16,7 @@ import {SmartTableListItem} from '../../../models/admin/smartTableListItem';
 import {DataLoadService} from '../dataLoad.service';
 
 import { LookupEntity } from './../../../models/LookupEntity';
-import { LocaleUtils } from '../../../utils/LocaleUtils';
+import { LocaleUtils } from '../../../utils/locale.utils';
 
 @Component({
   selector: 'organization-type-admin-table',
@@ -360,6 +360,9 @@ export class OrganizationTypeAdminTable {
       {'id': 2, 'name' : 'th', 'value': 'Thai'},
       {'id': 3, 'name' : 'vi', 'value': 'Vietnamese'},
       {'id': 4, 'name' : 'vi', 'value': 'Bahasa'},
+      {'id': 5, 'name' : 'es', 'value': 'Spanish'},
+      {'id': 6, 'name' : 'hi', 'value': 'Hindi'},
+      {'id': 7, 'name' : 'te', 'value': 'Telugu'},
     ]
   }
 

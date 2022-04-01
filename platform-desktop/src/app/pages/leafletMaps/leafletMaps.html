@@ -1,0 +1,33 @@
+<ba-card cardTitle="Trace Map"
+    showButton=true 
+        showButtonTitle="Close"
+        (dismissWindowEvent) ="dismissTraceMap($event)"
+
+    mapShowOrganizationPathToggleWindowEventButtonVisible=true
+        mapShowOrganizationPathToggleWindowEventButtonTitle="Toggle Org Path"
+        (mapShowOrganizationPathToggleWindowEvent) ="showOrgPaths2()"
+
+        
+
+>
+  <div class="leaflet-maps"></div>
+</ba-card>
+
+<!-- Trace 
+        mapShowOrganizationPopupToggleWindowButtonVisible=false 
+        mapShowOrganizationPopupToggleWindowButtonTitle="Show Org Popups"
+        (mapShowOrganizationPopupToggleWindowEvent) ="dismissTraceMap($event)"
+
+    mapShowDocumentToggleWindowEventButtonVisible=false
+        mapShowDocumentToggleWindowEventButtonTitle="Show Documents"
+        (mapShowDocumentToggleWindowEvent) ="showAllDocs()"
+
+    mapShowDocInfoToggleWindowEventButtonVisible=false 
+        mapShowDocInfoToggleWindowEventButtonTitle="Show Doc Data"
+        (mapShowDocInfoToggleWindowEvent) ="dismissTraceMap($event)"
+
+    mapShowDocPathToggleWindowEventButtonVisible=false 
+        mapShowDocPathToggleWindowEventButtonTitle="Toggle Doc Path"
+        (mapShowDocPathToggleWindowEvent) ="dismissTraceMap($event)"
+    
+    Functionality -->

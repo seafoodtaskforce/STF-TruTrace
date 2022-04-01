@@ -1,12 +1,14 @@
 <div class="page-top clearfix" baScrollPosition maxHeight="50" (scrollChange)="scrolledChanged($event)"
      [ngClass]="{scrolled: isScrolled}">
-  <a routerLink="/pages/dashboard" class="al-logo clearfix"><span>TruTrace-</span>admin</a>
+  <a routerLink="/pages/profile" class="al-logo clearfix"><span>TruTrace-</span>admin</a>
   <a href (click)="toggleMenu()" class="collapse-menu-link ion-navicon"></a>
 
+  <!-- <TODO>
   <div class="search">
     <i class="ion-ios-search-strong" ng-click="startSearch()"></i>
     <input id="searchInput" type="text" placeholder="Search for...">
   </div>
+  -->
 
   
   <div class="user-profile clearfix">
@@ -20,7 +22,6 @@
         <li class="dropdown-item"><a href><i class="fa fa-spinner fa-spin fa-1x fa-fw"></i>{{loggedName}}</a></li>
         <li class="dropdown-divider"></li>
         <li class="dropdown-item"><a href="#/pages/profile"><i class="fa fa-user"></i>Profile</a></li>
-        <li class="dropdown-item"><a href><i class="fa fa-cog"></i>Settings</a></li>
         <li class="dropdown-item"><a (click)=signOut() href="#/login" class="signout"><i class="fa fa-power-off"></i>Sign out</a></li>
       </ul>
     </div>
@@ -78,6 +79,42 @@
                 [ngClass]="getFlag('Vietnamese')">
             </span>
             Vietnamese
+          </a>
+        </li>
+
+        <li class="dropdown-item">
+          <a (click)="changeLanguage('Spanish')"
+              [ngStyle]="{'background-color':getBackgroundColorHighlight('Spanish')}" >
+            <!-- <i *ngIf="isCurrentFlag('sh')" class="fa fa-check"></i> -->
+
+            <span 
+                [ngClass]="getFlag('Spanish')">
+            </span>
+            Spanish
+          </a>
+        </li>
+
+        <li class="dropdown-item">
+          <a (click)="changeLanguage('Hindi')"
+              [ngStyle]="{'background-color':getBackgroundColorHighlight('Hindi')}" >
+            <!-- <i *ngIf="isCurrentFlag('sh')" class="fa fa-check"></i> -->
+
+            <span 
+                [ngClass]="getFlag('Hindi')">
+            </span>
+            Hindi
+          </a>
+        </li>
+
+        <li class="dropdown-item">
+          <a (click)="changeLanguage('Telugu')"
+              [ngStyle]="{'background-color':getBackgroundColorHighlight('Telugu')}" >
+            <!-- <i *ngIf="isCurrentFlag('sh')" class="fa fa-check"></i> -->
+
+            <span 
+                [ngClass]="getFlag('Telugu')">
+            </span>
+            Telugu
           </a>
         </li>
 

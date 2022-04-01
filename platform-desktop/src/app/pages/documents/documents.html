@@ -1,9 +1,60 @@
-
     <ng2-slim-loading-bar></ng2-slim-loading-bar>
     <div class="row">
         <!----------------->
         <!-- MODALS-->
         <!----------------->
+
+
+        <!-- Modal Map Leaflet -->
+        <div class="modal fade" id="myModalMap" role="dialog" (window:resize)="onResize($event)">
+            <div class="modal-dialog modal-lg" style="width:120%">
+            <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Tracebility Map</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <ba-card cardTitle="Trace Map">
+                            <div class="leaflet-maps" (leafletMapReady)="onMapReady($event)"></div>
+                        </ba-card>
+                    </div>
+                    <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{getInternationalizedToken('share_app[close_dialog]')}}</button>
+                            <button type="button" class="btn btn-primary" (click)="refreshMap()">Refresh Map</button>
+                    </div>
+                </div>
+            </div>
+        </div>      
+        
+        <!-- Modal Image Viewer -->
+        <div class="modal fade" id="myModalImageViewer" role="dialog" (window:resize)="onResize($event)">
+            <div class="modal-dialog" style="max-width: 650px!important;">
+            <!-- Modal content-->
+                <div class="modal-content" >
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">{{getCurrentPageDesignation()}}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" >
+
+
+                        <ngx-image-viewer  
+                            [src]="getDocumentPageImages()"
+                                [config]="{customBtns:[{name: 'link', icon: 'fa fa-paperclip'}]}"    
+                                [index]="getDocumentPageImagesStartIndex()"    
+                                (customEvent)="handleEvent($event)" 
+                                (indexChange)="handleIndexChangeEvent($event)"                
+                                >
+                        </ngx-image-viewer>
+                    </div>
+                </div>
+            </div>
+        </div>  
 
         <!-- Modal Accept-->
         <div class="modal fade" id="myModalAccept" role="dialog">
@@ -100,7 +151,29 @@
                         </div>
                     </div>
                 </div>
+        </div>
+
+        <!-- Modal Document Details -->
+        <div class="modal fade" id="myModalDocumentDetails" tabindex="-1" role="dialog" aria-labelledby="myModalDocumentDetailsTitle" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Preview Document Pages</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"(click)="processSearchTagCancel()">Done</button>
+                    </div>
+                </div>
             </div>
+        </div>
 
         <!-- Modal Submit-->
         <div class="modal fade" id="myModalSubmit" role="dialog">
@@ -184,7 +257,7 @@
                                 <select multiple class="form-control" id="tag-search-doc-list" [(ngModel)]="currentDocumentsToLinkByTags" 
                                             [ngModelOptions]="{standalone: true}">
                                     <option *ngFor="let linkedDocByTag of linkedDocListBySearchTag" [ngValue]="linkedDocByTag">
-                                            {{ linkedDocByTag.owner + ' - ' +  linkedDocByTag.documentType + ' - ' + linkedDocByTag.creationTimestamp}}
+                                            {{ linkedDocByTag.owner + ' - ' +  linkedDocByTag.documentType + ' - ' + linkedDocByTag.updationTimestamp}}
                                     </option>
                                 </select>
                             </div>
@@ -229,21 +302,24 @@
             </div>
         </div>
 
+        <!------------------------------------------------->
         <!-- DOCUMENT FEED                               -->  
         <!-- Individual Card with document overview data -->  
         <ba-card class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12" 
             cardTitle="{{getInternationalizedToken('doc_feed_[Document_Feed]')}}" 
                         showDocsFilterButton="true" showDocsFilterButtonTitle="{{getInternationalizedToken(filterDocsFlagButton)}}"
                         (filterDocsWindowEvent) ="filterDocs($event)"
+                        showDocsDateSortButton="true" showDocsDateSortButtonIcon="{{getShowDocsDateSortButtonIcon()}}"
+                        (filterDocsDateSortsWindowEvent) ="filterDocsOnDateSort($event)"
                         baCardClass="large-card with-scroll feed-panel">
 
             <div class="feed-messages-container">
 
                 <div class="feed-message" id="{{document.id}}"
-                    *ngFor="let document of documents | filterBy: documentFilter | orderBy: sortDateFieldName : sortDateAscending" 
+                    *ngFor="let document of getCurrentDocuments() | filterBy: documentFilter | orderBy: sortDateFieldName : sortDateAscending ;trackBy: trackDocBySessionID" 
                     (click)="showDetails(document.id, false)"
                     [ngStyle]="{'background-color':getBackgroundColorHighlight(document.id)}"
-                    >
+                >
 
                     <!-- Avatar -->
                     <div *ngIf="!isDummy(document)" class="message-icon">
@@ -271,6 +347,7 @@
                                                 , 'padding-left': '4px'
                                                 , 'float': 'align-left'}">
                                                 {{ getInternationalizedToken(document.type.name) }}
+                                                <i *ngIf="document.isLocked" class="fa fa-lock"></i>
                                                 <div class="message-content" 
                                                     [ngStyle]="{'color':'white' ,
                                                                 'font-size': '10px' ,
@@ -280,8 +357,8 @@
                                                                 <span class="{{getLabelForStatus(document)}}">{{ getInternationalizedToken(getStatusInternationalizedStringCode(document.status)) }}</span>
                                                 </div>
                                     </div>
-                                    
                                 </div>
+
                                 <div *ngIf="isCustomTag(document)" [ngStyle]="{'border-left': '6px solid #' + document.type.hexColorCode.substring(1, 7)}">
                                     <div class="message-content" 
                                         [ngStyle]="{'color':'black'
@@ -300,10 +377,23 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Tag list for the doc-->
+                            <div class="row">
+                                <div >
+                                    <div class="message-content" 
+                                        [ngStyle]="{'color':'black'
+                                                , 'padding-left': '10px'
+                                                , 'padding-top': '2px'}">
+                                                <span >{{getDataInfoList(document)}}</span>               
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Time stamp and page numbers -->
                             <div class="message-time">
                                 <div class="post-time">
-                                    {{ document.creationTimestamp  | date:'MM/dd/yyyy HH:mm'}}
+                                    {{ document.updationTimestamp  | date:'MM/dd/yyyy HH:mm'}}
                                     <svg *ngIf="!isReadDocument(document)" height="10" width="10" class="read-flag-shape">
                                         <ellipse cx="5" cy="5" rx="5" ry="5"/>
                                     </svg>
@@ -354,15 +444,57 @@
             </div>
         </ba-card>
 
-        <!---------------------------------->
-        <!-- Search and Doc Creation      -->
-        <!---------------------------------->
+        <!-------------------------------------------------->
+        <!-- Search, Trace,  and Doc Creation             -->
+        <!-------------------------------------------------->
         <div  class="col-xlg-9 col-xl-8 col-lg-7 col-md-6 col-sm-12 col-12">
             <!--              -->
             <!-- Filter Panel -->
             <ba-card *ngIf="showFilter" baCardClass="with-scroll">
                 <div class="row" style="margin-left:2px">
-                    <!-- Sorting by Date -->
+                    <!-- Sorting by Date Range -->
+
+                    <div class="col-xlg-2 col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2">
+                        <div>
+                            <div class="checkbox">
+                                <ba-checkbox 
+                                    [(ngModel)]="isFilterDateRangeOn" 
+                                    [label]="getInternationalizedToken('filter_[Date Range for Docs]')" 
+                                    [ngModelOptions]="{standalone: true}">
+                                </ba-checkbox>
+                            </div>
+                        </div>
+                        <div id="date_from_full" [ngStyle]="getDateFilterRangeStyle()">
+                            <input type="date" class="form-control" id="date_from" name="filterDocDateFrom" 
+                                [(ngModel)]="filterDocDateFrom"/>
+                            <div class="row">
+                                <div class="col-sm-11">
+                                    <small id="passwordHelp" class="text-muted">
+                                        Date From
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xlg-2 col-xl-2 col-lg-2 col-md-2 col-sm-2 col-2" 
+                            [ngStyle]="{'padding-top': '28px'}">
+                        <div id="date_to_full" [ngStyle]="getDateFilterRangeStyle()">
+                            <input type="date" 
+                                class="form-control" 
+                                id="date_to" 
+                                name="filterDocDateTo"
+                                [(ngModel)]="filterDocDateTo"
+                                (ngModelChange)="filterByDateRangeTo($event)">
+                            <div class="row">
+                                    <div class="col-sm-11">
+                                        <small id="passwordHelp" class="text-muted">
+                                            Date To
+                                        </small>
+                                    </div>
+                            </div>    
+                        </div> 
+                    </div> 
+                    <!-- Sorting by Date
                     <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
                         <label for="sortSelect">{{getInternationalizedToken('filter_[Sorting By Date]')}}:</label>
                         <select [(ngModel)]="filterSelectedSortChoice" 
@@ -371,49 +503,51 @@
                             <option>{{getInternationalizedToken(SORT_DATE_DESCENDING)}}</option>
                         </select>
                     </div>
+                     -->
                     <!-- Sorting by usernames -->
-                    <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
+                    <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12" [ngStyle]="{'padding-top': '5px'}">
                         <label for="exampleSelect1">{{getInternationalizedToken('filter_[Usernames]')}}:</label>
                         <select [(ngModel)]="filterSelectedUserChoice" 
                                 class="form-control" id="exampleSelect1" (ngModelChange)="filterByUser($event)">
-                            <option>-- All Users</option>
+                            <option>{{getInternationalizedToken('document_filter_sort_by_user_all')}}</option>
                             <option *ngFor="let user of users | orderBy: 'name' true">{{user.name}}</option>
                         </select>
                     </div>
                     <!-- Sorting by document types -->
-                    <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
+                    <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12" [ngStyle]="{'padding-top': '5px'}">
                         <label for="exampleSelect2">{{getInternationalizedToken('filter_[Doc Types]')}}:</label>
                         <select [(ngModel)]="filterSelectedDocTypeChoice" 
                             class="form-control" id="exampleSelect2" (ngModelChange)="filterByDocType($event)">
-                            <option>-- All Doc Types</option>
+                            <option>{{getInternationalizedToken('document_filter_sort_by_doc_types_all')}}</option>
                             <option *ngFor="let docType of documentTypes | orderBy: 'value' true">{{getInternationalizedToken(docType.name)}}</option>
                         </select>
                     </div>
-                    <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
+                    <div class="col-xlg-2 col-xl-2 col-lg-2col-md-2 col-sm-2 col-2">
                             <button class="btn btn-danger btn-xs pull-right" style="margin-top: 4px;"
                                     id="resetFilterBtn" 
-                                    (click)="resetFilter()">{{getInternationalizedToken('filter_[Reset Filter]')}}</button>
+                                    (click)="resetFilter(getFilterFlag_RESET_FILTER_GLOBAL())">{{getInternationalizedToken('filter_[Reset Filter]')}}</button>
                     </div>
                 </div>
                 <div class="separator" style="margin-bottom: 5px;"></div>
 
-                <!------------------------------->
-                <!-- Tag Search                -->
+                <!------------------------------------------------------->
+                <!-- Tag and Doc Creation/Edition Panel                -->
                 <div class="row" style="margin-left:2px">
+                    <!------------------------------->
+                    <!-- Tag Search                -->
                     <div class="col-md-2 col-sm-2" >
                         <button *ngIf="!lotSearchOn" class="btn btn-info btn-xs" style="margin-top: 4px;"
                                 id="filterByTagsBtn" 
-                                (click)="resetFilter()"
-                                data-toggle="collapse" data-target="#lotSearchSlide">
-                                {{getInternationalizedToken('filter_[Lot # Search]')}}
+                                [disabled]="isLotSearchDisabled()" 
+                                (click)="toggleLotSearchButton()">
+                                {{getInternationalizedToken('filter_[Doc Info Search]')}}
 
                                 <i class="ion-ios-arrow-down"></i>
                         </button>
                         <button *ngIf="lotSearchOn" class="btn btn-info btn-xs" style="margin-top: 4px;"
                             id="filterByTagsBtn" 
-                            (click)="resetFilter()"
-                            data-toggle="collapse" data-target="#lotSearchSlide">
-                            {{getInternationalizedToken('filter_[Lot # Search]')}}
+                            (click)="toggleLotSearchButton()">
+                            {{getInternationalizedToken('filter_[Doc Info Search]')}}
 
                             <i  class="ion-ios-arrow-up"></i>
                         </button> 
@@ -421,26 +555,46 @@
                     </div>
                     <!------------------------------->
                     <!-- Import Document           -->
-                    <div class="col-md-8 col-sm-8" >
+                    <div class="col-md-2 col-sm-2" >
                         <!-- PDF Doc Import Open -->
                         <button *ngIf="!docImportOn" class="btn btn-info btn-xs" style="margin-top: 4px;"
-                                id="imnportPDFDocsBtn" 
-                                (click)="resetFilter()"
-                                data-toggle="collapse" data-target="#pdf_import">
+                                id="importPDFDocsBtn" 
+                                [disabled]="isCreateNewDocDisabled()"                
+                                (click)="toggleCreateNewDocButton()">
                                 {{getInternationalizedToken('import_[pdfDocument]')}}
 
                                 <i class="ion-ios-arrow-down"></i>
                         </button>
                         <!-- PDF Doc Import Close -->
                         <button *ngIf="docImportOn" class="btn btn-info btn-xs" style="margin-top: 4px;"
-                            id="imnportPDFDocsBtn" 
-                            (click)="resetFilter()"
-                            data-toggle="collapse" data-target="#pdf_import">
+                            id="importPDFDocsBtn" 
+                            (click)="toggleCreateNewDocButton()">
                             {{getInternationalizedToken('import_[pdfDocument]')}}
 
                             <i  class="ion-ios-arrow-up"></i>
                         </button> 
-                                
+                    </div>
+                    <!------------------------------->
+                    <!-- Edit Existing Document    -->
+                    <div class="col-md-6 col-sm-6" >
+                        <div *ngIf="canEditDoc()">
+                            <!-- PDF Doc Import Open -->
+                            <button *ngIf="!docEditOn" class="btn btn-info btn-xs" style="margin-top: 4px;"
+                                id="editExistingDocBtn" 
+                                [disabled]="isEditDocDisabled()" 
+                                (click)="toggleEditDocButton()">
+                                    {{getInternationalizedToken('edit_[existing_doc]')}}
+                                <i class="ion-ios-arrow-down"></i>
+                            </button>
+                            <!-- PDF Doc Import Close -->
+                            <button *ngIf="docEditOn" class="btn btn-info btn-xs" style="margin-top: 4px;"
+                                id="editExistingDocBtn" 
+                                (click)="toggleEditDocButton()">
+                                    {{getInternationalizedToken('edit_[existing_doc]')}}
+                                <i  class="ion-ios-arrow-up"></i>
+                            </button> 
+                        </div>
+                        
                     </div>
                     <!-- Total Number of Documents -->
                     <div class="col-md-2 col-sm-2">
@@ -450,7 +604,7 @@
                 <div class="separator" style="margin-bottom: 5px;"></div>
                 
                 <!-- Tag Search Panel-->
-                <div *ngIf="!docImportOn" id="lotSearchSlide" class="collapse">
+                <div *ngIf="lotSearchOn" id="lotSearchSlide">
                     <form class="form-horizontal">
                         <div class="form-group row">
                             <label for="tagInputText001" class="col-sm-2 form-control-label align-right">{{getInternationalizedToken('filter_[Lot 1]')}}</label>
@@ -517,44 +671,58 @@
                         </div>                                                                                                   
                         <div class="form-group row">
                             <div class="offset-sm-2 col-sm-10">
-                            <div class="checkbox">
-                                <ba-checkbox [(ngModel)]="isPartialMatch" [label]="getInternationalizedToken('filter_[Partial Match]')" [ngModelOptions]="{standalone: true}"></ba-checkbox>
-                            </div>
+                                <div class="checkbox">
+                                    <ba-checkbox [(ngModel)]="isPartialMatch" [label]="getInternationalizedToken('filter_[Partial Match]')" [ngModelOptions]="{standalone: true}"></ba-checkbox>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group row">
                             <div class="offset-sm-2 col-sm-1">
                                     <button class="btn btn-success btn-xs" style="margin-top: 4px;"
                                     id="filterSearchBtn" 
-                                    (click)="executeSearch()">{{getInternationalizedToken('filter_[Search]')}}</button>
+                                    (click)="executeDocInfoSearch()">{{getInternationalizedToken('filter_[Search]')}}</button>
                             </div>
                             <div class="offset-sm-2 col-sm-1">
                                 <button class="btn btn-info btn-xs" style="margin-top: 4px;"
                                 id="AddRowBtn" 
-                                (click)="addLotSearchRow()">{{getInternationalizedToken('filter_[Lot # Search Add Row]')}}</button>
+                                (click)="addLotSearchRow()">{{getInternationalizedToken('filter_[Doc Info Search Add Row]')}}</button>
                             </div>
                             <div class="col-sm-2">
                                 <button class="btn btn-danger btn-xs" style="margin-top: 4px;"
                                 id="closeFilterSearchBtn" 
-                                (click)="resetFilter()"
-                                data-toggle="collapse" data-target="#lotSearchSlide">{{getInternationalizedToken('filter_[Lot # Search Close]')}}</button>
+                                (click)="resetFilter(getFilterFlag_RESET_FILTER_TAG_SEARCH())"
+                                data-toggle="collapse" data-target="#lotSearchSlide">{{getInternationalizedToken('filter_[Doc Info Search Close]')}}</button>
                             </div>
                         </div>
                     </form>
                 </div>
 
-                <!---------------------------->
-                <!-- Document Upload/Import -->
-                <div *ngIf="!docImportOn" id="pdf_import" class="collapse">
+                <!-------------------------------->
+                <!-- New Document Upload/Import -->
+                <div *ngIf="docImportOn">
                     <div class="row">
                         <!-- Document Type -->
                         <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
-                                <label for="docTypeForImport">{{getInternationalizedToken('user_[document_types]')}}:</label>
-                                <select [(ngModel)]="currectDocumentTypeForNewDocListValue"
-                                        class="form-control" id="docTypeForImport" (ngModelChange)="setDocImportType($event)" >
-                                    <option>-- Choose Doc Type</option>
-                                    <option *ngFor="let docType of getAllowedDocTypes() | orderBy: 'value' true">{{getInternationalizedToken(docType.name)}}</option>
-                                </select>
+                            <div >
+                                    <label for="docTypeForImport">{{getInternationalizedToken('user_[document_types]')}}:</label>
+                                    <select [(ngModel)]="currectDocumentTypeForNewDocListValue"
+                                            class="form-control" id="docTypeForImport" (ngModelChange)="setNewDocImportType($event)" >
+                                        <option>{{getInternationalizedToken('document_import_choose_doc_type')}}</option>
+                                        <option *ngFor="let docType of getAllowedDocTypes() | orderBy: 'value' true">{{getInternationalizedToken(docType.name)}}</option>
+                                    </select>
+                            </div>
+
+                            <div class="separator" style="margin-bottom: 5px;"></div>
+                            <div>
+                                <div class="checkbox">
+                                    <ba-checkbox (ngModel)="showDocDetailsPagePreview" 
+                                                    [label]="getInternationalizedToken('document.preview.pages')" 
+                                                    [ngModelOptions]="{standalone: true}"
+                                                    (ngModelChange)="toggleDocumentPagePreview()">
+                                    </ba-checkbox>
+                                </div>
+                            </div>
+
                         </div>
                         <!-- Upload -->
                         <div class="col-md-6">
@@ -570,10 +738,225 @@
                                     <div class="col-xlg-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
                                             <button class="{{getClassForUploadProcessButton('Save')}}" style="margin-top: 4px;"
                                             id="SavePDFDocumentImportBtn" 
-                                            (click)="onPDFFileUpload('DRAFT')">Save</button>
+                                            (click)="onMultiPDFFileUpload('DRAFT')">{{getInternationalizedToken('manage_pdf_document_button_save')}}</button>
                                             <button class="{{getClassForUploadProcessButton('Submit')}}" style="margin-top: 4px;"
                                             id="SubmitPDFDocumentImportBtn" 
-                                            (click)="onPDFFileUpload('SUBMITTED')">Submit</button>
+                                            (click)="onMultiPDFFileUpload('SUBMITTED')">{{getInternationalizedToken('manage_pdf_document_button_submit')}}</button>
+                                            <button class="{{getClassForUploadProcessButton('Cancel')}}" style="margin-top: 4px;"
+                                            id="CancelPDFDocumentImportBtn" 
+                                            (click)="onPDFFileRemoveChoice()">{{getInternationalizedToken('manage_pdf_document_button_cancel')}}</button>
+                                            <div *ngIf="isUploadingDoc()"  class="message-content" 
+                                                [ngStyle]="{'color':'white' ,
+                                                            'font-size': '10px' ,
+                                                            'padding-left': '2px',
+                                                            'padding-right': '2px', 
+                                                            'float': 'pull-right'}">
+                                                            <span class="label label-warning">{{getInternationalizedToken('manage_pdf_document_label_uploading')}}</span>
+                                            </div>
+                                            
+                                    </div>
+                                </ba-card>
+                        </div>
+                        <!-- List of files -->
+                        <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
+                            <label for="pdfFileUploadListSelect">{{getInternationalizedToken('document_upload_upload_files_list_number') + ': ' +  currentDocumentFileList.length}}</label>
+
+                            <select multiple class="form-control" id="pdfFileUploadListSelect" 
+                                [(ngModel)]="currentDocumentFileList" style ="overflow: auto;">
+                                <option *ngFor="let file of getAllSelectedPDFFiles()" [ngValue]="file" >
+                                        {{ file.name }}
+                                </option>
+                            </select>
+                        </div>
+                   </div>
+                   <div *ngIf="documentDocDataPanelEnabledFlag" class="separator" style="margin-bottom: 5px;"></div>
+                    <div class="row" *ngIf="documentDocDataPanelEnabledFlag">
+                        <!-- Recipients -->
+                        <div class="col-md-12">
+                            <label for="recipientSelect">{{getInternationalizedToken('document_upload_Recipients_NUmber') + ': ' +  currentDocumentRecipient.name}}</label>
+                            <select class="form-control" id="recipientSelect" [(ngModel)]="currentDocumentRecipient" size="4">
+                                <option *ngFor="let user of recipients | orderBy: 'name'" [ngValue]="user" (click)="recipientClickHandler($event)">
+                                    {{ user.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <!-- Document Linked -->
+                        <div *ngIf="newDocumentCreationLinkedDocsEnabledFlag" class="separator" style="margin-bottom: 5px;"></div>
+                        <div *ngIf="newDocumentCreationLinkedDocsEnabledFlag" 
+                            class="col-md-12">
+                            <label for="linkedDocSelect">{{getInternationalizedToken('document_upload_Linked_Docs_NUmber') + ': ' +  currentDocumentLinks.length}}</label>
+                            <select multiple class="form-control" id="linkedDocSelect" 
+                                    [(ngModel)]="currentDocumentLinks" style ="overflow: auto;">
+                                <option *ngFor="let doc of getDocsToLink()" [ngValue]="doc" (click)="showDocumentPreview(doc)">
+                                    {{ doc.owner + ' - ' + getInternationalizedToken(doc.type.name) + ' - ' + doc.updationTimestamp + getDocumentDocInfoItemId(doc)   }}
+                                </option>
+                            </select>
+                        </div>
+                        <div *ngIf="newDocumentCreationBackingDocsEnabledFlag" class="separator" style="margin-bottom: 5px;"></div>
+                        <!-- Document Backing -->
+                        <div *ngIf="newDocumentCreationBackingDocsEnabledFlag" 
+                            class="col-md-12">
+                            <label for="attachedDocSelect">{{getInternationalizedToken('document_upload_Backup_Docs_NUmber') + ': ' +  currentDocumentBacking.length}}</label>
+                            <select multiple class="form-control" id="attachedDocSelect" [(ngModel)]="currentDocumentBacking" style ="overflow: auto;">
+                                <option *ngFor="let doc of getDocsToBackup()" [ngValue]="doc" 
+                                (click)="showDocumentPreview(doc)" >
+                                        {{ getInternationalizedToken(doc.type.name)  + ' - ' + doc.updationTimestamp + getDocumentDocInfoItemId(doc)}}
+                                    </option>
+
+                            </select>
+                        </div>
+                        <!-- Document Tags 
+                        <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
+                            <label for="tagSelect">{{getInternationalizedToken('document_upload_Tags_Number') + ': ' +  currentDocumenTags.length}} 
+                                
+                            </label>
+                            <button class="btn btn-info btn-xs" style="margin-top: 4px;"
+                                id="manageTags" 
+                                data-toggle="modal" data-target="#myModalTagSearch" (click)="showTagManagementScreen()">{{getInternationalizedToken('manage_pdf_document_tags_button_search')}}</button>
+                            <button class="btn btn-info btn-xs" style="margin-top: 4px;"
+                                id="manageTags" 
+                                data-toggle="modal" data-target="#exampleModalCenter" (click)="showTagManagementScreen()">{{getInternationalizedToken('manage_pdf_document_tags_button_new')}}</button>
+                            <select multiple class="form-control" id="tagSelect" [(ngModel)]="currentDocumenTags" (ngModelChange)="setTagSelection($event)">
+                                <option *ngFor="let tagItem of getTagsToLink()" [ngValue]="tagItem">
+                                        {{ stripTag(tagItem) }}
+                                </option>
+                            </select>
+                        </div>
+                        -->
+                    </div>
+                    <!-------------------------------->
+                    <!-- Backing Docs Details Panel -->
+                    <!-------------------------------->
+                    <div *ngIf="isDocumentPagePreviewOn()" class="row">
+                        
+                        <div class="col-md-12">
+                            <div class="separator" style="margin-bottom: 5px;"></div>
+                            <ba-card cardTitle="{{getInternationalizedToken('document.preview.pages.header')}}" baCardClass="with-scroll">
+                                <h5 class="list-header">{{getDocumentPreviewType()}}</h5>
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr class="black-muted-bg">
+                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Document Type]')}}</th>
+                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Owner]')}}</th>
+                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Organization]')}}</th>
+                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Created]')}}</th>
+                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Pages]')}}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="no-top-border">
+                                            <td ngClass="nowrap"
+                                                >{{currentDocumentToShow.documentType}}
+                                            </td>
+                                            <td class="align-left">{{currentDocumentToShow.owner}}</td>
+                                            <td class="align-left">{{getDocumentGroupName(currentDocumentToShow)}}</td>
+                                            <td class="align-left">{{ currentDocumentToShow.updationTimestamp  | date:'MM/dd/yyyy HH:mm'}}</td>
+                                            <td class="align-left">{{ getDocumentPagesLength(currentDocumentToShow.id)}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <section *ngIf="isDocumentPagePreviewOnWithPages()" class="card">
+                                    <div  class="card--content" *ngFor="let page of getCurrentDocumentToShow().pages">
+                                        <div id="selection_panel"> 
+                                            <div class="thumbnail">
+                                                <!-- Allow Modal Box Image Viewing *Doc Creation* -->
+                                                <a data-target="#myModalImageViewer" 
+                                                    data-toggle="modal" class="MainNavText" id="MainNavHelp" 
+                                                    href="#myModalImageViewer"
+                                                    (click)="clickedDocPageIndex(page.pageNumber, 2, -1)"> 
+                                                    <img class="img-responsive" src="{{serverURI}}/document/pagethumbnail?doc_id={{page.id}}">
+                                                </a>
+                                            </div>
+                                            <div class="selection_box">
+                                                <span class="close">
+                                                    {{page.pageNumber}}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </ba-card>
+                        </div>
+                    </div>
+                    <div class="separator" style="margin-bottom: 5px;"></div>
+                    <!---------------------------->
+                    <!-- Doc Info Dynamic Panel -->
+                    <!---------------------------->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ba-card cardTitle="{{getInternationalizedToken('document_doc_info_Header')}}" baCardClass="with-scroll">
+                                <!-- Dynamically add the Input Fields -->
+                                <div class="{{getDocInfoItemClassValue(i)}}" *ngFor="let docInfoItem  of newDocumentDynamicFieldDefinitions; let i = index;">
+                                    <div class="col-sm-12">
+                                        <div>
+                                            <label for="usr">{{docInfoItem.displayName}}</label>
+                                            <div *ngIf="isDocFieldValid(i)">
+                                                <small id="passwordHelp" class="text-danger">
+                                                    {{getDocFieldErrorMessage(i)}}
+                                                </small>
+                                            </div>
+                                        </div>                       
+                                        <input type="{{getInputTypeClass(docInfoItem)}}" class="form-control" id="usr" name="username" 
+                                                maxlength="{{getMaxInputLengthClass(docInfoItem)}}"
+                                                placeholder="{{isDocInfoRequired(docInfoItem)}}" 
+                                                [(ngModel)]="newDocumentDynamicFieldData[i].data">
+                                        <div class="row">
+                                            <div class="col-sm-11">
+                                                <small id="passwordHelp" class="text-muted">
+                                                    {{docInfoItem.description}}
+                                                </small>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <small id="passwordHelp" class="text-success">
+                                                    {{getCharacterInputLentghFeedback(docInfoItem, i)}}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>         
+                            </ba-card>
+                        </div>
+                    </div>
+                </div>
+
+                <!--------------------------------->
+                <!-- Document Edit Upload/Import -->
+                <div *ngIf="docEditOn">
+                    <div class="row">
+                        <!-- Document Type -->
+                        <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
+                            <div >
+                                <label for="docTypeForImport">{{getInternationalizedToken('user_[document_types]')}}:</label>
+                                <select class="form-control">
+                                        <option>{{getInternationalizedToken(this.currentDocument.type.name)}}</option>
+                                </select>
+                            </div>
+                            <div class="separator" style="margin-bottom: 5px;"></div>
+                            <div>
+                                <div class="checkbox">
+                                    <ba-checkbox (ngModel)="showDocDetailsPagePreview" 
+                                                    [label]="getInternationalizedToken('document.preview.pages')" 
+                                                    [ngModelOptions]="{standalone: true}"
+                                                    (ngModelChange)="toggleDocumentPagePreview()">
+                                    </ba-checkbox>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <!-- Upload -->
+                        <div class="col-md-6">
+                                <ba-card cardTitle="{{getInternationalizedToken('document_upload_Upload_Header')}}" baCardClass="with-scroll">
+                                    <div class="row">
+                                        <div class="file-upload-wrapper col-12">
+                                                <input type="file" id="input-file-now" class="file-upload col-12" 
+                                                                                    (change)="onPDFFileSelected($event)" accept=".pdf"/>
+                                        </div>
+                                    </div>
+                                    <!-- <ba-file-uploader [fileUploaderOptions]="importPDFDocData()"></ba-file-uploader> -->
+                                    
+                                    <div class="col-xlg-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
                                             <button class="{{getClassForUploadProcessButton('Cancel')}}" style="margin-top: 4px;"
                                             id="CancelPDFDocumentImportBtn" 
                                             (click)="onPDFFileRemoveChoice()">Cancel</button>
@@ -589,58 +972,171 @@
                                     </div>
                                 </ba-card>
                         </div>
-                   </div>
-                    <div class="row">
-                        <!-- Document Tags -->
+                        <!-- List of files -->
                         <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
-                                <label for="tagSelect">{{getInternationalizedToken('document_upload_Tags_Number') + ': ' +  currentDocumenTags.length}} 
-                                    <!-- TODO
-                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
-                                                Launch demo modal
-                                              </button>
-                                              -->
-                                    
-                                </label>
-                                <button class="btn btn-info btn-xs" style="margin-top: 4px;"
-                                    id="manageTags" 
-                                    data-toggle="modal" data-target="#myModalTagSearch" (click)="showTagManagementScreen()">Search</button>
-                                <button class="btn btn-info btn-xs" style="margin-top: 4px;"
-                                    id="manageTags" 
-                                    data-toggle="modal" data-target="#exampleModalCenter" (click)="showTagManagementScreen()">New</button>
-                                <select multiple class="form-control" id="tagSelect" [(ngModel)]="currentDocumenTags" (ngModelChange)="setTagSelection($event)">
-                                    <option *ngFor="let tagItem of getTagsToLink()" [ngValue]="tagItem">
-                                            {{ stripTag(tagItem) }}
-                                    </option>
-                                </select>
+                            <label for="pdfFileUploadListSelect">{{getInternationalizedToken('document_upload_upload_files_list_number') + ': ' +  selectedUploadPDFFiles.length}}</label>
+                            <select multiple class="form-control" id="pdfFileUploadListSelect" >
+                                <option *ngFor="let file of selectedUploadPDFFiles" [ngValue]="file" >
+                                        {{ file.name }}
+                                </option>
+                            </select>
                         </div>
+                   </div>
+                   <div *ngIf="documentDocDataPanelEnabledFlag" class="separator" style="margin-bottom: 5px;"></div>
+                    <div class="row" *ngIf="documentDocDataPanelEnabledFlag">
                         <!-- Recipients -->
-                        <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
-                            <label for="recipientSelect">{{getInternationalizedToken('document_upload_Recipients_NUmber') + ': ' +  currentDocumentRecipients.length}}</label>
-                            <select multiple class="form-control" id="recipientSelect" [(ngModel)]="currentDocumentRecipients">
-                                <option *ngFor="let user of users | orderBy: 'name'" [ngValue]="user" >
+                        <div class="col-md-12">
+                            <label for="recipientSelect">{{getInternationalizedToken('document_upload_Recipients_NUmber') + ': ' +  currentDocumentRecipient.name}}</label>
+                            <select class="form-control" id="recipientSelect" [(ngModel)]="currentDocumentRecipient" size="4">
+                                <option *ngFor="let user of recipients | orderBy: 'name'" [ngValue]="user" (click)="recipientClickHandler($event)">
                                     {{ user.name }}
                                 </option>
                             </select>
                         </div>
+                        <div *ngIf="documentEditionLinkedDocsEnabledFlag" class="separator" style="margin-bottom: 5px;"></div>
                         <!-- Document Linked -->
+                        <div *ngIf="documentEditionLinkedDocsEnabledFlag" 
+                            class="col-md-12">
+                            <label for="linkedDocEditSelect">{{getInternationalizedToken('document_upload_Linked_Docs_NUmber') + ': ' +  currentDocumentLinks.length}}</label>
+                            <select multiple class="form-control" id="linkedDocEditSelect" [(ngModel)]="currentDocumentLinks" style ="overflow: auto;">
+                                    <option *ngFor="let doc of getAllDocEditLinkedDocs()" [ngValue]="doc" 
+                                        (click)="showDocumentPreview(doc)" >
+                                            {{ doc.owner + ' - ' + getInternationalizedToken(doc.type.name) + ' - ' + doc.updationTimestamp + getDocumentDocInfoItemId(doc)   }}
+                                    </option>
+
+                            </select>
+                        </div>
+                        <div *ngIf="documentEditionBackingDocsEnabledFlag" class="separator" style="margin-bottom: 5px;"></div>
+                        <!-- Document Backing -->
+                        <div *ngIf="documentEditionBackingDocsEnabledFlag"  
+                            class="col-md-12">
+                            <label for="attachedDocSelect">{{getInternationalizedToken('document_upload_Backup_Docs_NUmber') + ': ' +  currentDocumentBacking.length}}</label>
+                            <select multiple class="form-control" id="attachedDocSelect" [(ngModel)]="currentDocumentBacking" style ="overflow: auto;">
+                                <option *ngFor="let doc of getAllDocEditProfileDocs()" [ngValue]="doc" 
+                                        (click)="showDocumentPreview(doc)" >
+                                        {{ getInternationalizedToken(doc.type.name)  + ' - ' + doc.updationTimestamp + getDocumentDocInfoItemId(doc)}}
+                                </option>
+
+                            </select>
+                        </div>
+                        <!-- Document Tags
                         <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
-                            <label for="linkedDocSelect">{{getInternationalizedToken('document_upload_Linked_Docs_NUmber') + ': ' +  currentDocumentLinks.length}}</label>
-                            <select multiple class="form-control" id="linkedDocSelect" [(ngModel)]="currentDocumentLinks" >
-                                <option *ngFor="let doc of getDocsToLink()" [ngValue]="doc" 
-                                (click)="showDetails(doc.id, false)" >
-                                        {{ doc.owner + ' - ' +  getInternationalizedToken(doc.type.name) + ' - ' + doc.creationTimestamp}}
+                            <label for="tagSelect">{{getInternationalizedToken('document_upload_Tags_Number') + ': ' +  currentDocumenTags.length}}</label>
+                            <button class="btn btn-info btn-xs" style="margin-top: 4px;"
+                                id="manageTags" 
+                                data-toggle="modal" data-target="#myModalTagSearch" (click)="showTagManagementScreen()">Search</button>
+                            <button class="btn btn-info btn-xs" style="margin-top: 4px;"
+                                id="manageTags" 
+                                data-toggle="modal" data-target="#exampleModalCenter" (click)="showTagManagementScreen()">New</button>
+                            <select multiple class="form-control" id="tagSelect" [(ngModel)]="currentDocumenTags" (ngModelChange)="setTagSelection($event)">
+                                <option *ngFor="let tagItem of getAllDocEditTags()" [ngValue]="tagItem">
+                                        {{ stripTag(tagItem) }}
                                 </option>
                             </select>
                         </div>
-                        <!-- Document Backing -->
-                        <div class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
-                            <label for="attachedDocSelect">{{getInternationalizedToken('document_upload_Backup_Docs_NUmber') + ': ' +  currentDocumentBacking.length}}</label>
-                            <select multiple class="form-control" id="attachedDocSelect" [(ngModel)]="currentDocumentBacking">
-                                <option *ngFor="let doc of getDocsToBackup()" [ngValue]="doc" 
-                                (click)="showDetails(doc.id, false)" >
-                                        {{ doc.owner + ' - ' + getInternationalizedToken(doc.type.name) }}
-                                    </option>
-                            </select>
+                         -->
+                    </div>
+
+                    <!-------------------------------->
+                    <!-- Backing Docs Details Panel -->
+                    <!-------------------------------->
+                    <div *ngIf="isDocumentPagePreviewOn()" class="row">
+                        
+                        <div class="col-md-12">
+                            <div class="separator" style="margin-bottom: 5px;"></div>
+                            <ba-card cardTitle="{{getInternationalizedToken('document.preview.pages.header')}}" baCardClass="with-scroll">
+                                <h5 class="list-header">{{getDocumentPreviewType()}}</h5>
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr class="black-muted-bg">
+                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Document Type]')}}</th>
+                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Owner]')}}</th>
+                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Organization]')}}</th>
+                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Created]')}}</th>
+                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Pages]')}}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="no-top-border">
+                                            <td ngClass="nowrap"
+                                                >{{currentDocumentToShow.documentType}}
+                                            </td>
+                                            <td class="align-left">{{currentDocumentToShow.owner}}</td>
+                                            <td class="align-left">{{getDocumentGroupName(currentDocumentToShow)}}</td>
+                                            <td class="align-left">{{ currentDocumentToShow.updationTimestamp  | date:'MM/dd/yyyy HH:mm'}}</td>
+                                            <td class="align-left">{{ getDocumentPagesLength(currentDocumentToShow.id)}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <section *ngIf="isDocumentPagePreviewOnWithPages()" class="card">
+                                    <div  class="card--content" *ngFor="let page of getCurrentDocumentToShow().pages">
+                                        <div id="selection_panel"> 
+                                            <div class="thumbnail">
+                                                <!-- Allow Modal Box Image Viewing *Doc Edit* -->
+                                                <a data-target="#myModalImageViewer" 
+                                                    data-toggle="modal" class="MainNavText" id="MainNavHelp" 
+                                                    href="#myModalImageViewer"
+                                                    (click)="clickedDocPageIndex(page.pageNumber, 3, -1)"> 
+                                                    <img class="img-responsive" src="{{serverURI}}/document/pagethumbnail?doc_id={{page.id}}">
+                                                </a>
+                                                <!-- 
+                                                <a href="{{serverURI}}/document/page?doc_id={{page.id}}" 
+                                                    data-lightbox="gallery" 
+                                                    data-title='{{getInternationalizedToken("doc_details_tabs_content_images[Page]")}} {{page.pageNumber}}'
+                                                    >
+                                                    <img class="img-responsive" src="{{serverURI}}/document/pagethumbnail?doc_id={{page.id}}">
+                                                </a>
+                                                -->
+                                            </div>
+                                            <div class="selection_box">
+                                                <span class="close">
+                                                    {{page.pageNumber}}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </ba-card>
+                        </div>
+                    </div>
+                    
+                    <div class="separator" style="margin-bottom: 5px;"></div>
+                    <!---------------------------->
+                    <!-- Doc Info Dynamic Panel -->
+                    <!---------------------------->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ba-card cardTitle="{{getInternationalizedToken('document_doc_info_Header')}}" baCardClass="with-scroll">
+                                <!-- Dynamically add the Input Fields -->
+                                <div class="{{getDocInfoItemClassValue(i)}}" *ngFor="let docInfoItem  of newDocumentDynamicFieldDefinitions; let i = index;">
+                                    <div class="col-sm-12">
+                                        <div>
+                                            <label for="usr">{{docInfoItem.displayName}}</label>
+                                            <div *ngIf="isDocFieldValid(i)">
+                                                <small id="passwordHelp" class="text-danger">
+                                                    {{getDocFieldErrorMessage(i)}}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <input type="{{getInputTypeClass(docInfoItem)}}" class="form-control" id="usr" name="username" 
+                                                maxlength="{{getMaxInputLengthClass(docInfoItem)}}"
+                                                placeholder="{{isDocInfoRequired(docInfoItem)}}" 
+                                                [(ngModel)]="newDocumentDynamicFieldData[i].data">
+                                        <div class="row">
+                                            <div class="col-sm-11">
+                                                <small id="passwordHelp" class="text-muted">
+                                                    {{docInfoItem.description}}
+                                                </small>
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <small id="passwordHelp" class="text-success">
+                                                    {{getCharacterInputLentghFeedback(docInfoItem, i)}}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>         
+                            </ba-card>
                         </div>
                     </div>
                 </div>
@@ -649,10 +1145,21 @@
             <!--                      -->
             <!-- Trace Details Column -->
             <ba-card *ngIf="showTracebilityCard" cardTitle="{{getInternationalizedToken('doc_trace[Details]')}}" 
-                        showButton="true" showButtonTitle="{{getInternationalizedToken('doc_trace_close[Close]')}}"
-                        showAllDocTraceFilterButton="true" showAllDocTraceFilterButtonTitle="{{getInternationalizedToken('doc_trace_show_all[Show]')}}"
-                        (dismissWindowEvent) ="dismissTraceDocument($event)"
-                        (filterTraceDocsWindowEvent) ="traceOriginalDocument($event)"
+                        showButton="true" 
+                                showButtonTitle="{{getInternationalizedToken('doc_trace_close[Close]')}}"
+                                (dismissWindowEvent) ="dismissTraceDocument($event)"
+                        showAllDocTraceFilterButton="true" 
+                                showAllDocTraceFilterButtonTitle="{{getInternationalizedToken('doc_trace_show_all[Show]')}}"                            
+                                (filterTraceDocsWindowEvent) ="traceOriginalDocument($event)"
+                        exportTraceDocsWindowEventButtonVisible="true" 
+                        exportTraceDocsWindowEventButtonTitle="{{getInternationalizedToken('export_trace_data_button_label')}}"                          
+                                (exportTraceDocsWindowEvent) ="exportTraceDocument(getCurrentTraceDocumentId(), $event)"
+                        showTraceMapWindowEventButtonVisible="true" 
+                                showTraceMapWindowEventButtonTitle="{{getInternationalizedToken('show_trace_map_button_label')}}"                          
+                                (showTraceMapWindowEvent) ="navigateToTraceMap()"
+                        exportTraceGPSDataWindowEventButtonVisible="true" 
+                                exportTraceGPSDataWindowEventButtonTitle="{{getInternationalizedToken('export_gps_data_button_label')}}"                          
+                                (exportTraceGPSDataWindowEvent) ="exportTraceGPSData(getCurrentTraceDocumentId(), $event)"
                         baCardClass="medium-card with-scroll">
 
                     <div class="diagram-table">
@@ -668,8 +1175,8 @@
                                     
                                         <rect width="100" height="50" rx="3" ry="3" style="stroke:black;stroke-width:3;stroke-opacity:0.9;stroke-dasharray:2.5"/>
                                             <text y="45%" transform="translate(52)">
-                                                <tspan x="0" text-anchor="middle" >{{splitGridIconName(header.name)[0]}}</tspan>
-                                                <tspan x="0" text-anchor="middle" dy="17">{{splitGridIconName(header.name)[1]}}</tspan>
+                                                <tspan x="0" text-anchor="middle" >{{splitGridIconName(getTraceColumnHeaderName(header), 0)}}</tspan>
+                                                <tspan x="0" text-anchor="middle" dy="17">{{splitGridIconName(getTraceColumnHeaderName(header), 1)}}</tspan>
                                             </text>
                                     </svg>
                                     <!-- Header Shape / End -->
@@ -677,7 +1184,7 @@
                             </div>
 
                             <!-- Show the actual trace elements as columns -->
-                            <div *ngFor="let gridRow of getAllGridRowNames()" class="diagram-table-row">
+                            <div *ngFor="let gridRow of getAllGridRowNamesNoGaps()" class="diagram-table-row">
                                     <!-- Cell -->
                                     <div *ngFor="let gridCell of gridRow.subGroups" class="diagram-table-cell">
                                             
@@ -686,16 +1193,22 @@
                                                     width="105" height="50" viewBox="0 0 105 50" 
                                                     [ngClass]="getCellTraceabilityClassColorByGroup(gridCell)"
                                                     (click)="filterByTraceOrganization(gridCell.name)">
+                                                    <style>
+                                                        text  { font: bold 14px Lucida Console; }
+                                                        tspan { font: bold 11px Lucida Console; overflow: hidden;
+                                                            text-overflow: ellipsis;}
+                                                      </style>
                                                     <path d="M0,47V3A3,3,0,0,1,3,0H97a3,3,0,0,1,3,3V18.215c0,3.108,5,4.753,5,6.693,0,1.783-5,3.925-5,7.318V47a3,3,0,0,1-3,3H3A3,3,0,0,1,0,47Z"/>
                                                     <text y="45%" transform="translate(52)">
                                                         <!--
                                                             <tspan x="0" text-anchor="middle" >{{gridCell.name}}</tspan>
                                                         
                                                         -->
-                                                        <tspan x="0" text-anchor="middle" >{{splitGridIconName(gridCell.name)[0]}}</tspan>
-                                                        <tspan x="0" text-anchor="middle" dy="17">{{splitGridIconName(gridCell.name)[1]}}</tspan>
+                                                        <tspan x="0" text-anchor="middle">{{splitGridIconName(gridCell.name, 0)}}</tspan>
+                                                        <tspan x="0" text-anchor="middle" dy="17">{{splitGridIconName(gridCell.name, 1)}}</tspan>
                                                         
                                                     </text>
+                                                    
                                                     <!-- Doc indicator for choosing a doc -->
                                                     <ellipse *ngIf="showDocIndicator(gridCell.name)" class="toggle-shape" cx="10" cy="10.5" rx="5" ry="5"/>
                                                 </svg>
@@ -704,25 +1217,37 @@
                                                 {{getOrganizationRequiredDocNumber(gridCell) }} {{ getOrganizationRequiredDocNumberCovered(gridCell)}}
                                                 -->
                                         
-                                    </div>
+                                    </div> <!-- End Cell -->
                             </div>
                         </div>
                     </div>
 
-                    <button type="button" class="btn btn-info btn-with-icon btn-xs" style="float: right;"
-                        id="traceBtn" (click)="exportTraceDocument(getCurrentTraceDocumentId(), $event)">
-                        <i class="icon ion-md-download"></i>
-                        Export Trace
-                    </button>
-                    
-
+                    <!-- Document Trace Buttons 
+                    <div>
+                        <div class="col-xlg-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                            <button type="button" class="btn btn-info btn-with-icon btn-xs" style="float: right;"
+                                id="traceBtn" (click)="exportTraceDocument(getCurrentTraceDocumentId(), $event)">
+                                <i class="icon ion-md-download"></i>
+                                {{getInternationalizedToken('export_trace_data_button_label')}}
+                            </button>
+                            <button type="button" class="btn btn-info btn-with-icon btn-xs" style="float: right; margin-left: 10px; margin-right: 10px;"
+                                id="traceBtn" (click)="exportTraceGPSData(getCurrentTraceDocumentId(), $event)">
+                                <i class="icon ion-md-download"></i>
+                                {{getInternationalizedToken('export_gps_data_button_label')}}
+                            </button>
+                            <button type="button" class="btn btn-warning btn-with-icon btn-xs" style="float: right; margin-left: 10px; margin-right: 10px;"
+                                    id="acceptDocBtn" (click)="navigateToTraceMap()">
+                                <i class="icon ion-pin"></i>
+                                {{getInternationalizedToken('show_trace_map_button_label')}}
+                            </button>
+                        </div>
+                    </div>
+                    -->
             </ba-card>
 
             <!--                         --> 
             <!-- Document Details Column -->
             <ba-card cardTitle="{{getInternationalizedToken('doc_details_[Document Details]')}}" baCardClass="large-card with-scroll">
-                    
-                
                         <!-- Document Details Card -->
                         <div *ngIf="showDocuemntDetailsflag">
                             <ba-card cardTitle="{{getInternationalizedToken(currentDocument.type.name)}}" baCardClass="color-widget">
@@ -801,6 +1326,13 @@
                                                 {{getInternationalizedToken('doc_details_tabs[Back-up Docs]')}} {{currentDocument.attachedDocuments.length}}
                                         </a>
                                 </li>
+
+                                <!-- Document Info Tab -->
+                                <li class="nav-item">
+                                    <a class="{{getTabActiveElement('fields')}}" href="#fields" role="tab" id="fields-tab" data-toggle="tab" aria-controls="fields">
+                                            {{getInternationalizedToken('doc_details_tabs[Document Fields]')}} {{currentDocument.dynamicFieldData.length}}
+                                    </a>
+                                </li>
             
                                 <!-- Document Tags Tab -->
                                 <li class="nav-item">
@@ -815,6 +1347,17 @@
                                             {{getInternationalizedToken('doc_details_tabs[Document Notes]')}}
                                     </a>
                                 </li>
+
+                                <!-- New Doc Pages 
+                                <li class="nav-item">
+                                    <a class="{{getTabActiveElement('docpages')}}" href="#docpages" role="tab" id="docpages-tab" data-toggle="tab" aria-controls="docpages">
+                                            Howdy
+                                    </a>
+                                </li>
+                                -->
+
+
+                                
                                 
                             </ul>
                                     
@@ -823,37 +1366,108 @@
                             
                                 <!-- Doc Pages Content -->
                                 <div role="tabpanel" class="tab-pane fade show active" id="pages" aria-labelledby="pages-tab">
-                                    <div>
+                                    <div >
                                         <div *ngIf="showDocuemntDetailsflag">
-                                            <div *ngFor="let t of temp(math.ceil(currentDocument.pages.length/6)).fill(); let i = index" class="row">
+                                            <!-- 
+                                            <div *ngFor="let t of temp(math.ceil(currentDocument.pages.length/6)).fill(); let i = index" class="row" [dragula]='"bag-pages"'>
+                                            -->
                                                 <!-- Check if row should be applied -->
-                                                <div *ngFor="let page of currentDocument.pages.slice(6*i,6*i + 6);">
+                                                <!--
+                                                <div *ngFor="let page of currentDocument.pages.slice(6*i,6*i + 6);" [dragula]='"bag-pages"'>
+                                                -->
                                                     <!-- Show a new thumbnail -->
-                                                    <div class="col-xlg-3 col-xl-3 col-lg-3 col-md-4 col-sm-2 col-2">
-                                                        <a href="{{serverURI}}/document/page?doc_id={{page.id}}" 
+                                                    <!--
+                                                    <div id="selection_panel" class="col-xlg-3 col-xl-3 col-lg-3 col-md-4 col-sm-2 col-2">
+                                                        <div class="thumbnail">
+                                                            <a href="{{serverURI}}/document/page?doc_id={{page.id}}" 
                                                                 data-lightbox="gallery" 
-                                                                data-title="{{getInternationalizedToken('doc_details_tabs_content_images[Page]')}} {{page.pageNumber+1}}" 
-                                                                class="thumbnail">
-                                                            <img class="img-responsive" src="{{serverURI}}/document/pagethumbnail?doc_id={{page.id}}">
-                                                        </a>
+                                                                data-title='{{getInternationalizedToken("doc_details_tabs_content_images[Page]")}} {{page.pageNumber+1}}'
+                                                                >
+                                                                <img class="img-responsive" src="{{serverURI}}/document/pagethumbnail?doc_id={{page.id}}">
+                                                            </a>
+                                                        </div>
+                                                        <div *ngIf="isCurrentDocEditable()" class="selection_box">
+                                                            <span class="close" 
+                                                                (click)="deletePage(currentDocument, page)">
+                                                                x
+                                                            </span>
+                                                        </div>
                                                     </div>
+                                                
                                                 </div>
                                             </div>
+                                            -->
+                                            <section *ngIf="docEditOn" class="card"  [dragula]='"bag-pages"' [(dragulaModel)]="currentDocument.pages" [dragulaOptions]="options">
+                                                <div  class="card--content" *ngFor="let page of currentDocument.pages">
+                                                    <div id="selection_panel"> 
+                                                        <div class="thumbnail">
+                                                            <!-- Allow Modal Box Image Viewing *Doc Details* -->
+                                                            <a data-target="#myModalImageViewer" 
+                                                                data-toggle="modal" class="MainNavText" id="MainNavHelp" 
+                                                                href="#myModalImageViewer"
+                                                                (click)="clickedDocPageIndex(page.pageNumber, 1, currentDocument.id)">
+                                                                <img class="img-responsive" src="{{serverURI}}/document/pagethumbnail?doc_id={{page.id}}">
+                                                            </a>
+
+                                                            <!--  Previous lighbox code
+                                                            <a href="{{serverURI}}/document/page?doc_id={{page.id}}" 
+                                                                data-lightbox="gallery" 
+                                                                data-title='{{getInternationalizedToken("doc_details_tabs_content_images[Page]")}} {{page.pageNumber}}'
+                                                                >
+                                                                <img class="img-responsive" src="{{serverURI}}/document/pagethumbnail?doc_id={{page.id}}">
+                                                            </a>
+                                                            -->
+                                                           
+                                                        </div>
+                                                        <div class="selection_box">
+                                                            <span class="close">
+                                                                {{page.pageNumber}}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </section>
+
+                                            <section *ngIf="!docEditOn" class="card">
+                                                <div  class="card--content" *ngFor="let page of currentDocument.pages">
+                                                    <div id="selection_panel"> 
+                                                        <!-- Show the thumbnail for the page image -->
+                                                        <div class="thumbnail">
+                                                            <!-- Allow Modal Box Image Viewing *Doc Details* -->
+                                                            <a data-target="#myModalImageViewer" 
+                                                                data-toggle="modal" class="MainNavText" id="MainNavHelp" 
+                                                                href="#myModalImageViewer"
+                                                                (click)="clickedDocPageIndex(page.pageNumber, 1, currentDocument.id)">
+                                                                <img class="img-responsive" src="{{serverURI}}/document/pagethumbnail?doc_id={{page.id}}">
+                                                            </a>
+                                                        </div>
+                                                        <!-- Add the page number to the thumbnail as an overlay-->
+                                                        <div class="selection_box">
+                                                            <span class="close">
+                                                                {{page.pageNumber}}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </section>
+
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <!-- Linked Docs Content -->
+                                <!-- Linked Docs Tab Content -->
                                 <div role="tabpanel" class="tab-pane fade" id="linked-docs" aria-labelledby="linked-docs-tab">
                                         <h5 class="list-header">{{getInternationalizedToken('doc_details_tabs_content[Linked Docs]')}}</h5>
                                         <div class="horizontal-scroll">
                                                 <table class="table table-hover">
+                                                    <!-- Table Header-->
                                                     <thead>
                                                         <tr class="black-muted-bg">
                                                             <th class="browser-icons"></th>
                                                             <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Document Type]')}}</th>
                                                             <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Owner]')}}</th>
                                                             <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Organization]')}}</th>
+                                                            <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Document Info ID]')}}</th>
                                                             <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Created]')}}</th>
                                                             <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Pages]')}}</th>
                                                         </tr>
@@ -861,28 +1475,38 @@
                                                     <tbody>
                                                         <tr *ngFor="let linkedDoc of currentDocument.linkedDocuments" class="no-top-border">
                                                             <td class="document-row">
+                                                                <!-- Allow Modal Box Image Viewing *Doc Details Tab* -->
 
+                                                                
+                                                                <a data-target="#myModalImageViewer" 
+                                                                    data-toggle="modal" class="MainNavText" id="MainNavHelp" 
+                                                                    href="#myModalImageViewer"
+                                                                    (click)="clickedDocPageIndex(1, 4, linkedDoc.id)">
+                                                                    <img src="{{getDocumentTypeIcon(linkedDoc.documentType)}}">
+                                                                </a>
+                                                             <!-- 
                                                                 <a *ngFor="let linkedPage of getDocumentPages(linkedDoc.id)"
                                                                     href="{{serverURI}}/document/page?doc_id={{linkedPage.id}}" 
                                                                     
                                                                     data-title="Page {{linkedPage.pageNumber+1}}"
                                                                     attr.data-lightbox="{{linkedDoc.id}}" >
 
-                                                                    <img  *ngIf="linkedPage.pageNumber === 0" 
+                                                                    <img  *ngIf="linkedPage.pageNumber === 1" 
                                                                             src="{{getDocumentTypeIcon(linkedDoc.documentType)}}">
 
                                                                 </a>
                                                                 <img *ngIf="getDocumentPagesLength(linkedDoc.id) === 0" 
                                                                         src="{{getDocumentTypeIcon(linkedDoc.documentType)}}"
                                                                 >
+                                                                -->
                                                             </td>
-                                                            <td ngClass="nowrap" 
-                                                                (click)="showDetails(linkedDoc.id, true)" 
+                                                            <td ngClass="nowrap"
                                                                 >{{linkedDoc.documentType}}
                                                             </td>
                                                             <td class="align-left">{{linkedDoc.owner}}</td>
                                                             <td class="align-left">{{getDocumentGroupName(linkedDoc)}}</td>
-                                                            <td class="align-left">{{ linkedDoc.creationTimestamp  | date:'MM/dd/yyyy HH:mm'}}</td>
+                                                            <td class="align-left">{{getDataInfoList(linkedDoc)}}</td>
+                                                            <td class="align-left">{{ linkedDoc.updationTimestamp  | date:'MM/dd/yyyy HH:mm'}}</td>
                                                             <td class="align-left">{{ getDocumentPagesLength(linkedDoc.id)}}</td>
                                                         </tr>
                                                     </tbody>
@@ -901,6 +1525,7 @@
                                                     <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Document Type]')}}</th>
                                                     <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Owner]')}}</th>
                                                     <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Organization]')}}</th>
+                                                    <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Document Info ID]')}}</th>
                                                     <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Created]')}}</th>
                                                     <th class="align-left">{{getInternationalizedToken('doc_details_tabs_content[Pages]')}}</th>
                                                     </tr>
@@ -909,29 +1534,47 @@
 
                                                         <tr *ngFor="let attachedDoc of currentDocument.attachedDocuments" class="no-top-border">
                                                             <td class="document-row">
-
-                                                                <a *ngFor="let attachedPage of getDocumentPages(attachedDoc.id)"
+                                                                <!-- Allow Modal Box Image Viewing *Backing Doc Details Tab* -->
+                                                                <a data-target="#myModalImageViewer" 
+                                                                    data-toggle="modal" class="MainNavText" id="MainNavHelp" 
+                                                                    href="#myModalImageViewer"
+                                                                    (click)="clickedDocPageIndex(1, 5, attachedDoc.id)">
+                                                                    <img src="{{getDocumentTypeIcon(attachedDoc.documentType)}}">
+                                                                </a>
+                                                                <!-- 
+                                                                <a *ngFor="let attachedPage of getAttachedDocumentPages(currentDocument.id, attachedDoc.id)"
                                                                     href="{{serverURI}}/document/page?doc_id={{attachedPage.id}}" 
                                                                     
-                                                                    data-title="Page {{attachedPage.pageNumber+1}}"
+                                                                    data-title="Page {{attachedPage.pageNumber}}"
                                                                     attr.data-lightbox="{{attachedDoc.id}}" >
 
-                                                                    <img  *ngIf="attachedPage.pageNumber === 0" 
+                                                                    <img  *ngIf="attachedPage.pageNumber === 1" 
                                                                             src="{{getDocumentTypeIcon(attachedDoc.documentType)}}">
 
                                                                 </a>
-                                                                <img *ngIf="getDocumentPagesLength(attachedDoc.id) === 0" 
+                                                                
+                                                                <img *ngIf="getAttachmentDocumentPagesLength(attachedDoc) === 0" 
                                                                     src="{{getDocumentTypeIcon(attachedDoc.documentType)}}">
+                                                                -->
                                                             </td>
-                                                            <td ngClass="nowrap"  (click)="showDetails(attachedDoc.id, true)">{{attachedDoc.documentType}}</td>
+                                                            <td ngClass="nowrap">{{attachedDoc.documentType}}</td>
                                                             <td class="align-left">{{attachedDoc.owner}}</td>
                                                             <td class="align-left">{{getDocumentGroupName(attachedDoc)}}</td>
-                                                            <td class="align-left">{{ attachedDoc.creationTimestamp  | date:'MM/dd/yyyy HH:mm'}}</td>
-                                                            <td class="align-left">{{ getDocumentPagesLength(attachedDoc.id)}}</td>
+                                                            <td class="align-left">{{getDataInfoList(attachedDoc)}}</td>
+                                                            <td class="align-left">{{ attachedDoc.updationTimestamp  | date:'MM/dd/yyyy HH:mm'}}</td>
+                                                            <td class="align-left">{{ getAttachmentDocumentPagesLength(attachedDoc)}}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
+                                </div>
+
+                                <!-- Doc Info Content -->
+                                <div role="tabpanel" class="tab-pane fade" id="fields" aria-labelledby="fields-tab">
+                                    <h5 class="list-header">{{getInternationalizedToken('doc_details_tabs_content[Fields for Doc]')}}</h5>
+                                    <ul class="blur">
+                                        <li *ngFor="let dataField of currentDocument.dynamicFieldData">{{formatDataInfoField(dataField)}}</li>
+                                    </ul>
                                 </div>
             
                                 <!-- Doc Tags Content -->
@@ -942,7 +1585,7 @@
                                         </ul>
                                 </div>
 
-                                <!-- Doc Tags Content -->
+                                <!-- Doc Notes Content -->
                                 <div *ngIf="currentDocument.notes.length > 0" role="tabpanel" class="tab-pane fade" id="notes" aria-labelledby="notes-tab">
                                         <h5 class="list-header">{{getInternationalizedToken('doc_details_tabs_content[Notes for Doc]')}}</h5>
                                         <ul *ngFor="let note of currentDocument.notes" class="blur">
@@ -950,41 +1593,130 @@
                                             <li >Rejection Notes: {{getNoteText(note)}}</li>
                                         </ul>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div *ngIf="showDocuemntDetailsflag">
-                            <div *ngIf="getCanAcceptRejectDoc()" class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
-                                <button class="btn btn-success btn-lg pull-left" style="margin-top: 20px;"
-                                        id="acceptDocBtn" data-toggle="modal" data-target="#myModalAccept">{{getInternationalizedToken('document_acceptance_workflow_button_accept[button]')}}</button>
-                            </div>
-                            <div *ngIf="getCanAcceptRejectDoc()" class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
-                                <button class="btn btn-danger btn-lg pull-left" style="margin-top: 20px; margin-left: 10px;"
-                                        id="rejectDocBtn" data-toggle="modal" data-target="#myModalReject">{{getInternationalizedToken('document_acceptance_workflow_button_reject[button]')}}</button>
-                            </div>
-                            <div *ngIf="getCanRecallDoc()" class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
-                                <button class="btn btn-danger btn-lg pull-left" style="margin-top: 20px; margin-left: 10px;"
-                                        id="recallDoctBtn" data-toggle="modal" data-target="#myModalRecall">{{getInternationalizedToken('document_acceptance_workflow_button_recall[button]')}}</button>
-                            </div>
-                            <div *ngIf="getCanDeleteDoc()" class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
-                                    <button class="btn btn-danger btn-lg pull-left" style="margin-top: 20px; margin-left: 10px;"
-                                            id="deleteDocBtn" data-toggle="modal" data-target="#myModalDocumentDelete">{{getInternationalizedToken('document_acceptance_workflow_button_delete[button]')}}</button>
+                                <!-- Doc Notes Content 
+                                <div role="tabpanel" class="tab-pane fade" id="docpages" aria-labelledby="docpages-tab">
+                                    <h5 class="list-header">Pages Preview</h5>
+                                    <div>
+                                        <ngx-gallery [options]="galleryOptions" [images]="galleryImages"></ngx-gallery>
+                                    </div>
+                                    
                                 </div>
-                            <div *ngIf="getCanSubmitDoc()" class="col-xlg-3 col-xl-4 col-lg-5 col-md-6 col-sm-12 col-12">
-                                <button class="btn btn-success btn-lg pull-left" style="margin-top: 20px; margin-left: 10px;"
-                                        id="submitDocBtn" data-toggle="modal" data-target="#myModalSubmit">{{getInternationalizedToken('document_acceptance_workflow_button_submit[button]')}}</button>
+                                -->
                             </div>
                         </div>
-                        
-                        
+                        <!--
+                        <div class="row">
+                            <div *ngIf="showDocuemntDetailsflag" class="col-xlg-3 col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                                <div *ngIf="getCanAcceptRejectDoc()" class="col-xlg-3 col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                                    <button class="btn btn-success btn-lg pull-left" style="margin-top: 20px;"
+                                            id="acceptDocBtn" data-toggle="modal" data-target="#myModalAccept">
+                                            {{getInternationalizedToken('document_acceptance_workflow_button_accept[button]')}}
+                                    </button>
+                                </div>
+                                <div *ngIf="getCanAcceptRejectDoc()" class="col-xlg-3 col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                                    <button class="btn btn-danger btn-lg pull-left" style="margin-top: 20px; margin-left: 10px;"
+                                            id="rejectDocBtn" data-toggle="modal" data-target="#myModalReject">
+                                            {{getInternationalizedToken('document_acceptance_workflow_button_reject[button]')}}
+                                    </button>
+                                </div>
+                                <div *ngIf="getCanRecallDoc()" class="col-xlg-3 col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                                    <button class="btn btn-danger btn-lg pull-left" style="margin-top: 20px; margin-left: 10px;"
+                                            id="recallDoctBtn" data-toggle="modal" data-target="#myModalRecall">
+                                            {{getInternationalizedToken('document_acceptance_workflow_button_recall[button]')}}
+                                    </button>
+                                </div>
+                                <div *ngIf="getCanDeleteDoc()" class="col-xlg-3 col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                                        <button class="btn btn-danger btn-lg pull-left" style="margin-top: 20px; margin-left: 10px;"
+                                                id="deleteDocBtn" data-toggle="modal" data-target="#myModalDocumentDelete">
+                                                {{getInternationalizedToken('document_acceptance_workflow_button_delete[button]')}}
+                                            </button>
+                                </div>
+                                <div *ngIf="getCanSubmitDoc()" class="col-xlg-3 col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                                    <button class="btn btn-success btn-lg pull-left" style="margin-top: 20px; margin-left: 10px;"
+                                            id="submitDocBtn" data-toggle="modal" data-target="#myModalSubmit">{{getInternationalizedToken('document_acceptance_workflow_button_submit[button]')}}</button>
+                                </div>
+                                <div *ngIf="getCanSaveDoc()" class="col-xlg-3 col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                                    <button class="btn btn-success btn-lg pull-left" style="margin-top: 20px; margin-left: 10px;"
+                                            id="saveDocBtn">{{getInternationalizedToken('document_acceptance_workflow_button_save[button]')}}</button>
+                                </div>
+                                <div *ngIf="getCanCancelEditDoc()" class="col-xlg-3 col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3">
+                                    <button class="btn btn-danger btn-lg pull-left" style="margin-top: 20px; margin-left: 10px;"
+                                            id="cancelEditDocBtn" data-toggle="modal" data-target="#myModalCancelEdit">{{getInternationalizedToken('document_acceptance_workflow_button_cancel[button]')}}</button>
+                                </div>
+                            </div>
+                        </div>
+                        -->
+                        <div class="separator"></div>
+                        <div *ngIf="showDocuemntDetailsflag"  class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                            <!-- Accept and Reject and Submit Toolbar -->
+                            <div *ngIf="getCanAcceptRejectDoc()" class="btn-group mr-2" role="group" aria-label="First group">
+                                <button type="button" class="btn btn-success" id="acceptDocBtn" data-toggle="modal" data-target="#myModalAccept">
+                                    {{getInternationalizedToken('document_acceptance_workflow_button_accept[button]')}}
+                                </button>
+                                <button type="button"class="btn btn-danger" id="rejectDocBtn" data-toggle="modal" data-target="#myModalReject">
+                                    {{getInternationalizedToken('document_acceptance_workflow_button_reject[button]')}}
+                                </button>
+                            </div>
+
+                            <!-- Special Reject Toolbar -->
+                            <div *ngIf="getCanSpecialRejectDoc()" class="btn-group mr-2" role="group" aria-label="First group">
+                                <button type="button"class="btn btn-danger" id="rejectDocBtn" data-toggle="modal" data-target="#myModalReject">
+                                    {{getInternationalizedToken('document_acceptance_workflow_button_reject[button]')}}
+                                </button>
+                            </div>
+                            
+                            <!-- Recall Toolbar -->
+                            <div *ngIf="getCanRecallDoc()" class="btn-group mr-2" role="group" aria-label="Second group">
+                                <button type="button" class="btn btn-danger" id="recallDoctBtn" data-toggle="modal" data-target="#myModalRecall">
+                                  {{getInternationalizedToken('document_acceptance_workflow_button_recall[button]')}}
+                                </button>
+                            </div>
+
+                            <!-- Delete and Submit -->
+                            <div class="btn-group" role="group" aria-label="Third group">
+                                <button *ngIf="getCanDeleteDoc()" type="button" class="btn btn-danger" id="deleteDocBtn" data-toggle="modal" data-target="#myModalDocumentDelete">
+                                    {{getInternationalizedToken('document_acceptance_workflow_button_delete[button]')}}
+                                </button>
+                                <button *ngIf="getCanSubmitDoc()" type="button"class="btn btn-success" id="submitDocBtn" data-toggle="modal" data-target="#myModalSubmit">
+                                    {{getInternationalizedToken('document_acceptance_workflow_button_submit[button]')}}
+                                </button>
+                             </div>
+
+                             <!-- Save and Cancel Edit-->
+                            <div *ngIf="getCanSaveDoc()" class="btn-group" role="group" aria-label="Third group">
+                                <button type="button" class="btn btn-success" (click)="onMultiPDFFileUpload('DRAFT')">
+                                    {{getInternationalizedToken('document_acceptance_workflow_button_save[button]')}}
+                                </button>
+                                <button type="button"class="btn btn-danger"  (click)="processCancelDocEdit()">
+                                    {{getInternationalizedToken('document_acceptance_workflow_button_cancel[button]')}}
+                                </button>
+                            </div>
+                        </div>
             </ba-card>
+            
         </div>  
 
-        <button type="button" (click)="SuccessToaster()">Success</button>
-        <button type="button" (click)="InfoToaster()">Info</button>
-        <button type="button" (click)="WarningToaster()">Warning</button>
-        <button type="button" (click)="ErrorToaster()">Error</button>
-   </div>
-   
-    
-    
+        
+        <!-- Test Buttons
+        <div>
+            <div class="row" style="margin-left:2px">
+                    
+                <button type="button" (click)="SuccessToaster()">Success</button>
+                <button type="button" (click)="InfoToaster()">Info</button>
+                <button type="button" (click)="WarningToaster()">Warning</button>
+                <button type="button" (click)="ErrorToaster()">Error</button>
+                <button id="myBtn" type="button">Photo Viewer</button>
+                <button type="button" class="btn btn-success" id="acceptDocBtn" data-toggle="modal" data-target="#myModalMap" (click)="initializeMap()">
+                    Map Popup
+                </button>
+                <button type="button" class="btn btn-success" id="acceptDocBtn" data-toggle="modal" data-target="#myModalImageViewer">
+                    Image Viewer Popup
+                </button>
+
+            </div>
+        </div>
+         -->
+
+        
+      

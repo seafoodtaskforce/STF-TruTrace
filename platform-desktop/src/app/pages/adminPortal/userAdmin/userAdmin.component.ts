@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+
 import { LocalDataSource } from 'ng2-smart-table';
 import { UserAdmin } from '../../../models/admin/userAdmin';
 import { User } from '../../../models/user';
@@ -13,6 +15,12 @@ import { Organization } from '../../../models/organization';
 import {SmartTableListItem} from '../../../models/admin/smartTableListItem';
 
 import {DataLoadService} from '../dataLoad.service';
+import { DocumentService } from 'app/pages/documents/document.service';
+import { SlimLoadingBarService } from 'ng2-slim-loading-bar';
+import { LocaleUtils } from 'app/utils/locale.utils';
+import { BackendCSVErroMessage } from 'app/models/admin/errorBackendCSVMessage';
+import { ResponseIssue } from 'app/models/RestResponse';
+import { ToasterService } from 'app/toaster-service.service';
 
 @Component({
   selector: 'user-admin-table',
@@ -24,15 +32,36 @@ export class UserAdminTable {
     query: string = '';
     userTypelist:SmartTableListItem[] = [
       { value: 'Super Admin', title: 'Super Admin' }, 
-      { value: 'Admin', title: 'Admin' }, 
+      { value: 'Matrix Admin', title: 'Matrix Admin' }, 
+      { value: 'Org Admin',title: 'Org Admin'},
       { value: 'General',title: 'General'},
       ];
 
+    activatedListValue:SmartTableListItem[] = [
+      { value: 'Activated', title: 'Activated' }, 
+      { value: 'Not Activated', title: 'Not Activated' }
+    ];
+
+    verifiedListValue:SmartTableListItem[] = [
+      { value: 'Verified', title: 'Verified' }, 
+      { value: 'Not Verified', title: 'Not Verified' }
+    ];
+
     organizationList:SmartTableListItem[];
+    groupNameList:SmartTableListItem[];
 
     organizationGroups:Group[];
 
     settings: any;
+
+    //
+    // CSV Batch Upload for User
+    selectedCSVFileToUpload: string = null;
+    selectedOrgGroupName: string = null;
+    uploadOperationErrorsFlag: boolean = false;
+    errorMessages: ResponseIssue[] = Array<ResponseIssue>();
+
+
     /**
      * Initialization of the component
      */
@@ -58,6 +87,8 @@ export class UserAdminTable {
       document.getElementsByClassName('id')['0'].style.width = '20px';
       */
     }
+
+    readonly CSV_BATCH_USER_UPLOAD_GROUP_NAME_CHOOSE= 'document_import_choose_group';
   
   
     source: LocalDataSource = new LocalDataSource();
@@ -75,7 +106,12 @@ export class UserAdminTable {
     organizationTypes: GroupType[] = new Array<GroupType>();
     loggedInName :string;
 
-  constructor(protected userService : DataLoadService) {
+    //
+    // Batch Upload
+    currentOrgNameListValueCSVBatchUpload: string = this.getInternationalizedToken(this.CSV_BATCH_USER_UPLOAD_GROUP_NAME_CHOOSE);
+
+  constructor(protected userService : DataLoadService, protected _documentService: DocumentService
+              ,private slimLoader: SlimLoadingBarService, protected toasterService:ToasterService, ) {
 
 
   }
@@ -91,6 +127,10 @@ export class UserAdminTable {
     } else {
       event.confirm.reject();
     }
+    console.log('[Removing a User] --> User '.concat(JSON.stringify(event.newData)));
+    var user:User = this.convertUserAdminToUser(event.newData);
+
+
   }
 
   /**
@@ -119,6 +159,7 @@ export class UserAdminTable {
       event.confirm.reject();
     }
     var user:User = this.convertUserAdminToUser(event.newData);
+    console.log('[Updated User] --> User '.concat(JSON.stringify(user)));
     if(user != null){
       this.updateUser(user);
     }
@@ -154,6 +195,8 @@ export class UserAdminTable {
     exportItem.resourceName = item.userGroups[0].name;
     exportItem.permissions = '';
     exportItem.role = item.roles[0].value;
+    exportItem.activated = this.convertBooleanToActivatedString(item.contactInfo.activated);
+    exportItem.verified = this.convertBooleanToVerifiedString(item.contactInfo.verified);
 
     return exportItem;
   }
@@ -164,6 +207,7 @@ export class UserAdminTable {
     var user:any = this.users.find(x => x.id == userAdmin.id);
     if(user == null){
       user = new User();
+      user.id = 0;
       user.roles = new Array<Role>();
       user.roles.push(new Role());
       user.userGroups = new Array<Group>();
@@ -176,10 +220,13 @@ export class UserAdminTable {
     user.name = userAdmin.username;
     user.contactInfo.emailAddress = userAdmin.email;
     user.contactInfo.cellNumber = userAdmin.cellnumber;
+    user.contactInfo.verified = this.convertVerifiedToBoolean(userAdmin.verified);
+    user.contactInfo.activated = this.convertActivatedToBoolean(userAdmin.activated);
     // get the other data
     user.roles[0].id = this.getRoleNameMappingToID(userAdmin.role);
     user.userGroups[0].id = this.getOrganizationNameMappingToID(userAdmin.resourceName);
     user.userGroups[0].organizationId = this.getOrganizationNameMappingToOrganizationID(userAdmin.resourceName);
+    
 
     return user;
 
@@ -188,6 +235,7 @@ export class UserAdminTable {
 
 
   getAllUsers() {
+    this.adminUserData = new Array<UserAdmin>();
     this.userService.getAllUsers(false).subscribe(
       data => { 
         this.users = data;
@@ -223,23 +271,6 @@ export class UserAdminTable {
     );
   }
 
-  getAllOrganizationTypes() {
-    this.userService.getAllOrganizationTypes().subscribe(
-      data => { 
-        this.organizationTypes = data;
-            // convert all the users to admin users
-            for (const user of this.users) {
-                //
-                // convert and addto data array
-                console.log('[Smart Tables Service] Row of Data '.concat(JSON.stringify(user)));
-                this.adminUserData.push(this.convertUserToUserAdmin(user));
-            }
-        this.source.load(this.adminUserData);
-      },
-      error => console.log('Server Error'),
-    );
-  }
-
   getAllOrganizationGroups() {
     this.userService.getAllOrganizationGroups().subscribe(
       data => { 
@@ -257,123 +288,7 @@ export class UserAdminTable {
                 // this.adminUserData.push(this.convertUserToUserAdmin(user));
             }
         }
-        this.settings = {
-          add: {
-            addButtonContent: '<i class="ion-ios-plus-outline"></i>',
-            createButtonContent: '<i class="ion-checkmark"></i>',
-            cancelButtonContent: '<i class="ion-close"></i>',
-            confirmCreate: true
-          },
-          edit: {
-            editButtonContent: '<i class="ion-edit"></i>',
-            saveButtonContent: '<i class="ion-checkmark"></i>',
-            cancelButtonContent: '<i class="ion-close"></i>',
-            confirmSave: true
-          },
-          delete: {
-            deleteButtonContent: '<i class="ion-trash-a"></i>',
-            confirmDelete: true
-          },
-          pager : {
-            display : true,
-            perPage:5,
-          },
-      
-          columns: {
-
-            firstName: {
-              title: 'First Name',
-              type: 'string',
-              width: '100px',
-            },
-            lastName: {
-              title: 'Last Name',
-              type: 'string',
-              width: '150px',
-            },
-            username: {
-              title: 'Username',
-              type: 'string'
-            },
-            email: {
-              title: 'E-mail',
-              type: 'string'
-            },
-            cellnumber: {
-              title: 'Cell#',
-              type: 'string',
-              width: '70px',
-              editable: true,
-            },
-            role: {
-              title: 'User Type',
-              type: 'string',
-              editable: true,
-              editor: {
-                type: 'list',
-                config: {
-                  selectText: 'Select...',
-                  list: this.userTypelist,
-                },
-              },
-              filter: {
-                type: 'list',
-                config: {
-                  selectText: 'Select...',
-                  list: this.userTypelist,
-                },
-              },
-            },
-    
-            resourceName: {
-              title: 'Organization',
-              type: 'string',
-              editable: true,
-              editor: {
-                type: 'list',
-                config: {
-                  selectText: 'Select...',
-                  list: this.organizationList,
-                },
-              },
-              filter: {
-                type: 'list',
-                config: {
-                  selectText: 'Select...',
-                  list: this.organizationList,
-                },
-              },
-            },
-
-            id:{
-              title: 'id',
-              type: 'number',
-              width: '40px',
-              editable : false,
-            },
-
-        
-            /**
-            userType: {
-              title: 'Role',
-              type: 'string'
-            },
-                /** 
-            resourceType: {
-              title: 'Doc Type',
-              type: 'string'
-            },
-            resourceName: {
-              title: 'Doc Name',
-              type: 'string'
-            },
-            permissions: {
-              title: 'Permissions',
-              type: 'string'
-            },
-            */
-          }
-        };
+        this.initTableData();
 
 
       },
@@ -382,7 +297,7 @@ export class UserAdminTable {
   }
 
   updateUser(user:User){
-    this.userService.updateUser(user).subscribe(
+    this.userService.updateUserProfile(user).subscribe(
       data =>  console.log('No issues'),
       error => console.log('Server Error'),
     );
@@ -619,6 +534,12 @@ export class UserAdminTable {
     if(role === 'Super Admin'){
       return 2;
     }
+    if(role === 'Matrix Admin'){
+      return 8;
+    }
+    if(role === 'Org Admin'){
+      return 7;
+    }
     if(role === 'General'){
       return 3;
     }
@@ -651,10 +572,329 @@ export class UserAdminTable {
       return orgGroup.organizationId;
     }
     return null;
-    
+  }
+
+  /****************************************************************************************************
+   * Uploading section
+   */
+
+  isUploadingCSVUserBatch(){
+    return this.userService.csvUserBatchUploadFlag;
   }
 
 
+  /**
+   *  Upload the CSV file with teh data provided about user batch creation
+   */
+  onCSVFileUpload(){
+
+    var isEnabled = 
+      //!(this._documentService.reverseInternationalizedNameStringToKeyString(this.currectDocumentTypeForNewDocListValue) == 'document_import_choose_doc_type')
+      !(this.getInternationalizedToken(this.CSV_BATCH_USER_UPLOAD_GROUP_NAME_CHOOSE) == this.currentOrgNameListValueCSVBatchUpload)
+      this.selectedCSVFileToUpload !== undefined
+      && this.selectedCSVFileToUpload !== null;
+
+    if(isEnabled){
+        var fd = new FormData();
+        fd.append('file', this.selectedCSVFileToUpload);
+        fd.append('userName', this.loggedInName);
+        fd.append('orgName', this.currentOrgNameListValueCSVBatchUpload);
+        
+        console.log("CSV FIle Upload FROM DATA");
+
+        console.log("CSV FIle Upload FROM DATA---> " + JSON.stringify(fd));
+        this.startCSVUserBatchFileUploadProgress();
+          this.userService.startCSVUserBatchUploadProcess();
+          this.userService.onCSVUserBatchFileUpload(this.selectedCSVFileToUpload, fd, this.slimLoader, this.userService, this);
+    }
+  }
+
+  /**
+   * Handling the CSV file removal from the dialog
+   */
+  onCSVFileRemoveChoice() {
+    (<HTMLInputElement>document.getElementById("input-user-batch-upload-file")).value = "";
+    this.selectedCSVFileToUpload = null;
+    this.errorMessages = Array<ResponseIssue>();
+    this.uploadOperationErrorsFlag = false;
+    this.currentOrgNameListValueCSVBatchUpload = this.getInternationalizedToken(this.CSV_BATCH_USER_UPLOAD_GROUP_NAME_CHOOSE);
+  }
+
+  /**
+   * Getting and storing the file that was chosen in the page
+   * @param event  - the veent of the file selection
+   */
+  onCSVFileSelected(event){
+    this.selectedCSVFileToUpload = event.target.files[0];
+    console.log("CSV FIle Upload" + event.target.files[0]);
+
+  }
+
+  /**
+   * Get he styling for the buttons that represent the upload and calcel action for CSF vile operations
+   * @param name - the buton name for the styling
+   */
+  getClassForUploadProcessButton(name:string){
+    var isEnabled = 
+      //!(this._documentService.reverseInternationalizedNameStringToKeyString(this.currectDocumentTypeForNewDocListValue) == 'document_import_choose_doc_type')
+      !(this.getInternationalizedToken(this.CSV_BATCH_USER_UPLOAD_GROUP_NAME_CHOOSE) == this.currentOrgNameListValueCSVBatchUpload)
+      this.selectedCSVFileToUpload !== undefined
+      && this.selectedCSVFileToUpload !== null;
 
 
+    if(name == 'Submit'){
+      // is the doc type chosen?
+
+      if(isEnabled && !this.isUploadingCSVUserBatch()){
+        return 'btn btn-info btn-xs active';
+      }else{
+        return 'btn btn-info btn-xs disabled';
+      }
+    }
+    if(name == 'Cancel'){
+      // is the doc type chosen?
+
+      if(this.selectedCSVFileToUpload !== undefined
+        && this.selectedCSVFileToUpload !== null
+        && !this.isUploadingCSVUserBatch()){
+        return 'btn btn-danger btn-xs active';
+      }else{
+        return 'btn btn-danger btn-xs disabled';
+      }
+    }
+
+    return 'btn btn-danger btn-xs active';
+    
+  }
+
+  /** Internationalization */
+  getInternationalizedToken(token: string){
+    return this._documentService.internationalizeString(token);
+  }
+
+  /**
+   * Start the progress bar for the upload CSV Batch user operation
+   */
+  startCSVUserBatchFileUploadProgress() {
+    // Progress bar
+    
+    this.slimLoader.start(() => {
+      this.slimLoader.height = '8px';
+      this.slimLoader.color = 'green';
+        console.log('CSV User Batch File Upload Complete');
+    });
+  }
+
+  getAllOrganizations() {
+    console.log('CSV User Batch File Upload Group Name List' + JSON.stringify(this.organizationGroups));
+    return this.organizationGroups;
+  }
+
+  /**
+   * 
+   * @param item - the document type to use when creating a new doc
+   */
+  setNewOrgNameForBatchUserUpload(item){
+    var groupData : any;
+    var reversedGroupName:string;
+
+    console.log('CSV IMPORT - GROUP NAME ' + item);
+    //fetch the reverse value of the item; parsed out away from UI render and into the doc type
+    // reversedDocTypeName = this._documentService.reverseInternationalizedNameStringToKeyString(item);
+    reversedGroupName = LocaleUtils.fetchResourceKeyByValue(item);
+    console.log('PDF IMPORT - TYPE<reversed>' + reversedGroupName);
+
+
+    for(var row=0 ; row < this.organizationList.length; row++) {
+      groupData = this.organizationList[row];
+      console.log('CSV IMPORT ---- GROUP NAME<looking>' + JSON.stringify(groupData.name));
+      console.log('CSV IMPORT ---- GROUP NAME<looking> <full>' + JSON.stringify(groupData));
+      
+      if( groupData.name === reversedGroupName){
+        this.selectedOrgGroupName = groupData.name;
+        //this.currectDocumentTypeForNewDocListValue = docType.value;
+        console.log('PDF IMPORT ---- GROUP NAME<found>' + JSON.stringify(groupData));
+        
+      }
+    }
+  }
+
+  getUploadErrorMessages() {
+    return this.errorMessages
+  }
+
+  getIssueLineNumber(issue: ResponseIssue){
+    return Number(issue.lineNumber) + 1;
+  }
+
+  initTableData(){
+    this.settings = {
+      add: {
+        addButtonContent: '<i class="ion-ios-plus-outline"></i>',
+        createButtonContent: '<i class="ion-checkmark"></i>',
+        cancelButtonContent: '<i class="ion-close"></i>',
+        confirmCreate: true
+      },
+      edit: {
+        editButtonContent: '<i class="ion-edit"></i>',
+        saveButtonContent: '<i class="ion-checkmark"></i>',
+        cancelButtonContent: '<i class="ion-close"></i>',
+        confirmSave: true
+      },
+      delete: {
+        deleteButtonContent: '<i class="ion-trash-a"></i>',
+        confirmDelete: true
+      },
+      pager : {
+        display : true,
+        perPage:5,
+      },
+  
+      columns: {
+
+        firstName: {
+          title: 'First Name',
+          type: 'string',
+          width: '100px',
+        },
+        lastName: {
+          title: 'Last Name',
+          type: 'string',
+          width: '150px',
+        },
+        username: {
+          title: 'Username',
+          type: 'string'
+        },
+        email: {
+          title: 'E-mail',
+          type: 'string'
+        },
+        cellnumber: {
+          title: 'Cell#',
+          type: 'string',
+          width: '70px',
+          editable: true,
+        },
+        role: {
+          title: 'User Type',
+          type: 'string',
+          editable: true,
+          editor: {
+            type: 'list',
+            config: {
+              selectText: 'Select...',
+              list: this.userTypelist,
+            },
+          },
+          filter: {
+            type: 'list',
+            config: {
+              selectText: 'Select...',
+              list: this.userTypelist,
+            },
+          },
+        },
+
+        resourceName: {
+          title: 'Organization',
+          type: 'string',
+          editable: true,
+          editor: {
+            type: 'list',
+            config: {
+              selectText: 'Select...',
+              list: this.organizationList,
+            },
+          },
+          filter: {
+            type: 'list',
+            config: {
+              selectText: 'Select...',
+              list: this.organizationList,
+            },
+          },
+        },
+        verified: {
+          title: 'Verified?',
+          type: 'boolean',
+          editable: true,
+          editor: {
+            type: 'list',
+            config: {
+              selectText: 'Select...',
+              list: this.verifiedListValue,
+            },
+          },
+          filter: false
+      },
+      activated: {
+        title: 'Activated?',
+        type: 'boolean',
+        editable: true,
+        editor: {
+          type: 'list',
+          config: {
+            selectText: 'Select...',
+            list: this.activatedListValue,
+          },
+        },
+        filter: false
+    },
+
+        id:{
+          title: 'id',
+          type: 'number',
+          width: '40px',
+          editable : false,
+        },
+      }
+    };
+
+  }
+
+  extractBackendCSVErroMessage(dataRow: string) {
+    var message : BackendCSVErroMessage = new BackendCSVErroMessage();
+    var splitted = dataRow.split(",", 3);
+    message.lineNumber = splitted[0];
+    message.lineNumber = splitted[0];
+    message.lineNumber = splitted[0];
+
+  }
+
+  showErrorToasterBackendCSV(){
+    this.toasterService.Error("There were problems with your file. Upload Failed.");
+  }
+
+  convertVerifiedToBoolean(text : string){
+    if(text == 'Verified'){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  convertActivatedToBoolean(text : string){
+    if(text == 'Activated'){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  convertBooleanToActivatedString(value:boolean){
+    if(value == true){
+      return 'Activated';
+    } else {
+      return 'Not Activated';
+    }
+  }
+
+  convertBooleanToVerifiedString(value:boolean){
+    if(value == true){
+      return 'Verified';
+    } else {
+      return 'Not Verified';
+    }
+  }
 }

@@ -3,11 +3,13 @@ import { Component } from '@angular/core';
 import { LocalDataSource } from 'ng2-smart-table';
 import { LookupEntity } from '../../../models/LookupEntity';
 import { AppResource } from '../../../models/AppResource';
-import { LocaleUtils } from '../../../utils/LocaleUtils';
+import { LocaleUtils } from '../../../utils/locale.utils';
 
 import { DocumentType } from '../../../models/documentType';
-import {DataLoadService} from '../dataLoad.service';
-import {DocTypeDataTableHelper} from './DocTypeDataTableHelper';
+import { DataLoadService } from '../dataLoad.service';
+import { DocTypeDataTableHelper } from './DocTypeDataTableHelper';
+import { GroupType } from 'app/models/groupType';
+import { OrgTypeDocumentTypeAdmin } from 'app/models/admin/OrgTypeDocumentTypeAdmin';
 
 
 @Component({
@@ -70,6 +72,14 @@ export class DocTypeAdminTable {
           type: 'string',
           filter: false
         },
+        id: {
+          title: 'id',
+          type: 'number',
+          width: '0px',
+          filter: false,
+          editable : false,
+          hidden: true
+        },
       }
     };
 
@@ -100,6 +110,7 @@ export class DocTypeAdminTable {
     ngOnInit() {
       this.getAvailableLanguages();
       this.getAllDocTypes();
+      this.getAllOrganizationTypes();
       
     }
   
@@ -113,6 +124,12 @@ export class DocTypeAdminTable {
     allDocTypes: DocumentType[] = new Array<DocumentType>();
     // Mapped doc types to specific languages.
     allDocTypesLanguageMapped: Map<string, DocumentType[]> = new Map<string, DocumentType[]>();
+    organizationTypes: GroupType[] = new Array<GroupType>();
+    //
+    // selection data
+    currDocTypeId: number;
+    currDocType: DocumentType;
+    currDocTypeOrgTypes: OrgTypeDocumentTypeAdmin[] = new Array<OrgTypeDocumentTypeAdmin>();;
 
   constructor(protected organizationService : DataLoadService) {
   }
@@ -127,66 +144,98 @@ export class DocTypeAdminTable {
   }
 
   onRowSelect(event) {
-    
+      // Init
+      this.currDocTypeOrgTypes = new Array<OrgTypeDocumentTypeAdmin>();
+
+
+      // get the doc type id
+      this.currDocTypeId = event.data.id;
+      var tempDocType:any = this.allDocTypes.find(x => x.id == this.currDocTypeId);
+      if(tempDocType != null){
+        this.currDocType = tempDocType;
+      }
+      // get the specific org types
+      for (const orgDocType of this.organizationTypes) {
+        //
+        // convert and addto data array
+        let tempDocType = new OrgTypeDocumentTypeAdmin();
+        tempDocType.org = orgDocType;
+        tempDocType.name = orgDocType.name;
+
+        var groupOrgType:any = orgDocType.allowedDocTypes.find(x => x.id == this.currDocTypeId);
+        if(groupOrgType != null){
+          // set the data
+          tempDocType.isActiveinOrg = true;
+        }else{
+          tempDocType.isActiveinOrg = false;
+        }
+        // only include actual stages
+        if(tempDocType.name != null && tempDocType.name.length > 0){
+          this.currDocTypeOrgTypes.push(tempDocType);
+        }
+        
+      }
   }
 
   onCreateConfirm(event): void {
-    if (window.confirm('Are you sure you want to create this row?')) {
-      event.confirm.resolve();
-    } else {
-      event.confirm.reject();
-    }
-    let resourceKey:string;
-    var docType1:DocumentType = this.convertToDocType(event.newData, 0);
-    var docType2:DocumentType = this.convertToDocType(event.newData, 1);
-    var docTypeEmpty:DocumentType = this.convertToDocTypeEmpty(event.newData);
-    console.log('[Created New Doc Type --> DocumentType '.concat(JSON.stringify(docType1)));
-    if(docType1 == null || docType2 == null){
-      return;
-    }else{
-      // generate the key
-      resourceKey = this.generateDocTypeKey(docType1);
-      docType1.name = resourceKey;
-      docType2.name = resourceKey;
-      docTypeEmpty.name = resourceKey;
-    }
-    //
-    // Process the rest
-    
-    //
-    // First doc
-    this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[0]).push(docType1);
-    this.saveDocType(docType1);
-    let resource1:AppResource = new AppResource();
-    resource1.key = resourceKey;
-    resource1.value = docType1.value;
-    resource1.locale = this.selectedLanguageChoices[0];
-    this.saveResource(resource1);
-    LocaleUtils.addResourceToResourceMap(resource1);
-    //
-    // Second doc
-    this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[1]).push(docType2);
-    let resource2:AppResource = new AppResource();
-    resource2.key = resourceKey;
-    resource2.value = docType2.value;
-    resource2.locale = this.selectedLanguageChoices[1];
-    this.saveResource(resource2);
-    LocaleUtils.addResourceToResourceMap(resource2);
-
-    
-    for (let language of this.languages) {
-      if(language.name != this.selectedLanguageChoices[0] && language.name != this.selectedLanguageChoices[1]){
-        // <TODO> Add the other possible values
-        this.allDocTypesLanguageMapped.get(language.name).push(docTypeEmpty);
-        let resource:AppResource = new AppResource();
-        resource.key = resourceKey;
-        resource.value = docType1.value;
-        resource.locale = language.name;
-        this.saveResource(resource);
-        LocaleUtils.addResourceToResourceMap(resource);
-
+      if (window.confirm('Are you sure you want to create this row?')) {
+        event.confirm.resolve();
+      } else {
+        event.confirm.reject();
       }
-    }
+      let resourceKey:string;
+      var docType1:DocumentType = this.convertToDocType(event.newData, 0);
+      var docType2:DocumentType = this.convertToDocType(event.newData, 1);
+      var docTypeEmpty:DocumentType = this.convertToDocTypeEmpty(event.newData);
+      console.log('[Created New Doc Type --> DocumentType '.concat(JSON.stringify(docType1)));
+      if(docType1 == null || docType2 == null){
+        return;
+      }else{
+        // generate the key
+        resourceKey = this.generateDocTypeKey(docType1);
+        docType1.id = 0;
+        docType2.id = 0;
+        docType1.name = resourceKey;
+        docType2.name = resourceKey;
+        docTypeEmpty.name = resourceKey;
+      }
+      //
+      // Process the rest
+    
+      //
+      // First doc
+      this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[0]).push(docType1);
+      this.saveDocType(docType1);
+      let resource1:AppResource = new AppResource();
+      resource1.key = resourceKey;
+      resource1.value = docType1.value;
+      resource1.locale = this.selectedLanguageChoices[0];
+      this.saveResource(resource1);
+      LocaleUtils.addResourceToResourceMap(resource1);
+      //
+      // Second doc
+      this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[1]).push(docType2);
+      let resource2:AppResource = new AppResource();
+      resource2.key = resourceKey;
+      resource2.value = docType2.value;
+      resource2.locale = this.selectedLanguageChoices[1];
+      this.saveResource(resource2);
+      LocaleUtils.addResourceToResourceMap(resource2);
+
+    
+      for (let language of this.languages) {
+        if(language.name != this.selectedLanguageChoices[0] && language.name != this.selectedLanguageChoices[1]){
+          // <TODO> Add the other possible values
+          this.allDocTypesLanguageMapped.get(language.name).push(docTypeEmpty);
+          let resource:AppResource = new AppResource();
+          resource.key = resourceKey;
+          resource.value = docType1.value;
+          resource.locale = language.name;
+          this.saveResource(resource);
+          LocaleUtils.addResourceToResourceMap(resource);
+
+        }
+      }
   }
 
   onEditConfirm(event): void {
@@ -197,6 +246,7 @@ export class DocTypeAdminTable {
     }
     var docType:DocumentType = this.convertToDocType(event.newData, 0);
     if(docType != null){
+      this.updateDocType(docType);
       let resource:AppResource = new AppResource();
       resource.key = docType.name;
       resource.value = docType.value;
@@ -212,6 +262,8 @@ export class DocTypeAdminTable {
       resource.locale = this.selectedLanguageChoices[1];
       this.saveResource(resource);
       LocaleUtils.addResourceToResourceMap(resource);
+      //
+      //
     }
   }
 
@@ -230,6 +282,7 @@ export class DocTypeAdminTable {
     }else{
       docType.value = inputItem.value2;
     }
+    docType.id = inputItem.id
     
     //
     return docType;
@@ -271,6 +324,13 @@ export class DocTypeAdminTable {
     );
   }
 
+  updateDocType(docType: DocumentType) {
+    this.organizationService.updateExistingDocumentType(docType).subscribe(
+      data =>  console.log('No issues'),
+      error => console.log('Server Error'),
+    );
+  }
+
   saveResource(resource: AppResource) {
     this.organizationService.createNewResource(resource).subscribe(
       data =>  console.log('No issues'),
@@ -299,6 +359,17 @@ export class DocTypeAdminTable {
     console.log('[Locale Services - DocType Admin Array FULL MAPPED =====] '.concat(language+'  ').concat(JSON.stringify(this.allDocTypesLanguageMapped.get('en')))); 
   }
 
+  getAllOrganizationTypes() {
+    console.log('[Org Type Admin (Admin)] <getAllOrganizationTypes> ');
+    this.organizationTypes = [];
+    this.organizationService.getAllOrganizationTypes().subscribe(
+      data => { 
+        this.organizationTypes = data;
+      },
+      error => console.log('Server Error'),
+    );
+  }
+
 
   getAvailableLanguages(){
     // TODO read from server
@@ -306,7 +377,10 @@ export class DocTypeAdminTable {
       {'id' : 1, 'name' : 'en', 'value': 'English'},
       {'id': 2, 'name' : 'vi', 'value': 'Vietnamese'},
       {'id': 3, 'name' : 'th', 'value': 'Thai'},
-
+      {'id': 4, 'name' : 'in', 'value': 'Bahasa'},
+      {'id': 5, 'name' : 'es', 'value': 'Spanish'},
+      {'id': 6, 'name' : 'hi', 'value': 'Hindi'},
+      {'id': 7, 'name' : 'te', 'value': 'Telugu'},
     ]
   }
 
@@ -347,8 +421,41 @@ export class DocTypeAdminTable {
       return;
     }
 
+    if(event.target.value === 'Spanish'){
+      this.selectedLanguageChoices[0] = 'es';
+      this.source.load(this.convertToTableFormat(
+          this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[0])
+        , this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[1])
+        )
+      );
+      
+      return;
+    }
+
     if(event.target.value === 'Bahasa'){
       this.selectedLanguageChoices[0] = 'in';
+      this.source.load(this.convertToTableFormat(
+          this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[0])
+        , this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[1])
+        )
+      );
+      
+      return;
+    }
+
+    if(event.target.value === 'Hindi'){
+      this.selectedLanguageChoices[0] = 'hi';
+      this.source.load(this.convertToTableFormat(
+          this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[0])
+        , this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[1])
+        )
+      );
+      
+      return;
+    }
+
+    if(event.target.value === 'Telugu'){
+      this.selectedLanguageChoices[0] = 'te';
       this.source.load(this.convertToTableFormat(
           this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[0])
         , this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[1])
@@ -391,8 +498,38 @@ export class DocTypeAdminTable {
       return;
     }
 
+    if(event.target.value === 'Spanish'){
+      this.selectedLanguageChoices[1] = 'es';
+      this.source.load(this.convertToTableFormat(
+            this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[0])
+          , this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[1])
+        )
+      );
+      return;
+    }
+
     if(event.target.value === 'Bahasa'){
       this.selectedLanguageChoices[1] = 'in';
+      this.source.load(this.convertToTableFormat(
+            this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[0])
+          , this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[1])
+        )
+      );
+      return;
+    }
+
+    if(event.target.value === 'Hindi'){
+      this.selectedLanguageChoices[1] = 'hi';
+      this.source.load(this.convertToTableFormat(
+            this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[0])
+          , this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[1])
+        )
+      );
+      return;
+    }
+
+    if(event.target.value === 'Telugu'){
+      this.selectedLanguageChoices[1] = 'te';
       this.source.load(this.convertToTableFormat(
             this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[0])
           , this.allDocTypesLanguageMapped.get(this.selectedLanguageChoices[1])
@@ -414,7 +551,16 @@ export class DocTypeAdminTable {
     }
 
     return dataHelperList;
-    
+  }
+
+  getCurrentDocType() {
+      if(this.currDocType != null){
+        return this.currDocType.value;
+      } else {
+        var tempDocType:DocumentType = new DocumentType();
+        tempDocType.name = "New Document Type";
+        return tempDocType.value;
+      }
   }
 
   createDocTypeHelperEntity(value1:DocumentType, value2:DocumentType){
@@ -422,6 +568,7 @@ export class DocTypeAdminTable {
     dataHelper.documentDesignation = value1.documentDesignation;
     dataHelper.value1 = value1.value;
     dataHelper.value2 = value2.value;
+    dataHelper.id = value1.id
     return dataHelper;
 
   }

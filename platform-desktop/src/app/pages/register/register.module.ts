@@ -6,6 +6,8 @@ import { NgaModule } from '../../theme/nga.module';
 import { Register } from './register.component';
 import { routing }       from './register.routing';
 
+// REST Functionality
+import { RegisterService } from './register.service';
 
 @NgModule({
   imports: [
@@ -17,6 +19,9 @@ import { routing }       from './register.routing';
   ],
   declarations: [
     Register
-  ]
+  ],
+  providers: [
+    RegisterService,
+  ], 
 })
 export class RegisterModule {}

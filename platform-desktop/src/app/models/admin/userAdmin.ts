@@ -1,8 +1,4 @@
 import { ProfileEntity } from './../profileEntity';
-import { UserContact } from './../userContact';
-import { Group } from './../group';
-import { Organization } from './../organization';
-import { PasswordCredentials } from './../passwordCredentials';
 
 export class UserAdmin extends ProfileEntity {
     firstName: string='';
@@ -10,6 +6,8 @@ export class UserAdmin extends ProfileEntity {
     username:  string='';
     email:  string='';
     cellnumber:  string='';
+    verified: string='';
+    activated: string = '';
     organization:  string='';
     userType:  string='';
     resourceType:  string='';

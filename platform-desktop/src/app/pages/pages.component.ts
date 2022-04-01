@@ -8,7 +8,6 @@ import { User } from '../models/user';
 
 // import global data
 import * as AppGlobals from '../config/globals';
-import { LocaleUtils } from '../utils/LocaleUtils';
 
 @Component({
   selector: 'pages',
@@ -38,8 +37,10 @@ export class Pages {
 
   ngOnInit() {
     this.currentUser = JSON.parse(localStorage.getItem('user'));
-    if(this.currentUser.roles[0].name === 'Super Admin'){
-      if(PAGES_MENU[0].children.length < 4){
+    if(this.currentUser.roles[0].name === 'Super Admin'
+        || this.currentUser.roles[0].name === 'Org Admin'
+        || this.currentUser.roles[0].name === 'Matrix Admin'){
+      if(PAGES_MENU[0].children.length < 3){
         PAGES_MENU[0].children.push({
           path: 'admin',  // path for our page
           data: { // custom menu declaration
@@ -56,7 +57,7 @@ export class Pages {
       }
       
     }else{
-      if(PAGES_MENU[0].children.length >= 4){
+      if(PAGES_MENU[0].children.length >= 3){
         // remove the menu
         PAGES_MENU[0].children.pop()
       }
@@ -66,5 +67,14 @@ export class Pages {
 
   getAppVersion(){
     return AppGlobals.APPLICATION_VERSION;
+  }
+
+  checkMenuPermissions(name: string) {
+    var result : boolean = false;
+
+
+
+
+    return result;
   }
 }

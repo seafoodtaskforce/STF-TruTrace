@@ -7,6 +7,8 @@ import 'rxjs/add/operator/catch';
 import { User } from '../../models/user';
 import { GroupType } from '../../models/groupType';
 import { DocumentType } from '../../models/documentType';
+import { DynamicFieldType } from '../../models/dynamicFieldType';
+
 import {DocumentTag} from "../../models/documentTag"
 import {NotificationData} from "../../models/notificationData"
 import {AppResource} from "../../models/AppResource"
@@ -14,6 +16,7 @@ import {AppResource} from "../../models/AppResource"
 
 
 import { Group } from '../../models/group';
+import { SlimLoadingBarService } from 'ng2-slim-loading-bar';
 
 
 import { ScrollToService, ScrollToConfigOptions } from '@nicky-lenaers/ngx-scroll-to';
@@ -21,6 +24,11 @@ import { ScrollToService, ScrollToConfigOptions } from '@nicky-lenaers/ngx-scrol
 // import global data
 import * as AppGlobals from '../../config/globals';
 import { OrganizationStage } from 'app/models/OrganizationStage';
+import { DynamicFieldDefinition } from 'app/models/dynamicFieldDefinition';
+import { ServerUtils } from 'app/utils/server.utils';
+import { UserAdminTable } from './userAdmin/userAdmin.component';
+import { RESTResponse, ResponseErrorData, ResponseIssue } from 'app/models/RestResponse';
+import { OrganizationAdminTable } from './organizationAdmin';
 
 @Injectable()
 export class DataLoadService {
@@ -30,6 +38,8 @@ export class DataLoadService {
   readonly ALL_USER_URL: string = this.getServerURI().concat('/user/fetchall');
   readonly UPDATE_USER_URL: string = this.getServerURI().concat('/user/update');
   readonly CREATE_USER_URL: string = this.getServerURI().concat('/user/create');
+  readonly UPDATE_USER_PROFILE_DATA_URL: string = this.getServerURI().concat('/user/updateprofile');
+  readonly UPLOAD_USER_BATCH_AS_CSV_URL: string = this.getServerURI().concat('/user/batchupload');
 
   // 
   // Organization Type admin
@@ -42,6 +52,8 @@ export class DataLoadService {
   // Organization Group Admin
   readonly ALL_GROUP_ORGANIZATION_URL: string = this.getServerURI().concat('/organization/fetchallgrouporganizations');
   readonly CREATE_GROUP_ORGANIZATION_URL: string = this.getServerURI().concat('/organization/creategrouporganization');
+  readonly UPDATE_GROUP_ORGANIZATION_URL: string = this.getServerURI().concat('/organization/updategrouporganization');
+  readonly UPLOAD_GROUP_BATCH_AS_CSV_URL: string = this.getServerURI().concat('/organization/batchorgupload');
 
   //
   // Stages Admin
@@ -61,11 +73,26 @@ export class DataLoadService {
   //
   // Document Type Admin
   readonly CREATE_DOC_TYPE_URL: string = this.getServerURI().concat('/document/createdoctype');
+  readonly UPDATE_DOC_TYPE_URL: string = this.getServerURI().concat('/document/updatedoctype');
 
   //
   // REsource Admin
   readonly CREATE_APP_RESOURCE_URL: string = this.getServerURI().concat('/server/resource');
   readonly DELETE_APP_RESOURCE_URL: string = this.getServerURI().concat('/server/resource/[:1]');
+  readonly GET_ALL_APP_RESOURCES_URL: string = this.getServerURI().concat('/server/resources');
+
+  //
+  // Dynamic field Definition Admin
+  readonly CREATE_DYNAMIC_FIELD_DEFINITION_URL: string = this.getServerURI().concat('/document/createfielddefinition');
+  readonly UPDATE_DYNAMIC_FIELD_DEFINITION_URL: string = this.getServerURI().concat('/document/updatefielddefinition');
+  readonly GET_ALL_DYNAMIC_FIELD_DEFINITIONS_URL: string = this.getServerURI().concat('/document/fetchallfielddefinitions');
+  readonly DELETE_DYNAMIC_FIELD_DEFINITION_URL: string = this.getServerURI().concat('/document/delete/dynamicfielddefinition/[:1]');
+  readonly GET_ALL_DYNAMIC_FIELD_TYPES_URL: string = this.getServerURI().concat('/server/dynamicfieldtypes');
+
+  //
+  // File Uploads
+  public csvUserBatchUploadFlag: boolean = false;
+  public csvOrgBatchUploadFlag: boolean = false;
 
   /**
    * 
@@ -76,13 +103,196 @@ export class DataLoadService {
 
   }
 
+  //
+  // CSV FIle Uploads 
+  startCSVUserBatchUploadProcess(){
+    this.csvUserBatchUploadFlag = true;
+  }
 
+  stopCSVUserBatchUploadProcess(){
+    this.csvUserBatchUploadFlag = false;
+  }
+
+  startCSVOrgBatchUploadProcess(){
+    this.csvOrgBatchUploadFlag = true;
+  }
+
+  stopCSVOrgBatchUploadProcess(){
+    this.csvOrgBatchUploadFlag = false;
+  }
+
+  isUploadingCSVUserBatch(){
+    return this.csvUserBatchUploadFlag;
+  }
+
+  isUploadingCSVOrgBatch(){
+    return this.csvOrgBatchUploadFlag;
+  }
+
+   /**
+    * Event handler for CSV Batch User File creation upload and coverstion in the server
+    * @param file 
+    * @param formData 
+    * @param slimLoader 
+    * @param thisService 
+    * @param component 
+    */
+  onCSVOrgBatchFileUpload(file: string, formData: FormData, slimLoader: SlimLoadingBarService, thisService: DataLoadService, component: OrganizationAdminTable){
+    //
+    // init
+    component.uploadOperationErrorsFlag =false;
+
+    // headers
+    let headers = new Headers({ 'Content-Type': 'multipart/form-data' });
+    headers.append('user-name', localStorage.getItem('username'));
+    let options = new RequestOptions({ headers: headers });
+    // usrl
+    const URL_TO_CALL = this.UPLOAD_GROUP_BATCH_AS_CSV_URL;
+    console.log('[Data Load Service] POST - Upload a CSV Org Batch File Upload URL'.concat(JSON.stringify(URL_TO_CALL)));
+    console.log('[Data Load Service] POST - Upload a CSV Org Batch File Upload Options'.concat(JSON.stringify(options)));
+    console.log('[Data Load Service] POST - Upload a CSV Org Batch File Upload FORM DATA'.concat(JSON.stringify(formData)));
+
+    var oReq = new XMLHttpRequest();
+    oReq.open("POST", URL_TO_CALL, true);
+    oReq.onload = function(oEvent) {
+      if (oReq.status == 200) {
+        console.log('[Data Load Service] POST - Upload Org Batch CSV SUCCESS');
+        //
+        // fetch response data
+
+        var restResponse: RESTResponse = JSON.parse(oReq.response);
+        var newUsers: User[] = restResponse.data;
+        var responseErrorDataItems: ResponseErrorData;;
+        var errorMessages: ResponseIssue[];
+        if (restResponse.errorData.length > 0) {
+          //
+          // We have errors
+
+          // Data Items
+          responseErrorDataItems = restResponse.errorData[0];
+          // extract issues
+          if(responseErrorDataItems.issues.length > 0){
+            errorMessages = responseErrorDataItems.issues;
+            // send it upstream
+            component.uploadOperationErrorsFlag = true;
+            component.errorMessages = errorMessages;
+            component.showErrorToasterBackendCSV();
+          } else {
+            component.uploadOperationErrorsFlag = false;
+          }
+        }
+
+        console.log('[Data Load Service] POST - Upload a NewDoc SUCCESS --->' + JSON.stringify(newUsers));
+        slimLoader.complete();
+        thisService.stopCSVOrgBatchUploadProcess();
+        
+        // add to the component
+        component.getAllOrganizationGroups();
+      } else {
+        console.log('[Data Load Service] POST - Upload a NewDoc ERROR');
+        component.uploadOperationErrorsFlag =true;
+        thisService.stopCSVOrgBatchUploadProcess();
+      }
+    };
+
+  oReq.send(formData);
+    
+    // build the post reuqest with all data
+    /**
+    return this.http.post(URL_TO_CALL, formData, options)
+        .map( (response: Response) => {
+            console.log('[Data Load Service] POST - Upload a NewDoc '.concat(JSON.stringify(response.json())));
+            return response;
+        } )
+        .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
+*/
+  }
+
+    /**
+  * Event handler for CSV Batch User File creation upload and coverstion in the server
+  * @param file 
+  * @param formData 
+  * @param slimLoader 
+  * @param thisService 
+  * @param component 
+  */
+    onCSVUserBatchFileUpload(file: string, formData: FormData, slimLoader: SlimLoadingBarService, thisService: DataLoadService, component: UserAdminTable){
+      //
+      // init
+      component.uploadOperationErrorsFlag =false;
+  
+      // headers
+      let headers = new Headers({ 'Content-Type': 'multipart/form-data' });
+      headers.append('user-name', localStorage.getItem('username'));
+      let options = new RequestOptions({ headers: headers });
+      // usrl
+      const URL_TO_CALL = this.UPLOAD_USER_BATCH_AS_CSV_URL;
+      console.log('[Data Load Service] POST - Upload a CSV User Batch File Upload URL'.concat(JSON.stringify(URL_TO_CALL)));
+      console.log('[Data Load Service] POST - Upload a CSV User Batch File Upload Options'.concat(JSON.stringify(options)));
+      console.log('[Data Load Service] POST - Upload a CSV User Batch File Upload FORM DATA'.concat(JSON.stringify(formData)));
+  
+      var oReq = new XMLHttpRequest();
+      oReq.open("POST", URL_TO_CALL, true);
+      oReq.onload = function(oEvent) {
+        if (oReq.status == 200) {
+          console.log('[Data Load Service] POST - Upload User Batch CSV SUCCESS');
+          //
+          // fetch response data
+  
+          var restResponse: RESTResponse = JSON.parse(oReq.response);
+          var newUsers: User[] = restResponse.data;
+          var responseErrorDataItems: ResponseErrorData;;
+          var errorMessages: ResponseIssue[];
+          if (restResponse.errorData.length > 0) {
+            //
+            // We have errors
+  
+            // Data Items
+            responseErrorDataItems = restResponse.errorData[0];
+            // extract issues
+            if(responseErrorDataItems.issues.length > 0){
+              errorMessages = responseErrorDataItems.issues;
+              // send it upstream
+              component.uploadOperationErrorsFlag = true;
+              component.errorMessages = errorMessages;
+              component.showErrorToasterBackendCSV();
+            } else {
+              component.uploadOperationErrorsFlag = false;
+            }
+          }
+  
+          console.log('[Data Load Service] POST - Upload a NewDoc SUCCESS --->' + JSON.stringify(newUsers));
+          slimLoader.complete();
+          thisService.stopCSVUserBatchUploadProcess();
+          
+          // add to the component
+          component.getAllUsers();
+        } else {
+          console.log('[Data Load Service] POST - Upload a NewDoc ERROR');
+          component.uploadOperationErrorsFlag =true;
+          thisService.stopCSVUserBatchUploadProcess();
+        }
+    };
+  
+    oReq.send(formData);
+      
+      // build the post reuqest with all data
+      /**
+      return this.http.post(URL_TO_CALL, formData, options)
+          .map( (response: Response) => {
+              console.log('[Data Load Service] POST - Upload a NewDoc '.concat(JSON.stringify(response.json())));
+              return response;
+          } )
+          .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
+  */
+    }
 
   /**
    * Get the REST Server URI
    */
   getServerURI() {
-    return AppGlobals.SERVER_URI;
+    //return AppGlobals.SERVER_URI;
+    return localStorage.getItem(ServerUtils.BACK_END_SERVER_URL)
   }
 
   /**
@@ -101,7 +311,133 @@ export class DataLoadService {
   }
 
   /**
-   * Get all the users fron the backend
+   * Get all the dynamic field types types from the backend
+   */
+  getAllDynamicFieldTypes(): Observable<DynamicFieldType[]> {
+    let headers = new Headers({ 'Content-Type': 'text/plain' });
+    headers.append('user-name', localStorage.getItem('username'));
+    let options = new RequestOptions({ headers: headers });
+
+    console.log('[dataLoad Service (Admin)] GET ALL Dynamic Field Definition Types RESTFUL '.concat(JSON.stringify(options)));
+
+    return this.http.get(this.GET_ALL_DYNAMIC_FIELD_TYPES_URL, options)
+        .map( (res: Response) => res.json() )
+        .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Server Error' ));
+  }
+
+    /**
+   * Get all the dynamic field types types from the backend
+   */
+  getAllDynamicFieldDefinitions(): Observable<DynamicFieldDefinition[]> {
+    let headers = new Headers({ 'Content-Type': 'text/plain' });
+    headers.append('user-name', localStorage.getItem('username'));
+    let options = new RequestOptions({ headers: headers });
+
+    console.log('[dataLoad Service (Admin)] <getAllDynamicFieldDefinitions> GET ALL Dynamic Field Definition TYPES RESTFUL '.concat(JSON.stringify(options)));
+
+    return this.http.get(this.GET_ALL_DYNAMIC_FIELD_DEFINITIONS_URL, options)
+        .map( (res: Response) => {
+
+          return res.json();
+        } )
+        .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Server Error' ));
+  }
+
+  /**
+   * Get all the resources from the backend
+   */
+  getAllServerResources(): Observable<AppResource[]> {
+    let headers = new Headers({ 'Content-Type': 'text/plain' });
+    headers.append('user-name', localStorage.getItem('username'));
+    let options = new RequestOptions({ headers: headers });
+
+    console.log('[dataLoad Service (Admin)] <getAllServerResources> GET ALL Resources from Server '.concat(JSON.stringify(options)));
+
+    return this.http.get(this.GET_ALL_APP_RESOURCES_URL, options)
+        .map( (res: Response) => {
+
+          return res.json();
+        } )
+        .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Server Error' ));
+  }
+
+     /**
+   * Update the given user
+   * @param user Update the 
+   */
+  createDynamicFieldDefinition(definition: DynamicFieldDefinition) {
+    let headers = new Headers({ 'Content-Type': 'application/json' });
+    headers.append('user-name', localStorage.getItem('username'));
+    let options = new RequestOptions({ headers: headers });
+    let fullDefinition: DynamicFieldDefinition = new DynamicFieldDefinition();
+    // create the URL
+    const URL_TO_CALL = this.CREATE_DYNAMIC_FIELD_DEFINITION_URL;
+    let body = JSON.stringify(definition);
+    console.log('[Data Load Service Dynamic Field Definition '.concat(URL_TO_CALL).concat(' ').concat(JSON.stringify(definition)));
+
+    return this.http.post(URL_TO_CALL, body, options)
+        .map( (response: Response) => {
+            console.log('[Data Load Service] POST - Create Dynamic Field Definition '.concat(JSON.stringify(response.json())));
+            fullDefinition = response.json()
+            // add the definition to the list of definitions in memory
+            
+            return response;
+        } )
+        .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
+  }
+
+  updateAppResource(resource : AppResource) {
+    //
+    // TODO
+    return this.createAppResource(resource);
+  }
+
+  createAppResource(resource :AppResource) {
+    //
+    // TODO
+    let headers = new Headers({ 'Content-Type': 'application/json' });
+    headers.append('user-name', localStorage.getItem('username'));
+    let options = new RequestOptions({ headers: headers });
+    let fullResource: AppResource = new AppResource();
+    // create the URL
+    const URL_TO_CALL = this.CREATE_APP_RESOURCE_URL;
+    let body = JSON.stringify(resource);
+    console.log('[Data Load Service Resource Definition '.concat(URL_TO_CALL).concat(' ').concat(JSON.stringify(resource)));
+
+    return this.http.post(URL_TO_CALL, body, options)
+        .map( (response: Response) => {
+            console.log('[Data Load Service] POST - Create Dynamic Field Definition '.concat(JSON.stringify(response.json())));
+            fullResource = response.json()
+            // add the definition to the list of definitions in memory
+            
+            return response;
+        } )
+        .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
+  }
+
+  /**
+   * Update the given user
+   * @param user Update the 
+   */
+  updateDynamicFieldDefinition(definition: DynamicFieldDefinition) {
+    let headers = new Headers({ 'Content-Type': 'application/json' });
+    headers.append('user-name', localStorage.getItem('username'));
+    let options = new RequestOptions({ headers: headers });
+    // create the URL
+    const URL_TO_CALL = this.UPDATE_DYNAMIC_FIELD_DEFINITION_URL;
+    let body = JSON.stringify(definition);
+    console.log('[Data Load Service Dynamic Field Definition '.concat(URL_TO_CALL).concat(' ').concat(JSON.stringify(definition)));
+
+    return this.http.put(URL_TO_CALL, body, options)
+        .map( (response: Response) => {
+            console.log('[Data Load Service] PUT - Update Dynamic Field Definition '.concat(JSON.stringify(response.json())));
+            return response;
+        } )
+        .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
+  }
+
+  /**
+   * Get all the users front the backend
    */
   getAllUsers(isSuperAdmin: boolean): Observable<User[]> {
     let headers = new Headers({ 'Content-Type': 'text/plain' });
@@ -139,9 +475,30 @@ export class DataLoadService {
         .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
   }
 
-   /**
+    /**
    * Update the given user
    * @param user Update the 
+   */
+  updateUserProfile(user: User) {
+    let headers = new Headers({ 'Content-Type': 'application/json' });
+    headers.append('user-name', localStorage.getItem('username'));
+    let options = new RequestOptions({ headers: headers });
+    // create the URL
+    const URL_TO_CALL = this.UPDATE_USER_PROFILE_DATA_URL;
+    let body = JSON.stringify(user);
+    console.log('[Data Load Service User Profile Update '.concat(URL_TO_CALL).concat(' ').concat(JSON.stringify(user)));
+
+    return this.http.post(URL_TO_CALL, body, options)
+        .map( (response: Response) => {
+            console.log('[Data Load Service] POST - Update User Profile '.concat(JSON.stringify(response.json())));
+            return response;
+        } )
+        .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
+  }
+
+   /**
+   * Create the given user
+   * @param user Create the user based on the provided data
    */
   createUser(user: User) {
     let headers = new Headers({ 'Content-Type': 'application/json' });
@@ -161,6 +518,28 @@ export class DataLoadService {
   }
 
    /**
+   * Create the given Group Organization
+   * @param organizationGroup the organization group being created
+   */
+  updateGroupOrganization(organizationGroup: Group) {
+    let headers = new Headers({ 'Content-Type': 'application/json' });
+    headers.append('user-name', localStorage.getItem('username'));
+    let options = new RequestOptions({ headers: headers });
+    // create the URL
+    const URL_TO_CALL = this.UPDATE_GROUP_ORGANIZATION_URL;
+    let body = JSON.stringify(organizationGroup);
+    console.log('[Data Load Service Organization UPDATE '.concat(URL_TO_CALL).concat(' ').concat(JSON.stringify(organizationGroup)));
+
+    return this.http.post(URL_TO_CALL, body, options)
+        .map( (response: Response) => {
+            console.log('[Data Load Service] POST - UPDATE Organization Group '.concat(JSON.stringify(response.json())));
+            return response;
+        } )
+        .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
+  }
+
+
+     /**
    * Create the given Group Organization
    * @param organizationGroup the organization group being created
    */
@@ -382,6 +761,28 @@ export class DataLoadService {
         .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
   }
 
+
+  /**
+   * Update doc type
+   * @param existingDocType the eisting doc type being updated 
+   */
+  updateExistingDocumentType(existingDocType: DocumentType) {
+    let headers = new Headers({ 'Content-Type': 'application/json' });
+    headers.append('user-name', localStorage.getItem('username'));
+    let options = new RequestOptions({ headers: headers });
+    // create the URL
+    const URL_TO_CALL = this.UPDATE_DOC_TYPE_URL;
+    let body = JSON.stringify(existingDocType);
+    console.log('[Data Load Service] PUT Update Doc Type'.concat(URL_TO_CALL).concat(' ').concat(JSON.stringify(existingDocType)));
+
+    return this.http.put(URL_TO_CALL, body, options)
+        .map( (response: Response) => {
+            console.log('[Data Load Service] PUT - Update Doc Type '.concat(JSON.stringify(response.json())));
+            return response;
+        } )
+        .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
+  }
+
   /**
    * Create new reources for the app
    * @param resource 
@@ -434,13 +835,5 @@ export class DataLoadService {
             } )
             .catch( (error: any) => Observable.throw(error.json().error || 'Unexpected Authentication Error' ));
       }
-
-  
-
-
-
-  
-
-
 }
 

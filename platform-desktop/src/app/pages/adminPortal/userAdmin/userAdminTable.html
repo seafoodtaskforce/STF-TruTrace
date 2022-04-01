@@ -11,4 +11,110 @@
     </div> 
     <div class="separator"></div> 
 
+
+    <!-- ---------------------------------------- -->
+    <!-- User Admin Details Card                  -->
+    <!--                                          -->
+    <ba-card baCardClass="with-scroll">
+      <div class="row">
+      <!-- Get Template CSV File Details -->
+      <div class="col-md-4">
+        
+          <ba-card cardTitle="{{getInternationalizedToken('csv_user_batch_download_template_Header')}}" baCardClass="with-scroll">
+              <div class="row">
+                  <a href="http://3.86.84.130:8080/WWFShrimpProject_v2/User_Import.csv" translate>{{'Download User CSV Template File'}}</a>
+              </div>
+              <div class="separator"></div>
+              <div class="row">
+                <button type="button" class="btn btn-info btn-xs btn-with-icon btn-raised" placement="right" style="float: right;"
+                      ngbPopover="Use the provided file as a template. Please do not remove the header line from the file. Note that 'username', 'email address', and 'user type' are required fields and must be provided. Upload the file, fill it in and you then will be able to submit the file in the panel to the right." 
+                      popoverTitle="CVS USer File Upload Help"
+                      container="body"> 
+                      <i class="ion-help"></i>help
+                  </button>
+              </div>
+              
+           </ba-card>
+          
+      </div>
+
+      <!-- Actual Upload Panel Details -->
+      <div class="col-md-8">
+        <ba-card cardTitle="{{getInternationalizedToken('csv_user_batch_upload_Header')}}" baCardClass="with-scroll">
+            <div class="row">
+              <!-- Group Name Dropdown -->
+              <div>
+                <label for="docTypeForImport">{{getInternationalizedToken('user_[organization_name]')}}:</label>
+                  <select [(ngModel)]="currentOrgNameListValueCSVBatchUpload"
+                          class="form-control" id="groupNameForCVSUpload" (ngModelChange)="setNewStageNameForBatchUserUpload($event)" >
+                      <option>{{getInternationalizedToken('document_import_choose_group')}}</option>
+                      <option *ngFor="let orgGroup of getAllOrganizations()">{{orgGroup.name}}</option>
+                  </select>
+              </div>
+              <!-- File Upload Dialog -->
+              <div class="row">
+                <div class="file-upload-wrapper col-6">
+                  <label for="docTypeForImport">{{getInternationalizedToken('user_[csv_batch_upload]')}}:</label>
+                  <input type="file" id="input-user-batch-upload-file" class="file-upload col-6" 
+                                                      (change)="onCSVFileSelected($event)" accept=".csv"/>                          
+                </div>
+              </div>
+            </div>
+            <div class="separator"></div>
+            <div *ngIf="uploadOperationErrorsFlag" class="row">
+              <div class="col-xlg-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+
+                  <div class="alert alert-danger" role="alert">
+                    There were issues with your input. Please check the errors below and resubmit the file.
+                  </div>
+
+                <!-- Error Data Panel -->
+                <ba-card *ngIf="uploadOperationErrorsFlag" cardTitle="Listing of Errors" baCardClass="medium-card with-scroll">
+                  <table class="table table-striped">
+                    <tr>
+                      <th>#</th>
+                      <th>Input File Line#</th>
+                      <th>Column Name</th>
+                      <th>Detected Problem</th>
+                    </tr>
+
+                    <tr *ngFor="let issue of getUploadErrorMessages(); let i = index;" class="danger">
+                      <td>{{i+1}}</td>
+                      <td>{{getIssueLineNumber(issue)}}</td>
+                      <td>{{issue.columnName}}</td>
+                      <td>{{issue.issue}}</td>
+                    </tr>
+                  </table>
+                </ba-card>
+              </div>
+            </div>
+            <div *ngIf="uploadOperationErrorsFlag" class="separator"></div>
+            
+            <!-- Submit and Cancel Buttons-->
+            <div class="col-xlg-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+              
+              <button class="{{getClassForUploadProcessButton('Submit')}}" style="margin-top: 4px;"
+                  id="SubmitCSVDocumentImportBtn" 
+                  (click)="onCSVFileUpload()">{{getInternationalizedToken('manage_pdf_document_button_submit')}}
+              </button>
+              <button class="{{getClassForUploadProcessButton('Cancel')}}" style="margin-top: 4px;"
+                  id="CancelCSVDocumentImportBtn" 
+                  (click)="onCSVFileRemoveChoice()">{{getInternationalizedToken('manage_pdf_document_button_cancel')}}
+              </button>
+              <div *ngIf="isUploadingCSVUserBatch()"  class="message-content" 
+                  [ngStyle]="{'color':'white' ,
+                              'font-size': '10px' ,
+                              'padding-left': '2px',
+                              'padding-right': '2px', 
+                              'float': 'pull-right'}">
+                              <span class="label label-warning">{{getInternationalizedToken('manage_pdf_document_label_uploading')}}</span>
+              </div>
+            </div>
+       </ba-card>
+      </div>
+    </div>
+
+        
+    </ba-card>
+    
 </div>

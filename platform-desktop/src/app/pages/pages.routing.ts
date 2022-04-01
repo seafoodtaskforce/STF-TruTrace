@@ -5,31 +5,43 @@ import { ModuleWithProviders } from '@angular/core';
 
 // export function loadChildren(path) { return System.import(path); };
 
+// import global data
+import * as AppGlobals from '../config/globals';
+
+import { AuthGuardService } from '../utils/auth.guard.service';
+import { DocumentsComponent } from './documents/documents.component';
+import { LeafletMaps } from './leafletMaps/leafletMaps.component';
+
 export const routes: Routes = [
+  { path: '',  
+    redirectTo: AppGlobals.LOGIN_PAGE_ROUTE, 
+    pathMatch: 'full'  
+  },
   {
-    path: 'login',
+    path: AppGlobals.LOGIN_PAGE_ROUTE,
     loadChildren: 'app/pages/login/login.module#LoginModule',
   },
   {
-    path: 'register',
+    path: AppGlobals.REGISTER_PAGE_ROUTE,
     loadChildren: 'app/pages/register/register.module#RegisterModule',
   },
   {
-    path: 'pages',
-    component: Pages,
+    path: AppGlobals.PAGES_ROUTE,
+    component: Pages, 
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', loadChildren: './dashboard/dashboard.module#DashboardModule' },
-      { path: 'editors', loadChildren: './editors/editors.module#EditorsModule' },
-      { path: 'components', loadChildren: './components/components.module#ComponentsModule' },
-      { path: 'charts', loadChildren: './charts/charts.module#ChartsModule' },
-      { path: 'ui', loadChildren: './ui/ui.module#UiModule' },
-      { path: 'forms', loadChildren: './forms/forms.module#FormsModule' },
-      { path: 'tables', loadChildren: './tables/tables.module#TablesModule' },
-      { path: 'maps', loadChildren: './maps/maps.module#MapsModule' },
-      { path: 'documents', loadChildren: './documents/documents.module#DocumentsModule' },
-      { path: 'profile', loadChildren: './profile/profile.module#ProfileModule' },
-      { path: 'admin',  loadChildren: './adminPortal/adminPortal.module#AdminPortalModule' },
+      { path: '', redirectTo: AppGlobals.LOGIN_PAGE_ROUTE, pathMatch: 'full' },
+      { path: 'leafletMaps', component: LeafletMaps },
+      { path: AppGlobals.PROFILE_PAGE_ROUTE, loadChildren: './profile/profile.module#ProfileModule'
+            , canLoad:[AuthGuardService], canActivate:[AuthGuardService]  },
+      { path: AppGlobals.ADMIN_PAGE_ROUTE,  loadChildren: './adminPortal/adminPortal.module#AdminPortalModule'
+            , canLoad:[AuthGuardService], canActivate:[AuthGuardService]  },
+      { path: AppGlobals.DOCUMENTS_PAGE_ROUTE, 
+        loadChildren: './documents/documents.module#DocumentsModule', 
+        canLoad:[AuthGuardService], 
+        canActivate:[AuthGuardService], 
+        canDeactivate: [AuthGuardService] , pathMatch: 'full'
+      },
+      
     ],
   },
 ];

@@ -1,19 +1,106 @@
 <div class="widgets">
         
         <div class="row">
-        <div class="col-md-6">
-            <ba-card cardTitle="Profile Avatar Manager" baCardClass="with-scroll">
-            <ba-picture-uploader [picture]="profile.picture" [defaultPicture]="defaultPicture" [uploaderOptions]="uploaderOptions">
+            <div class="col-md-9">
                 
-    
-            </ba-picture-uploader>
-            {{_fileUpload | json}}
-            </ba-card>
+                <ba-card cardTitle="Profile Manager" baCardClass="with-scroll">
+                    <div class="row" >
+                        <div class="col-md-3" style="text-align: center">
+                            <ba-card cardTitle="Profile Picture" >
+                                <ba-picture-uploader 
+                                [picture]="profile.picture" 
+                                [defaultPicture]="defaultPicture" 
+                                [uploaderOptions]="uploaderOptions">
+                                </ba-picture-uploader>
+                                {{_fileUpload | json}}
+                            
+                            </ba-card>
+                        </div>
+                        <div class="col-md-9">
+                            <ba-card cardTitle="Profile Data" >   
+                                <!-- First Name  
+                                <div class="col-sm-12">
+                                    <div>
+                                        <label for="usr">First Name</label>
+                                        <div *ngIf="isDocFieldValid(i)">
+                                            <small id="passwordHelp" class="text-danger">
+                                                {{getDocFieldErrorMessage(i)}}
+                                            </small>
+                                        </div>
+                                    </div>                       
+                                    <input type="{{getInputTypeClass(docInfoItem)}}" class="form-control" id="usr" name="username" 
+                                            maxlength="{{getMaxInputLengthClass(docInfoItem)}}"
+                                            placeholder="{{isDocInfoRequired(docInfoItem)}}" 
+                                            [(ngModel)]="newDocumentDynamicFieldData[i].data">
+                                    <div class="row">
+                                        <div class="col-sm-11">
+                                            <small id="passwordHelp" class="text-muted">
+                                                {{docInfoItem.description}}
+                                            </small>
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <small id="passwordHelp" class="text-success">
+                                                {{getCharacterInputLentghFeedback(docInfoItem, i)}}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                -->
+                                <div class="col-sm-12">
+                                    {{loggedInUser.contactInfo.firstName}}
+                                </div>
+                                <!-- Last Name --> 
+                                <div class="col-sm-12">
+                                    {{loggedInUser.contactInfo.lastName}}
+                                </div>
+                                <!-- Username read-only --> 
+                                <div class="col-sm-12">
+                                    {{loggedInUser.name}}
+                                </div>
+                                <!-- Email --> 
+                                <div class="col-sm-12">
+                                    {{loggedInUser.contactInfo.emailAddress}}
+                                </div>
+                                <!-- Cell# --> 
+                                <div class="col-sm-12">
+                                    {{loggedInUser.contactInfo.cellNumber}}
+                                </div>
+                                <!-- Organization read-only --> 
+                                <div class="col-sm-12">
+                                    {{loggedInUser.userOrganizations[0].subGroups[0].legalBusinessName}}
+                                </div>
+
+                                <div class="separator" style="margin-bottom: 5px;"></div>     
+
+                                <!--------------------->
+                                <!-- ORG INFORMATION -->
+                                <!--------------------->
+
+                                <!-- Display name -->
+                                <div class="col-sm-12">
+                                    {{loggedInUser.userOrganizations[0].subGroups[0].legalBusinessName}}
+                                </div>
+                                <!-- Business # --> 
+                                <div class="col-sm-12">
+                                    {{loggedInUser.userOrganizations[0].subGroups[0].businessIDNumber}}
+                                </div>
+                                <!-- Business address --> 
+                                <div class="col-sm-12">
+                                    {{loggedInUser.userOrganizations[0].subGroups[0].businessAddress}}
+                                </div>
+                                <!-- GPS --> 
+                                <div class="col-sm-12">
+                                    {{loggedInUser.userOrganizations[0].subGroups[0].gpsCoordinates}}
+                                </div>
+                                <!-- Business email --> 
+                                <div class="col-sm-12">
+                                    {{loggedInUser.userOrganizations[0].subGroups[0].emailAddress}}
+                                </div>
+                            </ba-card>
+                        </div>
+                    </div>
+                </ba-card>
+            </div>
         </div>
-        <div class="col-md-6">
-            <ba-card cardTitle="Profile File Uploader" baCardClass="with-scroll">
-            <ba-file-uploader [fileUploaderOptions]="fileUploaderOptions"></ba-file-uploader>
-            </ba-card>
-        </div>
-        </div>
+
 </div>

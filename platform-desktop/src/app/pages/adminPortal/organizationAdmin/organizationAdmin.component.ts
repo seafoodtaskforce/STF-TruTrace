@@ -10,7 +10,13 @@ import {DataLoadService} from '../dataLoad.service';
 import { LookupEntity } from './../../../models/LookupEntity';
 import { OrganizationStage } from './../../../models/OrganizationStage';
 import {SmartTableListItem} from '../../../models/admin/smartTableListItem';
-import { LocaleUtils } from '../../../utils/LocaleUtils';
+import { LocaleUtils } from '../../../utils/locale.utils';
+import { DocumentService } from 'app/pages/documents/document.service';
+import { ResponseIssue } from 'app/models/RestResponse';
+import { SlimLoadingBarService } from 'ng2-slim-loading-bar';
+import { ToasterService } from 'app/toaster-service.service';
+import { Role } from 'app/models/role';
+import { ROLE_ORG_ADMIN } from 'app/config/globals';
 
 @Component({
   selector: 'organization-admin-table',
@@ -18,7 +24,16 @@ import { LocaleUtils } from '../../../utils/LocaleUtils';
 })
 export class OrganizationAdminTable {
 
-  
+    activatedListValue:SmartTableListItem[] = [
+      { value: 'Activated', title: 'Activated' }, 
+      { value: 'Not Activated', title: 'Not Activated' }
+    ];
+
+    verifiedListValue:SmartTableListItem[] = [
+      { value: 'Verified', title: 'Verified' }, 
+      { value: 'Not Verified', title: 'Not Verified' }
+    ];
+
     /**
      * Paged Table Data
      */
@@ -33,12 +48,28 @@ export class OrganizationAdminTable {
     languages:LookupEntity[];
     selectedLanguageChoices:string[]=['en', 'th'];
 
+    readonly CSV_BATCH_ORG_UPLOAD_GROUP_NAME_CHOOSE= 'document_import_choose_stage';
+
+    //
+    // CSV Batch Upload for User
+    selectedCSVFileToUpload: string = null;
+    selectedStageName: string = null;
+    selectedStageId: number = null;
+    uploadOperationErrorsFlag: boolean = false;
+    errorMessages: ResponseIssue[] = Array<ResponseIssue>();
+    loggedInName :string;
+
+    //
+    // Batch Upload
+    currentStageNameListValueCSVBatchUpload: string = this.getInternationalizedToken(this.CSV_BATCH_ORG_UPLOAD_GROUP_NAME_CHOOSE);
+
   
     /**
      * Initialization of the component
      */
     ngOnInit() {
       // this.getAllUsers();
+      this.loggedInName = localStorage.getItem('username');
       this.getAllOrganizationGroups();
       this.getAllStages();
       this.getAvailableLanguages();
@@ -58,7 +89,8 @@ export class OrganizationAdminTable {
     // user data
     allUsers: Array<User>;
 
-  constructor(protected organizationService : DataLoadService) {
+  constructor(protected organizationService : DataLoadService, protected _documentService: DocumentService
+                , private slimLoader: SlimLoadingBarService, protected toasterService:ToasterService) {
     
   }
 
@@ -72,19 +104,44 @@ export class OrganizationAdminTable {
   }
 
   onCreateConfirm(event): void {
-    if (window.confirm('Are you sure you want to create?')) {
-      event.confirm.resolve();
-    } else {
-      event.confirm.reject();
-    }
     //
     // create the new group data
     var organizationGroup:Group = this.convertOrganizationAdminToOrganizationGroup(event.newData);
     console.log('ORG GROUP ADMIN - Creating a new org group - convert '.concat(JSON.stringify(organizationGroup)));
-    if(organizationGroup != null){
-      this.createGroupOrganization(organizationGroup);
+
+    if(!this.validateTableRowData(organizationGroup)){
+      window.alert('Cannot create a new Organization. Please check your input data.');
+    }else{
+      if (window.confirm('Are you sure you want to create a new Organization?')) {
+        if(organizationGroup != null){
+          this.createGroupOrganization(organizationGroup);
+        }
+        this.getAllOrganizationGroups()
+        event.confirm.resolve();
+      } else {
+        event.confirm.reject();
+      }
     }
-    this.getAllOrganizationGroups()
+  }
+
+  onEditConfirm(event): void {
+    //
+    // Update existing group data
+    var organizationGroup:Group = this.convertOrganizationAdminToOrganizationGroup(event.newData);
+    console.log('ORG GROUP ADMIN - Updating a new org group - convert '.concat(JSON.stringify(organizationGroup)));
+
+    if(!this.validateTableRowData(organizationGroup)){
+      window.alert('Cannot edit the Organization. Please check your input data.');
+    }else{
+      if (window.confirm('Are you sure you want to update this Organization?')) {
+        if(organizationGroup != null){
+          this.updateGroupOrganization(organizationGroup);
+        }
+        event.confirm.resolve();
+      } else {
+        event.confirm.reject();
+      }
+    }
   }
 
   onSearch(query: string = '') {
@@ -95,11 +152,31 @@ export class OrganizationAdminTable {
         search: query
       },
       {
-        field: 'description',
+        field: 'emailAddress',
         search: query
       },
       {
         field: 'organizationType',
+        search: query
+      }
+      ,
+      {
+        field: 'businessIDNumber',
+        search: query
+      }
+      ,
+      {
+        field: 'legalBusinessName',
+        search: query
+      }
+      ,
+      {
+        field: 'businessAddress',
+        search: query
+      }
+      ,
+      {
+        field: 'gpsCoordinates',
         search: query
       }
     ], false); 
@@ -108,9 +185,7 @@ export class OrganizationAdminTable {
     // 'AND' by default, so changing to 'OR' by setting false here
   }
 
-  onEditConfirm(event): void {
 
-  }
 
   onRowSelect(event): void {
 
@@ -125,8 +200,18 @@ export class OrganizationAdminTable {
     exportItem.id = organization.id;
     exportItem.organizationName = organization.name;
     exportItem.organizationType = value;
+    exportItem.businessIDNumber = organization.businessIDNumber;
+    exportItem.legalBusinessName = organization.legalBusinessName;
+    exportItem.businessAddress = organization.businessAddress;
+    exportItem.gpsCoordinates = organization.gpsCoordinates;
+
+    exportItem.activated = this.convertBooleanToActivatedString(this.isOrganizationActivated(organization));
+    exportItem.verified = this.convertBooleanToVerifiedString(organization.verified);
+
+    //user.contactInfo.verified = this.convertVerifiedToBoolean(userAdmin.verified);
+    //user.contactInfo.activated = this.convertActivatedToBoolean(userAdmin.activated);
     
-    exportItem.description = organization.description;
+    exportItem.emailAddress = organization.emailAddress;
     // get the number of users
     exportItem.userNumber = 0;
 
@@ -153,6 +238,11 @@ export class OrganizationAdminTable {
     );
   }
 
+  getAllStageData() {
+    console.log('CSV Org Batch File Upload Group Name List' + JSON.stringify(this.organizationStages));
+    return this.organizationStages;
+  }
+
   getAllUsers() {
     this.organizationService.getAllUsers(true).subscribe(
       data => { 
@@ -174,6 +264,17 @@ export class OrganizationAdminTable {
     );
   }
 
+  updateGroupOrganization(organizationGroup: Group){
+    this.organizationService.updateGroupOrganization(organizationGroup).subscribe(
+        data =>  {
+          console.log('No issues');
+        },
+        error => {
+          console.log('Server Error');
+        } 
+    );
+  }
+
   getOrganizationTypeId(organizationName:string){
     console.log('[Org Admin (Admin)]  Reversing <name> to <id> ', organizationName);
     for (const organization of this.organizationStages) {
@@ -186,12 +287,36 @@ export class OrganizationAdminTable {
     return null;
   }
 
+  /**
+   * 
+   * @param item - the document type to use when creating a new doc
+   */
+   setNewStageNameForBatchUserUpload(item){
+    var groupData : any;
+    var reversedGroupName:string;
+
+    // stages and headers
+    for (var _j = 0; _j < this.organizationStages.length; _j++) {
+      if(this.organizationStages[_j].value === item) {
+        this.selectedStageId = this.organizationStages[_j].id
+      }
+    }
+
+    console.log('CSV IMPORT - GROUP NAME ' + item);
+
+  }
+
 
   convertOrganizationAdminToOrganizationGroup(data:any){
     var organizationGroup:Group = new Group();
     console.log('ORG GROUP ADMIN - Creating a new org group '.concat(JSON.stringify(data)));
+    organizationGroup.id = data.id;
     organizationGroup.name = data.organizationName;
-    organizationGroup.description = data.description;
+    organizationGroup.emailAddress = data.emailAddress;
+    organizationGroup.businessIDNumber = data.businessIDNumber;
+    organizationGroup.legalBusinessName = data.legalBusinessName;
+    organizationGroup.businessAddress = data.businessAddress;
+    organizationGroup.gpsCoordinates = data.gpsCoordinates;
     organizationGroup.groupType = new GroupType();
     organizationGroup.groupType.id = this.getOrganizationTypeId(data.organizationType);
 
@@ -229,12 +354,27 @@ export class OrganizationAdminTable {
   
       columns: {
         organizationName: {
-          title: 'Organization Name',
+          title: 'Display Name',
           type: 'string',
           filter: false
         },
-        description: {
-          title: 'Description',
+        legalBusinessName: {
+          title: 'Legal Business Name',
+          type: 'string',
+          filter: false
+        },
+        businessIDNumber: {
+          title: 'Business Number',
+          type: 'string',
+          filter: false
+        },
+        businessAddress: {
+          title: 'Business Address',
+          type: 'string',
+          filter: false
+        },
+        gpsCoordinates: {
+          title: 'GPS Location',
           type: 'string',
           filter: false
         },
@@ -246,6 +386,38 @@ export class OrganizationAdminTable {
             config: {
               selectText: 'Select...',
               list: this.organizationTypelist,
+            },
+          },
+          filter: false
+        },
+        emailAddress: {
+          title: 'Email Address',
+          type: 'string',
+          filter: false
+        },
+        
+        verified: {
+          title: 'Verified?',
+          type: 'boolean',
+          editable: true,
+          editor: {
+            type: 'list',
+            config: {
+              selectText: 'Select...',
+              list: this.verifiedListValue,
+            },
+          },
+          filter: false
+        },
+        activated: {
+          title: 'Activated?',
+          type: 'boolean',
+          editable: true,
+          editor: {
+            type: 'list',
+            config: {
+              selectText: 'Select...',
+              list: this.activatedListValue,
             },
           },
           filter: false
@@ -281,13 +453,21 @@ export class OrganizationAdminTable {
     );
   }
 
+  /** Internationalization */
+  getInternationalizedToken(token: string){
+    return this._documentService.internationalizeString(token);
+  }
+
   getAvailableLanguages(){
     // TODO read from server
     this.languages  = [ 
       {'id' : 1, 'name' : 'en', 'value': 'English'},
       {'id': 2, 'name' : 'th', 'value': 'Thai'},
       {'id': 3, 'name' : 'vi', 'value': 'Vietnamese'},
-      {'id': 4, 'name' : 'vi', 'value': 'Bahasa'},
+      {'id': 4, 'name' : 'in', 'value': 'Bahasa'},
+      {'id': 5, 'name' : 'es', 'value': 'Spanish'},
+      {'id': 6, 'name' : 'hi', 'value': 'Hindi'},
+      {'id': 7, 'name' : 'te', 'value': 'Telugu'},
     ];
   }
 
@@ -306,4 +486,194 @@ export class OrganizationAdminTable {
     return null;
   }
 
+  validateTableRowData(organizationGroup:Group){
+    console.log('[Org Admin (Admin)]  <validation> create ', JSON.stringify(organizationGroup));
+    if(organizationGroup.groupType.id == null){
+      return false;
+    }
+
+    if(organizationGroup.name == null || organizationGroup.name.length == 0){
+      return false;
+    }
+    if(organizationGroup.legalBusinessName == null || organizationGroup.legalBusinessName.length == 0){
+      return false;
+    }
+    if(organizationGroup.businessIDNumber == null || organizationGroup.businessIDNumber.length == 0){
+      return false;
+    }
+    if(organizationGroup.gpsCoordinates == null || organizationGroup.gpsCoordinates.length == 0){
+      return false;
+    }
+
+    if(organizationGroup.businessAddress == null || organizationGroup.businessAddress.length == 0){
+      return false;
+    }
+
+    return true;
+  }
+
+  getAllStagesData() {
+    console.log('CSV User Batch File Upload Stage Name List' + JSON.stringify(this.organizationStages));
+    return this.organizationStages;
+  }
+
+    /**
+   *  Upload the CSV file with teh data provided about user batch creation
+   */
+     onCSVFileUpload(){
+
+      var isEnabled = 
+        //!(this._documentService.reverseInternationalizedNameStringToKeyString(this.currectDocumentTypeForNewDocListValue) == 'document_import_choose_doc_type')
+        !(this.getInternationalizedToken(this.CSV_BATCH_ORG_UPLOAD_GROUP_NAME_CHOOSE) == this.CSV_BATCH_ORG_UPLOAD_GROUP_NAME_CHOOSE)
+        this.selectedCSVFileToUpload !== undefined
+        && this.selectedCSVFileToUpload !== null;
+  
+      if(isEnabled){
+          var fd = new FormData();
+          fd.append('file', this.selectedCSVFileToUpload);
+          fd.append('userName', this.loggedInName);
+          fd.append('stageId', '' + this.selectedStageId);
+          
+          console.log("CSV FIle Upload FROM DATA");
+  
+          console.log("CSV FIle Upload FROM DATA---> " + JSON.stringify(fd));
+          this.startCSVOrgBatchFileUploadProgress();
+            this.organizationService.startCSVOrgBatchUploadProcess();
+            this.organizationService.onCSVOrgBatchFileUpload(this.selectedCSVFileToUpload, fd, this.slimLoader, this.organizationService, this);
+      }
+    }
+
+      /**
+   * Handling the CSV file removal from the dialog
+   */
+  onCSVFileRemoveChoice() {
+    (<HTMLInputElement>document.getElementById("input-org-batch-upload-file")).value = "";
+    this.selectedCSVFileToUpload = null;
+    this.errorMessages = Array<ResponseIssue>();
+    this.uploadOperationErrorsFlag = false;
+    this.currentStageNameListValueCSVBatchUpload = this.getInternationalizedToken(this.CSV_BATCH_ORG_UPLOAD_GROUP_NAME_CHOOSE);
+  }
+
+  /**
+   * Getting and storing the file that was chosen in the page
+   * @param event  - the veent of the file selection
+   */
+  onCSVFileSelected(event){
+    this.selectedCSVFileToUpload = event.target.files[0];
+    console.log("CSV FIle Upload" + event.target.files[0]);
+
+  }
+
+    /**
+   * Get he styling for the buttons that represent the upload and calcel action for CSF vile operations
+   * @param name - the buton name for the styling
+   */
+     getClassForUploadProcessButton(name:string){
+      var isEnabled = 
+        //!(this._documentService.reverseInternationalizedNameStringToKeyString(this.currectDocumentTypeForNewDocListValue) == 'document_import_choose_doc_type')
+        !(this.getInternationalizedToken(this.CSV_BATCH_ORG_UPLOAD_GROUP_NAME_CHOOSE) == this.currentStageNameListValueCSVBatchUpload)
+        this.selectedCSVFileToUpload !== undefined
+        && this.selectedCSVFileToUpload !== null;
+  
+  
+      if(name == 'Submit'){
+        // is the doc type chosen?
+  
+        if(isEnabled && !this.isUploadingCSVOrgBatch()){
+          return 'btn btn-info btn-xs active';
+        }else{
+          return 'btn btn-info btn-xs disabled';
+        }
+      }
+      if(name == 'Cancel'){
+        // is the doc type chosen?
+  
+        if(this.selectedCSVFileToUpload !== undefined
+          && this.selectedCSVFileToUpload !== null
+          && !this.isUploadingCSVOrgBatch()){
+          return 'btn btn-danger btn-xs active';
+        }else{
+          return 'btn btn-danger btn-xs disabled';
+        }
+      }
+      return 'btn btn-danger btn-xs active';
+    }
+
+  /****************************************************************************************************
+   * Uploading section
+   */
+
+  showErrorToasterBackendCSV(){
+    this.toasterService.Error("There were problems with your file. Upload Failed.");
+  }
+
+  isUploadingCSVOrgBatch(){
+    return this.organizationService.csvOrgBatchUploadFlag;
+  }
+
+  /**
+   * Start the progress bar for the upload CSV Batch user operation
+   */
+   startCSVOrgBatchFileUploadProgress() {
+    // Progress bar
+    
+    this.slimLoader.start(() => {
+      this.slimLoader.height = '8px';
+      this.slimLoader.color = 'green';
+        console.log('CSV Org Batch File Upload Complete');
+    });
+  }
+
+  getUploadErrorMessages() {
+    return this.errorMessages
+  }
+
+  getIssueLineNumber(issue: ResponseIssue){
+    return Number(issue.lineNumber) + 1;
+  }
+
+  convertVerifiedToBoolean(text : string){
+    if(text == 'Verified'){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  convertActivatedToBoolean(text : string){
+    if(text == 'Activated'){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  convertBooleanToActivatedString(value:boolean){
+    if(value == true){
+      return 'Activated';
+    } else {
+      return 'Not Activated';
+    }
+  }
+
+  convertBooleanToVerifiedString(value:boolean){
+    if(value == true){
+      return 'Verified';
+    } else {
+      return 'Not Verified';
+    }
+  }
+
+  isOrganizationActivated(org : Group){
+
+    //
+    // check if there is a user who is an admin and is actiavted
+    for (let user of org.users) {
+      if(user.roles[0].id === ROLE_ORG_ADMIN){
+        return true;
+      }
+    }
+    return false;
+
+  }
 }

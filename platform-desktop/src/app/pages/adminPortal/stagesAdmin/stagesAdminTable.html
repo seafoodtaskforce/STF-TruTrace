@@ -7,7 +7,7 @@
             <div class="diagram-table">
                     <div class="diagram-table-body">
                         <!-- Row Header -->
-                        <div class="diagram-table-row">
+                        <div class="diagram-table-row" [dragula]='"stage-permissions"' [dragulaOptions] = 'permissionsSourceOptions'>
                             <!-- Left Langauge Column Cells -->
                             <div *ngFor="let header of getHeaders(0)" class="diagram-table-cell">
                                 <!-- Header Shape -->
@@ -31,13 +31,13 @@
                         <!-- Row Header -->
                         <div class="diagram-table-row">
                                 <!-- Right Langauge Column Cells -->
-                                <div *ngFor="let header of getHeaders(1)" class="diagram-table-cell">
+                                <div *ngFor="let header of getHeaders(1)" class="diagram-table-cell" >
                                     <!-- Header Shape -->
                                     <!-- Check for empty spaces first -->
                                     <svg width="100" height="50" viewBox="0 0 100 50" 
-                                    [ngClass]="getHeaderTraceabilityClassColor(header.value)">
+                                    [ngClass]="getHeaderTraceabilityClassColor(header.value)" >
                                     
-                                        <rect width="100" height="50" rx="3" ry="3" style="stroke:black;stroke-width:3;stroke-opacity:0.9;stroke-dasharray:2.5"/>
+                                        <rect width="100" height="50" rx="3" ry="3" style="stroke:rgb(8, 5, 5);stroke-width:3;stroke-opacity:0.9;stroke-dasharray:2.5"/>
                                             <text y="45%" transform="translate(52)">
                                                 <!--
                                                     <tspan x="0" text-anchor="middle" >{{header.value}}</tspan>
@@ -56,109 +56,133 @@
     </ba-card>
     <div *ngIf="previewIsOn" class="separator" style="margin-bottom: 15px;"></div>
     <ba-card baCardClass="with-scroll">
-        <div class="col-xlg-9 col-xl-8 col-lg-7 col-md-6 col-sm-12 col-12">
-
-          <div class="col-6">
-            
+        <div class="col-xlg-12 col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
             <div class="row">
-                <form class="form-horizontal">
-                    <!------------------------>
-                    <!-- Language Row       -->
-                    <!------------------------>
-                    <div class="row" >
-                            <label for="stage001" class="col-sm-3 form-control-label align-right">Language</label>
-                            <!-- Left Column Language -->
-                            <div class="col-sm-4">
-                                <select class="form-control" id="languageColumn001" (change)="setChosenLanguage(0,$event)">
-                                    <option *ngFor="let lang of languages; let j = index"
-                                        [attr.selected]="j===0 ? true : null">
-                                        {{lang.value}}
-                                    </option>
-                                </select>
+                <div class="col-md-4">
+                    
+                    <div class="row">
+                        <form class="form-horizontal">
+                            <!------------------------>
+                            <!-- Language Row       -->
+                            <!------------------------>
+                            <div class="row" >
+                                    <label for="stage001" class="col-sm-2 form-control-label align-right">Language</label>
+                                    <!-- Left Column Language -->
+                                    <div class="col-sm-4">
+                                        <select class="form-control" id="languageColumn001" (change)="setChosenLanguage(0,$event)">
+                                            <option *ngFor="let lang of languages; let j = index"
+                                                [attr.selected]="j===0 ? true : null">
+                                                {{lang.value}}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <!-- Right Column Language -->
+                                    <div class="col-sm-4">
+                                        <select class="form-control" id="languageColumn002" (change)="setChosenLanguage(1,$event)">
+                                            <option *ngFor="let lang of languages; let i = index"
+                                                [attr.selected]="i===1 ? true : null">
+                                                {{lang.value}}
+                                            </option>
+                                        </select>
+                                    </div>
                             </div>
-                            <!-- Right Column Language -->
-                            <div class="col-sm-4">
-                                <select class="form-control" id="languageColumn002" (change)="setChosenLanguage(1,$event)">
-                                    <option *ngFor="let lang of languages; let i = index"
-                                        [attr.selected]="i===1 ? true : null">
-                                        {{lang.value}}
-                                    </option>
-                                </select>
-                            </div>
-                    </div>
 
-                    <!-- Separator -->                
-                    <div class="separator" style="margin-bottom: 15px;"></div>
+                            <!-- Separator -->                
+                            <div class="separator" style="margin-bottom: 15px;"></div>
 
-                    <!------------------------>
-                    <!-- Stages Row/Col     -->
-                    <!------------------------> 
-                    <div *ngFor="let stageRow of getStageCount(); let i = index"  class="form-group row">
-                        <label class="col-sm-3 form-control-label align-right">Stage</label>
-                        <div class="col-sm-4">
-                            <input type="text"
-                                        class="form-control" 
-                                        value="{{getStageColumnText(0, i)}}"
-                                        placeholder="{{getStagePlaceHolder('English', i)}}"
-                                        (keyup)="stageEventHandler($event, 0, i)"
-                                        [attr.disabled]="areStagesLocked ? '' : null"
-                                        [attr.maxlength]="getMaxStageCharSize()">
-                        </div>
-                        <div class="col-sm-4">
-                            <input type="text"
-                                          class="form-control" 
-                                          placeholder="{{getStagePlaceHolder('English', i)}}"
-                                          value="{{getStageColumnText(1, i)}}"
-                                          (keyup)="stageEventHandler($event, 1, i)"
-                                          [attr.disabled]="areStagesLocked ? '' : null"
-                                          [attr.maxlength]="getMaxStageCharSize()">
-                        </div>
-                        <div *ngIf="showDeleteStageButton(i)" class="col-sm-1">
-                                <button type="button" 
-                                        class="btn btn-danger btn-icon"
-                                        (click)="deleteStage(i)">
-                                        <i class="ion-trash-a"></i>
-                                </button>
-                        </div>
-                    </div>
-                    <!------------------------>
-                    <!-- Bottom Toolbar     -->
-                    <!------------------------> 
-                    <div class="form-group row">
-                        <div *ngIf="false" class="offset-sm-3 col-sm-2">
-                            <div class="checkbox">
-                                <ba-checkbox [(ngModel)]="isAutoTranslationOn" [label]="getInternationalizedToken('stage.managements[Auto Translation]')" [ngModelOptions]="{standalone: true}"></ba-checkbox>
-                            </div>
-                        </div>
-                        <div class="offset-sm-3 col-sm-2">
-                                <div class="checkbox">
-                                    <ba-checkbox [(ngModel)]="areStagesLocked" 
-                                                    [label]="getInternationalizedToken('stage.managements[Lock Stages]')" 
-                                                    [ngModelOptions]="{standalone: true}"
-                                                    (click)="stagesLockedEventHandler($event)">
-                                    </ba-checkbox>
+                            <!------------------------>
+                            <!-- Stages Row/Col     -->
+                            <!------------------------> 
+                            <div *ngFor="let stageRow of getStageCount(); let i = index"  class="form-group row">
+                                <label class="col-sm-2 form-control-label align-right">Stage</label>
+                                <div class="col-sm-4">
+                                    <input type="text"
+                                                class="form-control" 
+                                                value="{{getStageColumnText(0, i)}}"
+                                                placeholder="{{getStagePlaceHolder('English', i)}}"
+                                                (keyup)="stageEventHandler($event, 0, i)"
+                                                [attr.disabled]="areStagesLocked ? '' : null"
+                                                [attr.maxlength]="getMaxStageCharSize()">
                                 </div>
-                        </div>
+                                <div class="col-sm-4">
+                                    <input type="text"
+                                                class="form-control" 
+                                                placeholder="{{getStagePlaceHolder('English', i)}}"
+                                                value="{{getStageColumnText(1, i)}}"
+                                                (keyup)="stageEventHandler($event, 1, i)"
+                                                [attr.disabled]="areStagesLocked ? '' : null"
+                                                [attr.maxlength]="getMaxStageCharSize()">
+                                </div>
+                                <div *ngIf="showDeleteStageButton(i)" class="col-sm-1">
+                                        <button type="button" 
+                                                class="btn btn-danger btn-icon"
+                                                (click)="deleteStage(i)">
+                                                <i class="ion-trash-a"></i>
+                                        </button>
+                                </div>
+                            </div>
+                            <!------------------------>
+                            <!-- Bottom Toolbar     -->
+                            <!------------------------> 
+                            <div class="form-group row">
+                                <div *ngIf="false" class="offset-sm-3 col-sm-2">
+                                    <div class="checkbox">
+                                        <ba-checkbox [(ngModel)]="isAutoTranslationOn" [label]="getInternationalizedToken('stage.managements[Auto Translation]')" [ngModelOptions]="{standalone: true}"></ba-checkbox>
+                                    </div>
+                                </div>
+                                <div class="offset-sm-3 col-sm-2">
+                                        <div class="checkbox">
+                                            <ba-checkbox (ngModel)="areStagesLocked" 
+                                                            [label]="getInternationalizedToken('stage.managements[Lock Stages]')" 
+                                                            [ngModelOptions]="{standalone: true}"
+                                                            (ngModelChange)="stagesLockedEventHandler($event)">
+                                            </ba-checkbox>
+                                        </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="offset-sm-1 col-sm-2">
+                                        <button class="btn btn-success btn-xs" style="margin-top: 4px;"
+                                            id="saveChangesBtn" 
+                                            (click)="saveStageEdits()"
+                                            [disabled]="!isSaveButtonEnabled()">
+                                            Save Changes
+                                        </button>
+                                </div>
+                                <div class="offset-sm-1 col-sm-1">
+                                    <button class="btn btn-info btn-xs" style="margin-top: 4px;"
+                                    id="AddStageRowBtn" 
+                                    (click)="addStageRow()">Add Stage</button>
+                                </div>
+                            </div>
+                            {{isSaveButtonEnabled()}}
+                        </form>
                     </div>
-                    <div class="form-group row">
-                        <div class="offset-sm-1 col-sm-2">
-                                <button class="btn btn-success btn-xs" style="margin-top: 4px;"
-                                    id="saveChangesBtn" 
-                                    (click)="saveStageEdits()"
-                                    [disabled]="!isSaveButtonEnabled()">
-                                    Save Changes
-                                </button>
+                </div>
+                <!-- Stage Permissions Management -->
+                <div class="col-md-8">
+                    <ba-card cardTitle="Stage Permissions" baCardClass="with-scroll">
+                        <ba-card baCardClass="with-scroll" >
+                            <div class="row show-grid" [dragula]='"stage-permissions"' [dragulaOptions] = 'permissionsSourceOptions'>
+                                <div *ngFor="let header of getSparseHeaders(0)" class="col-md-1">
+                                    <div>{{header.value}}</div>
+                                </div>
+                              </div>
+                        </ba-card>
+                        <!-- Separator -->                
+                        <div class="separator" style="margin-bottom: 15px;"></div>
+                        <div class="row">
+                            <div *ngFor="let header of getSparseHeaders(0)" class="col-xlg-2 col-lg-2  col-md-3 col-sm-6 col-3">
+                                <ba-card cardTitle={{header.value}} baCardClass="with-scroll lists-widget" >
+                                    <div class="section-block" [dragula]='"stage-permissions"' [dragulaOptions] = 'permissionsSourceOptions'>
+                                    </div>
+                                </ba-card>
+                            </div>
                         </div>
-                        <div class="offset-sm-1 col-sm-1">
-                            <button class="btn btn-info btn-xs" style="margin-top: 4px;"
-                            id="AddStageRowBtn" 
-                            (click)="addStageRow()">Add Stage</button>
-                        </div>
-                    </div>
-                    {{isSaveButtonEnabled()}}
-                </form>
+                    </ba-card>
+                </div>
             </div>
-          </div>
+
         </div>
     </ba-card>
 </div>

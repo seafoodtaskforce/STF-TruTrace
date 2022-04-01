@@ -1,3 +1,64 @@
+<!-- Modal Tag New-->
+<div class="modal fade" id="showCSVUserBatchUploadErrors" tabindex="-1" role="dialog" aria-labelledby="showCSVUserBatchUploadErrorsTitle" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="showCSVUserBatchUploadErrorsTitle">User Batch Upload Issues</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <tr>
+                  <th>#</th>
+                  <th>Line#</th>
+                  <th>Issue</th>
+                  <th>Column Number</th>
+                </tr>
+                <tr class="primary">
+                  <td>1</td>
+                  <td>Mark</td>
+                  <td>Otto</td>
+                  <td>@mdo</td>
+                </tr>
+                <tr class="success">
+                  <td>2</td>
+                  <td>Jacob</td>
+                  <td>Thornton</td>
+                  <td>@fat</td>
+  
+                </tr>
+                <tr class="warning">
+                  <td>3</td>
+                  <td>Larry</td>
+                  <td>Bird</td>
+                  <td>@twitter</td>
+  
+                </tr>
+                <tr class="danger">
+                  <td>4</td>
+                  <td>John</td>
+                  <td>Snow</td>
+                  <td>@snow</td>
+  
+                </tr>
+                <tr class="info">
+                  <td>5</td>
+                  <td>Jack</td>
+                  <td>Sparrow</td>
+                  <td>@jack</td>
+  
+                </tr>
+              </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Done</button>
+              </div>
+        </div>
+    </div>
+  </div>
+
 <div class="widgets">
 
   <div class="row">
@@ -6,14 +67,14 @@
         <ul id="admin-portal-nav" class="nav nav-pills" role="tablist">
              
             <!-- User Admin Tab -->
-            <li class="nav-item" (click)="tabClick($event, 'User Admin')">
+            <li *ngIf="checkAdminTabPermission('user-admin-table')" class="nav-item" (click)="tabClick($event, 'User Admin')">
                 <a class="nav-link active" href="#users" id="users-tab" role="tab" data-toggle="tab" aria-controls="users" aria-expanded="true">
                     Manage Users
                 </a>
             </li>
 
             <!-- Tag Tab -->
-            <li class="nav-item" (click)="tabClick($event, 'Tags Admin')">
+            <li *ngIf="checkAdminTabPermission('tag-admin-table')" class="nav-item" (click)="tabClick($event, 'Tags Admin')">
                 <a class="nav-link" href="#tags" id="tags-tab" role="tab" data-toggle="tab" aria-controls="tags">
                     Manage Tags 
                 </a>
@@ -21,37 +82,58 @@
             
             
             <!-- Notification Tab -->
-            <li class="nav-item" (click)="tabClick($event, 'Notifications Admin')">
+            <li *ngIf="checkAdminTabPermission('notification-admin-table')" class="nav-item" (click)="tabClick($event, 'Notifications Admin')">
                 <a class="nav-link" href="#notifications" id="notifications-tab" role="tab" data-toggle="tab" aria-controls="notifications">
                     Manage Notifications
                 </a>
             </li>    
+
+            <!-- Dynamic Field -->
+            <li *ngIf="checkAdminTabPermission('dynamic-field-admin-table')" class="nav-item" (click)="tabClick($event, 'Dynamic Field Admin')">
+                <a class="nav-link" href="#dynamic-fields" id="dynamic-fields-tab" role="tab" data-toggle="tab" aria-controls="dynamic-fields">
+                    Manage Document Info
+                </a>
+            </li>   
             
             <!-- Organization Type Admin Tab -->
-            <li *ngIf="loggedInUser.roles[0].value ==='Super Admin'" class="nav-item" (click)="tabClick($event, 'Organization Type Admin')">
+            <li *ngIf="checkAdminTabPermission('organization-type-admin-table')" class="nav-item" (click)="tabClick($event, 'Organization Type Admin')">
                 <a class="nav-link" href="#organization-types" role="tab" id="organization-types-tab" data-toggle="tab" aria-controls="organization-types">
                     Manage Required Documents
                 </a>
             </li>
 
             <!-- Document Type Admin Tab -->
-            <li *ngIf="loggedInUser.roles[0].value ==='Super Admin'" class="nav-item" (click)="tabClick($event, 'Document Type Admin')">
+            <li *ngIf="checkAdminTabPermission('doc-type-admin-table')" class="nav-item" (click)="tabClick($event, 'Document Type Admin')">
                 <a class="nav-link" href="#doc-types" role="tab" id="doc-types-tab" data-toggle="tab" aria-controls="doc-types">
                     Document Creation Management
                 </a>
             </li>
 
             <!-- Organization Admin Tab -->
-            <li *ngIf="loggedInUser.roles[0].value ==='Super Admin'" class="nav-item" (click)="tabClick($event, 'Organizations Admin')">
+            <li *ngIf="checkAdminTabPermission('organization-admin-table')" class="nav-item" (click)="tabClick($event, 'Organizations Admin')">
                 <a class="nav-link" href="#organizations" role="tab" id="organizations-tab" data-toggle="tab" aria-controls="organizations">
                     Manage Organizations
                 </a>
             </li>
 
             <!-- Stages Admin Tab -->
-            <li class="nav-item" (click)="tabClick($event, 'Stages Admin')">
+            <li *ngIf="checkAdminTabPermission('stages-admin-table')" class="nav-item" (click)="tabClick($event, 'Stages Admin')">
                 <a class="nav-link" href="#stages" role="tab" id="stages-tab" data-toggle="tab" aria-controls="stages">
-                    Stage Management
+                    Manage Stages
+                </a>
+            </li>
+
+            <!-- Reources Admin Tab -->
+            <li *ngIf="checkAdminTabPermission('resources-admin-table')" class="nav-item" (click)="tabClick($event, 'Resources Admin')">
+                <a class="nav-link" href="#resources" role="tab" id="resources-tab" data-toggle="tab" aria-controls="resources">
+                    Manage Resources
+                </a>
+            </li>
+
+            <!-- Data Export Admin Tab -->
+            <li *ngIf="checkAdminTabPermission('doc-export-admin-table')" class="nav-item" (click)="tabClick($event, 'Resources Admin')">
+                <a class="nav-link" href="#docexport" role="tab" id="doc-export-tab" data-toggle="tab" aria-controls="docexport">
+                    Manage Data Export
                 </a>
             </li>
 
@@ -62,12 +144,14 @@
         <div id="admin-portal-nav-content" class="tab-content">
 
             <!-- User Admin Content -->
-            <div *ngIf="loggedInUser.roles[0].value ==='Super Admin'" role="tabpanel" class="tab-pane fade show active" id="users" aria-labelledby="users-tab">
+            <div role="tabpanel" class="tab-pane fade show active" id="users" aria-labelledby="users-tab">
                 <user-admin-table></user-admin-table>
             </div>
+            <!--
             <div *ngIf="loggedInUser.roles[0].value !=='Super Admin'" role="tabpanel" class="tab-pane fade show active" id="users" aria-labelledby="users-tab">
                 <user-org-admin-table></user-org-admin-table>
             </div>
+            -->
 
             <!-- Tag Content -->
             <div role="tabpanel" class="tab-pane fade" id="tags" aria-labelledby="tags-tab">
@@ -77,6 +161,11 @@
             <!-- Notifications Content -->
             <div role="tabpanel" class="tab-pane fade" id="notifications" aria-labelledby="notifications-tab">
                 <notification-admin-table></notification-admin-table>
+            </div>  
+
+            <!-- Dynamic Field Content -->
+            <div role="tabpanel" class="tab-pane fade" id="dynamic-fields" aria-labelledby="dynamic-fields-tab">
+                <dynamic-field-admin-table></dynamic-field-admin-table>
             </div>  
             
             <!-- Linked Docs Content -->
@@ -100,10 +189,18 @@
                 <stages-admin-table></stages-admin-table>
             </div>
 
+            <!-- Resources Admin Content -->
+            <div role="tabpanel" class="tab-pane fade" id="resources" aria-labelledby="resources-tab">
+                <resources-admin-table></resources-admin-table>
+            </div>
+
+            <!-- Data Export Admin Content -->
+            <div role="tabpanel" class="tab-pane fade" id="docexport" aria-labelledby="doc-export-tab">
+                <doc-export-admin-table></doc-export-admin-table>
+            </div>
         </div>
 
       </div>
-
 
     </ba-card>
   </div>

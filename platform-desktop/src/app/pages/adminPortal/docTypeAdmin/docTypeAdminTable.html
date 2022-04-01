@@ -36,7 +36,37 @@
     <!-- User Admin Details Card                  -->
     <!--                                          -->
     <ba-card baCardClass="with-scroll">
-      <!-- Profile Details -->
-
+        
+            <!-- Details Table with Additional Data - Tree-like view--> 
+            <div class="col-6">
+                <div class="horizontal-scroll">
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th style="width:50px">{{getCurrentDocType()}}</th>
+                          <th style="width:150px">Organization Type</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                          <ng-container *ngFor="let orgType of currDocTypeOrgTypes; let i = index">
+                                <tr>
+                                  <td class="align-right">
+                                    <!-- Empty--> 
+                                    <input type="checkbox" [(ngModel)]="orgType.isActiveinOrg" (click)="syncWithGlobalGroup()"/>
+                                  </td>
+        
+                                   <td  ngClass="nowrap">
+                                    <!-- Doc Type--> 
+                                    {{orgType.name}}
+                                  </td> 
+                                </tr>
+                          </ng-container>
+                      </tbody>
+                    </table>
+                  </div>
+            </div>
+            <div>
+                <button (click)="saveData()" class="btn btn-primary col-1" style="float: down; padding:10px; margin-top:10px">Save</button>
+              </div>
     </ba-card>
 </div>

@@ -394,4 +394,43 @@ export class SmartTables {
   tabClick(event:any, name:string){
     console.log('TAB EVENTS ',name,event);
   }
+
+  /**
+   * This will check the permissions for the specific tab and the currently logged in user
+   * @param name -  the name of the tab to be checked
+   */
+  checkAdminTabPermission(name : string) {
+    var result : boolean  = false;
+
+    //
+    // Super Admin
+    if(this.loggedInUser.roles[0].value ==='Super Admin' ){
+      return true;
+    }
+
+    //
+    // Org Admin
+    if(this.loggedInUser.roles[0].value ==='Org Admin' ){
+      if(name == 'user-admin-table'
+        || name == 'notification-admin-table'
+        || name == 'tag-admin-table'
+        || name == 'doc-export-admin-table') {
+        return true;
+      }
+    }
+
+    //
+    // Matrix Admin
+    if(this.loggedInUser.roles[0].value ==='Matrix Admin' ){
+      if(name == 'user-admin-table'
+        || name == 'notification-admin-table'
+        || name == 'tag-admin-table'
+        || name == 'organization-admin-table'
+        || name == 'doc-export-admin-table') {
+        return true;
+      }
+    }
+
+    return result;
+  }
 }

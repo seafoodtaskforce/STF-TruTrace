@@ -7,17 +7,21 @@ import 'rxjs/add/operator/catch';
 
 // Data Model
 import { AuthRequest } from '../../models/authRequest';
-import { AuthCredentials } from '../../models/AuthCredentials';
 import { User } from '../../models/user';
 
 
 // import global data
 import * as AppGlobals from '../../config/globals';
+import { ServerUtils } from '../../utils/server.utils';
+//import config from "../../../assets/server.json";
+declare var require: any;
+
 
 @Injectable()
 export class LoginService {
 
-  readonly AUTHENTICATE_URL: string = this.getServerURI().concat('/security/authenticate');
+  readonly config = require("../../../assets/server.json");
+  readonly AUTHENTICATE_URL: string = '/security/authenticate';
   requestBody: AuthRequest;
 
   /**
@@ -25,12 +29,15 @@ export class LoginService {
    * @param http the HTTP request structure
    */
   constructor(private http: Http) {
+    // add the server URL to the session data
+    localStorage.setItem(ServerUtils.BACK_END_SERVER_URL, this.config.server.accessUrl);
+    console.log('[Login Service] SERVER URL <constructor> '.concat(JSON.stringify(this.config.server.accessUrl)));
 
   }
 
   getCredentials(user: User, inPassword: string): Observable<Response> {
     this.requestBody = { 
-        username: user.name,
+        username: user.name.toLowerCase(),
         password: inPassword,
         requestOrigin: 'Web Browser',
     };
@@ -39,7 +46,7 @@ export class LoginService {
     // headers.append('user-name', user.name);
     let options = new RequestOptions({ headers: headers });
 
-    return this.http.post(this.AUTHENTICATE_URL, this.requestBody, options)
+    return this.http.post(this.getServerURI().concat(this.AUTHENTICATE_URL), this.requestBody, options)
         .map( (response: Response) => {
             console.log('[Login Service] POST RESTFUL '.concat(JSON.stringify(response.json())));
             return response;
@@ -48,6 +55,7 @@ export class LoginService {
   }
 
   getServerURI() {
-    return AppGlobals.SERVER_URI;
+    return localStorage.getItem(ServerUtils.BACK_END_SERVER_URL)
+    //return AppGlobals.SERVER_URI;
   }
 }

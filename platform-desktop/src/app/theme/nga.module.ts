@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { NgUploaderModule } from 'ngx-uploader';
 import { AppTranslationModule } from '../app.translation.module';
 import { DocumentService } from '../pages/documents/document.service';
+import { InterComponentDataService } from "../utils/inter.component.data.service";
 
 import {
   BaThemeConfig
@@ -95,6 +96,7 @@ const NGA_SERVICES = [
   BaThemeSpinner,
   BaMenuService,
   DocumentService,
+  InterComponentDataService
 ];
 
 const NGA_VALIDATORS = [

@@ -3,18 +3,18 @@ export const PAGES_MENU = [
     path: 'pages',
     children: [
       {
-        path: 'dashboard',
-        data: {
+        path: 'profile',  // path for our page
+        data: { // custom menu declaration
           menu: {
-            title: 'Dashboard',
-            icon: 'ion-android-home',
+            title: 'Home', // menu title
+            icon: 'ion-android-home', // menu icon
+            pathMatch: 'prefix', // use it if item children not displayed in menu
             selected: false,
             expanded: false,
             order: 0,
           },
         },
       },
-
       {
         path: 'documents',  // path for our page
         data: { // custom menu declaration
@@ -28,22 +28,6 @@ export const PAGES_MENU = [
           },
         },
       },
-
-      {
-        path: 'profile',  // path for our page
-        data: { // custom menu declaration
-          menu: {
-            title: 'Profile', // menu title
-            icon: 'ion-android-person', // menu icon
-            pathMatch: 'prefix', // use it if item children not displayed in menu
-            selected: false,
-            expanded: false,
-            order: 0,
-          },
-        },
-      },
-
-
 
 
     ],

@@ -1,5 +1,6 @@
 import { User } from './user';
 import { AuditEntity } from './auditEntity';
+import { Document } from './document';
 
 export class NotificationData {
      id: number;
@@ -11,5 +12,6 @@ export class NotificationData {
      creationFilterTimestamp: string;
      auditData: AuditEntity; 
      notificationText: string;
-	notificationDescription: string
+     notificationDescription: string;
+     item: Document;
 }

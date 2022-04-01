@@ -2,7 +2,12 @@
     <div *ngIf="cardTitle" class="card-header clearfix">
         <h3 class="card-title" translate>
             {{cardTitle}}
-            <button *ngIf="showButton" type="button" class="btn btn-danger btn-with-icon btn-xs" style="float: right, bottom;" 
+            <button *ngIf="showDocsDateSortButton" type="button" class="btn btn-danger btn-with-icon btn-xs pull-right" 
+                id="traceBtn" (click)="filterDocsDateSortsWindow($event)">
+                <i class="{{showDocsDateSortButtonIcon}}"></i>
+                {{showDocsDateSortButtonTitle}}
+            </button>
+            <button *ngIf="showButton" type="button" class="btn btn-danger btn-with-icon btn-xs pull-right" 
                 id="traceBtn" (click)="dismissWindow($event)">
                 <i class="ion-ios-browsers-outline"></i>
                 {{showButtonTitle}}
@@ -11,9 +16,43 @@
                 id="docsFilterBtn" (click)="filterDocsWindow($event)">
                 {{showDocsFilterButtonTitle}}
             </button>
+            <!-- Trace Functionality -->
             <button *ngIf="showAllDocTraceFilterButton" type="button" class="btn btn-default btn-xs" style="float: right, bottom;" 
                 id="docsTraceFilterBtn" (click)="filterTraceDocsWindow($event)">
                 {{showAllDocTraceFilterButtonTitle}}
+            </button>
+            <button *ngIf="exportTraceDocsWindowEventButtonVisible" type="button" class="btn btn-default btn-xs" style="float: left, bottom;" 
+                id="exportTraceDocsWindowEventBtn" (click)="exportTraceDocsWindow($event)">
+                {{exportTraceDocsWindowEventButtonTitle}}
+            </button>
+            <button *ngIf="showTraceMapWindowEventButtonVisible" type="button" class="btn btn-default btn-xs" style="float: left, bottom;" 
+                id="showTraceMapWindowEventBtn" (click)="showTraceMapWindow($event)">
+                {{showTraceMapWindowEventButtonTitle}}
+            </button>
+            <button *ngIf="exportTraceGPSDataWindowEventButtonVisible" type="button" class="btn btn-default btn-xs" style="float: left, bottom;" 
+                id="exportTraceGPSDataWindowEventBtn" (click)="exportTraceGPSDataWindow($event)">
+                {{exportTraceGPSDataWindowEventButtonTitle}}
+            </button>
+            <!-- Mapping Functionality Functionality -->
+            <button *ngIf="mapShowOrganizationPathToggleWindowEventButtonVisible" type="button" class="btn btn-default btn-xs" style="float: left, bottom;" 
+                id="mapShowOrganizationPathToggleWindowEventBtn" (click)="mapShowOrganizationPathToggleWindow($event)">
+                {{mapShowOrganizationPathToggleWindowEventButtonTitle}}
+            </button>
+            <button *ngIf="mapShowOrganizationPopupToggleWindowEventButtonVisible" type="button" class="btn btn-default btn-xs" style="float: left, bottom;" 
+                id="mapShowOrganizationPopupToggleWindowBtn" (click)="mapShowOrganizationPopupToggleWindow($event)">
+                {{mapShowOrganizationPopupToggleWindowButtonTitle}}
+            </button>
+            <button *ngIf="mapShowDocumentToggleWindowEventButtonVisible" type="button" class="btn btn-default btn-xs" style="float: left, bottom;" 
+                id="mapShowDocumentToggleWindowEventBtn" (click)="mapShowDocumentToggleWindow($event)">
+                {{mapShowDocumentToggleWindowEventButtonTitle}}
+            </button>
+            <button *ngIf="mapShowDocInfoToggleWindowEventButtonVisible" type="button" class="btn btn-default btn-xs" style="float: left, bottom;" 
+                id="mapShowDocInfoToggleWindowEventBtn" (click)="mapShowDocInfoToggleWindow($event)">
+                {{mapShowDocInfoToggleWindowEventButtonTitle}}
+            </button>
+            <button *ngIf="mapShowDocPathToggleWindowEventButtonVisible" type="button" class="btn btn-default btn-xs" style="float: left, bottom;" 
+                id="mapShowDocPathToggleWindowEventBtn" (click)="mapShowDocPathToggleWindow($event)">
+                {{mapShowDocPathToggleWindowEventButtonTitle}}
             </button>
         </h3>
         
