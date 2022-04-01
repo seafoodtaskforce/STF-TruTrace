@@ -29,8 +29,9 @@
 		<init-param>
 			<param-name>cors.supportedHeaders</param-name>
 			<param-value>Accept, Origin, X-Requested-With, Content-Type,
-                Last-Modified, WWW-Authenticate, user-name, groupId, allowedDocs, user-type, doc-id, notification-scope,
-                notification-text, notification-description ,user-target, group-target,custom_tag,doc-type,gps_location, org-id</param-value>
+                Last-Modified, WWW-Authenticate, user-name, stage-name, groupId, allowedDocs, user-type, doc-id, notification-scope,
+                notification-text, notification-description ,user-target, group-target,custom_tag,doc-type,
+                gps_location, org-id, group-name, pageId</param-value>
 		</init-param>
 		<init-param>
 			<param-name>cors.exposedHeaders</param-name>

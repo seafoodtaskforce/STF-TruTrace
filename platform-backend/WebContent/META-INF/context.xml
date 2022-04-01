@@ -22,6 +22,6 @@
           	
           	driverClassName="com.mysql.jdbc.Driver"
           	username="root" password="irae2358MS"
-          	url="jdbc:mysql://localhost:3306/wwf_shrimp_database_v2?serverTimezone=UTC&amp;useSSL=false"
+			url="jdbc:mysql://localhost:3306/wwf_shrimp_database_v2?serverTimezone=UTC&amp;useSSL=false"
     />
 </Context>
