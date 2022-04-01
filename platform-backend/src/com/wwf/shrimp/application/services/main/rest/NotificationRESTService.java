@@ -21,14 +21,17 @@ import com.wwf.shrimp.application.models.AuditEntity;
 import com.wwf.shrimp.application.models.AuditUserType;
 import com.wwf.shrimp.application.models.Document;
 import com.wwf.shrimp.application.models.NotificationData;
+import com.wwf.shrimp.application.models.NotificationDataItemType;
 import com.wwf.shrimp.application.models.NotificationScope;
 import com.wwf.shrimp.application.models.NotificationType;
 import com.wwf.shrimp.application.models.User;
 import com.wwf.shrimp.application.models.search.AuditSearchCriteria;
+import com.wwf.shrimp.application.models.search.DocumentSearchCriteria;
 import com.wwf.shrimp.application.models.search.NotificationSearchCriteria;
 import com.wwf.shrimp.application.models.search.UserSearchCriteria;
 import com.wwf.shrimp.application.services.main.BaseRESTService;
 import com.wwf.shrimp.application.services.main.dao.impl.mysql.AuditMySQLDao;
+import com.wwf.shrimp.application.services.main.dao.impl.mysql.DocumentMySQLDao;
 import com.wwf.shrimp.application.services.main.dao.impl.mysql.NotificationMySQLDao;
 import com.wwf.shrimp.application.services.main.dao.impl.mysql.UserMySQLDao;
 import com.wwf.shrimp.application.utils.DateUtility;
@@ -42,10 +45,16 @@ import com.wwf.shrimp.application.utils.RESTUtility;
  *
  */
 @Path("/notification")
+
 public class NotificationRESTService extends BaseRESTService {
+	/**
+	 * Services used by the implementation
+	 */
 	private NotificationMySQLDao<NotificationData, NotificationSearchCriteria> notificationService = new NotificationMySQLDao<NotificationData, NotificationSearchCriteria>();
 	private UserMySQLDao<User, UserSearchCriteria> userService = new UserMySQLDao<User, UserSearchCriteria>();
 	private AuditMySQLDao<AuditEntity, AuditSearchCriteria> auditService = new AuditMySQLDao<AuditEntity, AuditSearchCriteria>();
+	private DocumentMySQLDao<Document, DocumentSearchCriteria> documentService = new DocumentMySQLDao<Document, DocumentSearchCriteria>();
+	
 	
 	@POST
 	@Path("/create")
@@ -115,7 +124,7 @@ public class NotificationRESTService extends BaseRESTService {
 	 * @param userName - the unique name of the user for whom the notification are requested
 	 * @return - the list of notifications or empty if non found
 	 */
-	public Response fetchAllTNotifications(
+	public Response fetchAllNotifications(
 			@DefaultValue("") @HeaderParam("user-name") String userName) {
 		// results
 		List<NotificationData> allNotifications=null;
@@ -128,6 +137,7 @@ public class NotificationRESTService extends BaseRESTService {
 		notificationService.init();
 		userService.init();
 		auditService.init();
+		documentService.init();
 		
 		/**
 		 * Process the request
@@ -141,6 +151,17 @@ public class NotificationRESTService extends BaseRESTService {
 				AuditEntity audit = null;
 				audit = auditService.getAuditEntityById(allNotifications.get(i).getAuditData().getId());
 				allNotifications.get(i).setAuditData(audit);
+				// set the item data
+
+				//
+			    // check if the entity is a document
+			    if(NotificationDataItemType.DOCUMENT.equalsNotificationDataItem(audit.getItemType())){
+			    	// We have a document ad we will get the item and pack it into the audit data
+			    	List<Document> docs = documentService.getDocumentById(documentService.getDocIdBySyncId(audit.getItemId()));
+			    	if(docs != null && !docs.isEmpty()) {
+			    		allNotifications.get(i).setItem(docs.get(0));
+			    	}
+			    }
 			}
 			
 
@@ -164,7 +185,7 @@ public class NotificationRESTService extends BaseRESTService {
 	 * @param organizationID - the organization id if we want notifications per organization rather than buy user
 	 * @return
 	 */
-	public Response fetchAllTNotificationsFiltered(
+	public Response fetchAllNotificationsFiltered(
 			@DefaultValue("") @HeaderParam("user-name") String userName,
 			@DefaultValue("true") @HeaderParam("history") boolean historyFlag,
 			@DefaultValue("true") @HeaderParam("show_all") boolean showAll,

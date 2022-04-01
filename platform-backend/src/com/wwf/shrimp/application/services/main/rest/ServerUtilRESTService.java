@@ -23,6 +23,7 @@ import javax.ws.rs.core.Response.Status;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wwf.shrimp.application.models.AppResource;
+import com.wwf.shrimp.application.models.DynamicFieldType;
 import com.wwf.shrimp.application.models.LookupEntity;
 import com.wwf.shrimp.application.models.User;
 import com.wwf.shrimp.application.models.search.LookupDataSearchCriteria;
@@ -50,7 +51,7 @@ import com.wwf.shrimp.application.utils.RESTUtility;
 @Path("/server")
 public class ServerUtilRESTService extends BaseRESTService {
 	
-	public static final String SERVER_CODE_VERSION = "1.90";
+	public static final String SERVER_CODE_VERSION = "1.124";
 	
 	/**
 	 * Services used by the implementation
@@ -161,7 +162,43 @@ public class ServerUtilRESTService extends BaseRESTService {
 			// return HTTP response 200 in case of success
 			return Response.status(200).entity(RESTUtility.getJSON(allResources)).build();
 	}
+
 	
+	@GET
+	@Path("/dynamicfieldtypes")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * 
+	 * @param userName
+	 * @return
+	 */
+	public Response getDynamicFieldDefinitions(
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		
+			// results
+			List<DynamicFieldType> allDynamicFieldTypes=null;
+			
+			getLog().info("HEADER user-name: " + userName);
+			
+			//
+			// Initialize service
+			lookupService.init();
+			
+			/**
+			 * Process the request
+			 */
+			try {
+			
+				allDynamicFieldTypes = lookupService.getAllDynamicFieldTypes(); 
+
+			} catch (Exception e) {
+				getLog().error("Error Fetching Documents: - " + e);
+			}
+			
+			getLog().debug("FETCH ALL Dynamic Field Types: - Result" + allDynamicFieldTypes);
+			// return HTTP response 200 in case of success
+			return Response.status(200).entity(RESTUtility.getJSON(allDynamicFieldTypes)).build();
+	}
 	
 	@POST
 	@Path("/resource")
@@ -522,15 +559,172 @@ public class ServerUtilRESTService extends BaseRESTService {
 						+ " - ver 1.88 ---------" + "\r\n "
 						+ "   1. Added /document/pageimage form-data based page addition" + "\r\n "
 						+ "   2. Added /document/pageimage JSON page return value" + "\r\n "
+						+ " \r\n "
 						+ " - ver 1.89 ---------" + "\r\n "
 						+ "   1. Fixed User COntact Information fetch data" + "\r\n "
+						+ " \r\n "
 						+ " - ver 1.90 ---------" + "\r\n "
-						+ "   1. Fixed up being able to read UTF-8 Strings from applications" + "\r\n ";
-
-
-						
+						+ "   1. Fixed up being able to read UTF-8 Strings from applications" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.91 ---------" + "\r\n "
+						+ "   1. Fixed issues with updating a document with all peripheral elements deleted" + "\r\n "
+						+ "   2. Update Date changes now with Document Update" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.92 ---------" + "\r\n "
+						+ "   1. Added new columns to the group/organization data" + "\r\n "
+						+ "   2. Added Edit ability for group/organization data" + "\r\n "
+						+ "   3. Removed restriction on Backup docs - All user's docs are used as backup " + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.93 ---------" + "\r\n "
+						+ "   1. Added CRUD for Dynamic Field Definition" + "\r\n "
+						+ "   2. Fixed issue with SQL for Fetch" + "\r\n "
+						+ "   3. Added Dynamic Definition to user startup data" + "\r\n "
+						+ "   4. Added Dynamic Definition CRUD" + "\r\n "
+						+ "   5. Added Dynamic Definition Namde field toData for faster render" + "\r\n "
+						+ "   6. Fixed up the Doc Field Data fetch" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.94 ---------" + "\r\n "
+						+ "   1. Added designated recipient permission logic" + "\r\n "
+						+ "   2. Added PDF Data for Doc Info" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.95 ---------" + "\r\n "
+						+ "   1. Added Trace GPS functionality (Model changes and new API addition)" + "\r\n "
+						+ "   2. Added the ability to reorder existing doc pages" + "\r\n "
+						+ "   3. Added proper page sorting for doc fetch" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.96 ---------" + "\r\n "
+						+ "   1. Add the ability to import <new>multi-file PDF with Doc Info" + "\r\n "
+						+ "   2. Add the ability to import <edit> multi-file PDF with Doc Info" + "\r\n "
+						+ "   3. Added the collation and page deletion algorithm" + "\r\n "
+						+ "   4. Fixed the collation for new doc form upload" + "\r\n "
+						+ "   5. Fixed the collation for multi-doc upload" + "\r\n "
+						+ "   6. Mobile create/update fix for pages" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.97 ---------" + "\r\n "
+						+ "   1. Complete split between update and create document for android and iOS platforms" + "\r\n "
+						+ "   2. Added form-based page update" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.98 ---------" + "\r\n "
+						+ "   1. Fix to hashing function for more secure 1-way hash" + "\r\n "
+						+ "   2. Added the ability to provide user id for doc linking" + "\r\n "
+						+ "   3. Added user profile update changes - spilt out user operations" + "\r\n "
+						+ "   4. Added email validation for format" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.99 ---------" + "\r\n "
+						+ "   1. Removed collation from document create for pages" + "\r\n "
+						+ "   2. Added UNIQUE constraint on docuemnts" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.99.1 ---------" + "\r\n "
+						+ "   1. Added permission for a user to get access to backup docs pages if they are a recipient" + "\r\n "
+						+ "   2. Added email address to roaganization (Group)" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.99.2 ---------" + "\r\n "
+						+ "   1. Additional Functions 1 <screening>" + "\r\n "
+						+ "   2. Added Document Type Edit" + "\r\n "
+						+ "   3. Added LEFT JOIN to Groups" + "\r\n "
+						+ "   4. Additional Functions 2 <screening>" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.99.4 ---------" + "\r\n "
+						+ "   1. Additional Recipient adding of linked and backup docs" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.99.5 ---------" + "\r\n "
+						+ "   1. Added permission restriction to DRAFT documents that a user is a recipient on" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.99.6 ---------" + "\r\n "
+						+ "   1. Added login username to be case insensitive for resource fetches" + "\r\n "
+						+ "   2. Added the ability to lock a document if it is ACEPTED and part of a trace" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.99.7 ---------" + "\r\n "
+						+ "   1. Add"
+						+ "ed more logs for iOS Data creation for spares docuemnts" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.99.8 ---------" + "\r\n "
+						+ "   1. Fixed issues with reading OCR data" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.99.9 ---------" + "\r\n "
+						+ "   1. Fixed issues with new RESTResponse Data" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.100 ---------" + "\r\n "
+						+ "   1. Fixed issues with email template sending configurations" + "\r\n "
+						+ "   2. Fixed issues with activation email getting teh right address" + "\r\n "
+						+ "   3. Fixed issues with contact data  with activated and verified flags" + "\r\n "
+						+ "   4. Added proper email verification for format" + "\r\n "
+						+ "   5. added authentication to account for activation/verification flag" + "\r\n "
+						+ "   6. added verified as true when users are batch created" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.110 ---------" + "\r\n "
+						+ "   1. Added registration capabilities" + "\r\n "
+						+ "   2. Fixed up locked document for ACCEPTED docs in a trace" + "\r\n "
+						+ "   3. Added activation trigger for verification user update" + "\r\n "
+						+ "   4. Fixed Linked Docs returning a null for <fetchalldocstolink>" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.111 ---------" + "\r\n "
+						+ "   1. Added Org Batch Upload" + "\r\n "
+						+ "   2. Added New ORG CSV Template" + "\r\n "
+						+ "   3. Added Org Registration API/Fixes" + "\r\n "
+						+ " - ver 1.112 ---------" + "\r\n "
+						+ "   1. Additional REgistration Fixes" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.12 ---------" + "\r\n "
+						+ "   1. Added new PDF Export for Trace (font and extra doc info field row)" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.13 ---------" + "\r\n "
+						+ "   1. Added GPS Location for Document into the main Doc Creation routine" + "\r\n "
+						+ "   2. Fixed up comma issues with Doc Info Fields" + "\r\n "
+						+ "   3. Fixed up recipients returning null result" + "\r\n "
+						+ "   4. Fixed up Doc Info fields delimiter for parsing issues." + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.14 ---------" + "\r\n "
+						+ "   1. Fixed up the trace report data format" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.15 ---------" + "\r\n "
+						+ "   1. Fixed up the trace PDF report Unicide encoding issue" + "\r\n "
+						+ "   2. Fixed the image scaling issue (1st attempt)" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.16 ---------" + "\r\n "
+						+ "   1. Added stage associations in group_data_type" + "\r\n "
+						+ "   2. Added new API for group data extraction and recipients" + "\r\n "
+						+ "   3. Added new restiction for recipients to not see other orgs in their stage" + "\r\n "
+						+ "   4. Added pdf export trace generation to be dynamic (for doc info) and requires no images" + "\r\n "
+						+ "   5. Fixed up a Math.cail issue with dunamic export" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.117 ---------" + "\r\n "
+						+ "   1. Fixed up an export trace issue with duplicate elements" + "\r\n "
+						+ "   2. Added recipients permissions configuratation (Super Admin by defult)" + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.118 ---------" + "\r\n "
+						+ "   1. Fixed duplicate documents issue in the export data for traces." + "\r\n "
+						+ "   2. Fixed MATRIX_ADMIN role with reference to DRAFT and REJECTED documents." + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.119 ---------" + "\r\n "
+						+ "   1. Added configuration for self-referential stage recipients." + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.120 ---------" + "\r\n "
+						+ "   1. Added Remember Me token authentication." + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.121 ---------" + "\r\n "
+						+ "   1. Added value for trace columns internationalization." + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.122 ---------" + "\r\n "
+						+ "   1. Fixed up fetchall_v2 for document fetching" + "\r\n "
+						+ "       - optimized fetching all docs for the user requestor" + "\r\n "
+						+ "   2. Fixed document creation bug." + "\r\n "
+						+ "       - Added a fetchalldocstolink_v2" + "\r\n "
+						+ "       - Added a fetchAllDocumentsLinkCollection_v2" + "\r\n "
+						+ "       - Added a fetchattachdoccollection_v2" + "\r\n "
+						+ "   3. Added MATRIX and SUPER roles." + "\r\n "
+						+ "       - Separated MATRIX Role out for now " + "\r\n "
+						+ " \r\n "
+						+ " - ver 1.123 ---------" + "\r\n "
+						+ "   1. Added new trace export data fetch for MATRIX_ADMIN" + "\r\n"
+						+ "   2. Added update to fetch all docs for MATRIX_ADMIN" + "\r\n"
+						+ " \r\n "
+						+ " - ver 1.1243 ---------" + "\r\n "
+						+ "   1. Added new server update date field in DB" + "\r\n"
+						+ "   2. Coded the update to a new Docuemnt data model" + "\r\n"
+						+ "   3. Added spacial cases for DRAFT->SUBMIT, and REJECT statuses for docs" + "\r\n";
 		
-		 
+
 		// return HTTP response 200 in case of success
 		return Response.status(Status.OK).entity(result).build();
 	}

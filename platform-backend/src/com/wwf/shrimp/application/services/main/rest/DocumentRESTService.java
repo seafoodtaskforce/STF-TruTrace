@@ -5,11 +5,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -18,6 +21,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -26,25 +30,34 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.opencsv.CSVWriter;
 import com.sun.jersey.core.header.ContentDisposition;
 import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.BodyPartEntity;
+import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataParam;
 import com.wwf.shrimp.application.exceptions.PersistenceException;
 import com.wwf.shrimp.application.models.AuditAction;
 import com.wwf.shrimp.application.models.AuditEntity;
 import com.wwf.shrimp.application.models.Document;
 import com.wwf.shrimp.application.models.DocumentCollection;
+import com.wwf.shrimp.application.models.DocumentOCRMatchingData;
 import com.wwf.shrimp.application.models.DocumentPage;
 import com.wwf.shrimp.application.models.DocumentType;
+import com.wwf.shrimp.application.models.DynamicFieldData;
+import com.wwf.shrimp.application.models.DynamicFieldDefinition;
 import com.wwf.shrimp.application.models.IdentifiableEntity;
 import com.wwf.shrimp.application.models.NoteData;
 import com.wwf.shrimp.application.models.NotificationData;
 import com.wwf.shrimp.application.models.NotificationType;
+import com.wwf.shrimp.application.models.Role;
+import com.wwf.shrimp.application.models.Screening;
 import com.wwf.shrimp.application.models.TagData;
 import com.wwf.shrimp.application.models.User;
 import com.wwf.shrimp.application.models.search.AuditSearchCriteria;
@@ -82,7 +95,9 @@ public class DocumentRESTService extends BaseRESTService {
 	/**
 	 * Global data
 	 */
-	public  static final String CUSTOM_TAG_PREFIX = "CUSTOM: ";
+	public static final String CUSTOM_TAG_PREFIX = "CUSTOM: ";
+	public static final String DOC_INFO_DATA_FORMATTING_DELIMITER = "~@@@~"; 
+	public static final String DOC_INFO_DATA_FORMATTING_DELIMITER_SPLITTER = "~;~"; 
 	
 
 	@GET
@@ -116,6 +131,138 @@ public class DocumentRESTService extends BaseRESTService {
 		try {
 			user = userService.getUserByName(userName);
 			allDocuments = documentService.getAllDocuments(user, docType, false); 
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Documents: - " + e);
+			httpResponseStatus = Status.NOT_FOUND;
+		}
+		
+		getLog().debug("FETCH ALL: - Result" + allDocuments);
+				// return HTTP response 200 in case of success
+		return Response.status(httpResponseStatus).entity(RESTUtility.getJSON(allDocuments)).build();
+	}
+	
+	@GET
+	@Path("/fetchtracedataexport_v2")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Fetch all the documents
+	 * @param userName - the user who is asking for these documents
+	 * @return - all the documents that this user has access to
+	 */
+	public Response fetchTraceDataExport_v2(
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("") @HeaderParam("doc-type") String docType) {
+		// results
+		List<Document> allDocuments = new ArrayList<Document>();
+		List<Document> traceDocuments = new ArrayList<Document>();
+		List<Document> tempTraceDocuments = new ArrayList<Document>();
+		List<Document> allDocumentsWithoutDuplicates = new ArrayList<Document>();
+		User user = null;
+		
+		Status httpResponseStatus = Status.OK;
+		
+		getLog().info("HEADER user-name: " + userName);
+		getLog().info("HEADER doc-type: " + docType);
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			user = userService.getUserByName(userName);
+			
+			//
+			// Preconditions
+			if(!user.getRoles().get(0).getName().equals(Role.ROLE_NAME_MATRIX_ADMIN)){
+				httpResponseStatus = Status.UNAUTHORIZED;
+				return Response.status(httpResponseStatus).entity(RESTUtility.getJSON(allDocuments)).build();
+			}
+			
+			//
+			// swap role temporarily
+			user.getRoles().get(0).setName(Role.ROLE_NAME_GENERAL_USER);
+			
+			allDocuments = documentService.getAllDocuments_v2(user, docType, false); 
+			
+			//
+			// extract all trace documents
+			ListIterator<Document> iter = allDocuments.listIterator();
+			
+			// create the list of all linked docs
+			while(iter.hasNext()){
+				Document iterDoc = iter.next();
+				//if(iterDoc.getAttachedDocuments().size() > 0){
+				//	allLinkedDocs.addAll(iterDoc.getAttachedDocuments());
+				//}
+				if(iterDoc.getLinkedDocuments().size() > 0){
+					tempTraceDocuments = documentService.getRecursiveDocumentById(iterDoc.getId());
+					if(tempTraceDocuments.size() > 0){
+						traceDocuments.addAll(tempTraceDocuments);
+					}
+				}
+			}
+			
+			//
+			// reset role
+			user.getRoles().get(0).setName(Role.ROLE_NAME_MATRIX_ADMIN);
+			//
+			// consolidate all documents
+			allDocuments.addAll(traceDocuments);
+			//
+			// remove dupliucates
+			allDocumentsWithoutDuplicates = new ArrayList<>(
+				      new HashSet<>(allDocuments));
+			
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Documents: - " + e);
+			httpResponseStatus = Status.NOT_FOUND;
+		}
+		
+		getLog().debug("FETCH ALL: - Result" + allDocuments);
+				// return HTTP response 200 in case of success
+		return Response.status(httpResponseStatus).entity(RESTUtility.getJSON(allDocumentsWithoutDuplicates)).build();
+	}
+	
+	
+	@GET
+	@Path("/fetchall_v2")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Fetch all the documents
+	 * @param userName - the user who is asking for these documents
+	 * @return - all the documents that this user has access to
+	 */
+	public Response fetchAllDocuments_v2(
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("") @HeaderParam("doc-type") String docType) {
+		// results
+		List<Document> allDocuments = new ArrayList<Document>();
+		User user = null;
+		
+		Status httpResponseStatus = Status.OK;
+		
+		getLog().info("HEADER user-name: " + userName);
+		getLog().info("HEADER doc-type: " + docType);
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			user = userService.getUserByName(userName);
+			allDocuments = documentService.getAllDocuments_v2(user, docType, false); 
 
 		} catch (Exception e) {
 			getLog().error("Error Fetching Documents: - " + e);
@@ -182,7 +329,7 @@ public class DocumentRESTService extends BaseRESTService {
 			@DefaultValue("") @HeaderParam("doc_id") String syncId,
 			@DefaultValue("") @HeaderParam("custom_tag") String customTag) {
 		// results
-		List<Document> allDocuments=null;
+		List<Document> allDocuments=new ArrayList<Document>();
 		User user = null;
 		
 		getLog().info("HEADER user-name: " + userName);
@@ -200,6 +347,51 @@ public class DocumentRESTService extends BaseRESTService {
 			user = userService.getUserByName(userName);
 			// extract only the documents that the user can access
 			allDocuments = documentService.getAllDocsToLink(user, docType, customTag, syncId);
+
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Linked Documents: - " + e);
+		}
+		
+		getLog().debug("FETCH ALL Linked Docs: - Result" + allDocuments);
+				// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(allDocuments)).build();
+	}
+	
+	
+	
+	@GET
+	@Path("/fetchalldocstolink_v2")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Fetch all the documents
+	 * @param userName - the user who is asking for these documents
+	 * @return - all the documents that this user has access to
+	 */
+	public Response fetchAllDocumentsLinkList_v2(
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("") @HeaderParam("doc-type") String docType,
+			@DefaultValue("") @HeaderParam("doc_id") String syncId,
+			@DefaultValue("") @HeaderParam("custom_tag") String customTag) {
+		// results
+		List<Document> allDocuments=new ArrayList<Document>();
+		User user = null;
+		
+		getLog().info("HEADER user-name: " + userName);
+		getLog().info("HEADER doc-type: " + docType);
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			user = userService.getUserByName(userName);
+			// extract only the documents that the user can access
+			allDocuments = documentService.getAllDocsToLink_v2(user, docType, customTag, syncId);
 
 
 		} catch (Exception e) {
@@ -254,6 +446,50 @@ public class DocumentRESTService extends BaseRESTService {
 		return Response.status(200).entity(RESTUtility.getJSON(allDocuments)).build();
 	}	
 	
+
+	
+	@GET
+	@Path("/fetchalldocstoattach_v2")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Fetch all the documents
+	 * @param userName - the user who is asking for these documents
+	 * @return - all the documents that this user has access to
+	 */
+	public Response fetchAllDocumentsAttachList_v2(
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("") @HeaderParam("doc-type") String docType,
+			@DefaultValue("") @HeaderParam("doc_id") String syncId,
+			@DefaultValue("") @HeaderParam("custom_tag") String customTag) {
+		// results
+		List<Document> allDocuments=null;
+		User user = null;
+		
+		getLog().info("HEADER user-name: " + userName);
+		getLog().info("HEADER doc-type: " + docType);
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			user = userService.getUserByName(userName);
+			// extract only the documents that the user can access
+			allDocuments = documentService.getAllDocsToAttach_v2(user, docType, customTag, syncId);
+
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Backing Documents: - " + e);
+		}
+		
+		getLog().debug("FETCH ALL Backing Docs: - Result" + allDocuments);
+				// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(allDocuments)).build();
+	}	
 	
 	
 	@GET
@@ -288,6 +524,55 @@ public class DocumentRESTService extends BaseRESTService {
 			user = userService.getUserByName(userName);
 			// extract only the documents that the user can access
 			allDocuments = documentService.getAllDocsToAttach(user, "", "", syncId);
+			if(!syncId.equals("0")){
+				allAttachedDocs = documentService.getAllAttachedDocsByDocSyncId(syncId);
+			}
+			resultDocs.setAllDocsToAttach(allDocuments);
+			resultDocs.setAttachedDocs(allAttachedDocs);
+
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Backing Documents Collection: - " + e);
+		}
+		
+		getLog().debug("FETCH ALL Backing Docs Collection: - Result" + allDocuments);
+				// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(resultDocs)).build();
+	}	
+	
+	
+	@GET
+	@Path("/fetchattachdoccollection_v2")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Fetch all the documents
+	 * @param userName - the user who is asking for these documents
+	 * @return - all the documents that this user has access to
+	 */
+	public Response fetchAllDocumentsAttachCollection_v2(
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("0") @QueryParam("doc_id") String syncId){
+		// results
+		List<Document> allDocuments=null;
+		List<Document> allAttachedDocs = new ArrayList<Document>();
+		DocumentCollection resultDocs = new DocumentCollection();
+		User user = null;
+		
+		getLog().info("HEADER user-name: " + userName);
+		getLog().info("QUERY doc_id: " + syncId);
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			user = userService.getUserByName(userName);
+			// extract only the documents that the user can access
+			allDocuments = documentService.getAllDocsToAttach_v2(user, "", "", syncId);
 			if(!syncId.equals("0")){
 				allAttachedDocs = documentService.getAllAttachedDocsByDocSyncId(syncId);
 			}
@@ -355,6 +640,552 @@ public class DocumentRESTService extends BaseRESTService {
 	}	
 	
 	
+	@GET
+	@Path("/fetchlinkdoccollection_v2")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Fetch all the documents
+	 * @param userName - the user who is asking for these documents
+	 * @return - all the documents that this user has access to
+	 */
+	public Response fetchAllDocumentsLinkCollection_v2(
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("0") @QueryParam("doc_id") String syncId){
+		// results
+		List<Document> allDocuments=null;
+		List<Document> allLinkedDocs = new ArrayList<Document>();
+		DocumentCollection resultDocs = new DocumentCollection();
+		User user = null;
+		
+		getLog().info("HEADER user-name: " + userName);
+		getLog().info("QUERY doc_id: " + syncId);
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			user = userService.getUserByName(userName);
+			// extract only the documents that the user can access
+			allDocuments = documentService.getAllDocsToLink_v2(user, "", "", syncId);
+			if(!syncId.equals("0")){
+				allLinkedDocs = documentService.getAllLinkedDocsByDocSyncId(syncId);
+			}
+			resultDocs.setAllDocsToLink(allDocuments);
+			resultDocs.setLinkedDocs(allLinkedDocs);
+
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Linking Documents Collection: - " + e);
+		}
+		
+		getLog().debug("FETCH ALL Linking Docs Collection: - Result" + allDocuments);
+				// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(resultDocs)).build();
+	}	
+	
+	
+	
+	@Path("/files")
+	@POST
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public Response uploadFiles(@DefaultValue("") @FormDataParam("tags") String tags,
+			@FormDataParam("files") List<FormDataBodyPart> bodyParts,
+			@FormDataParam("files") FormDataContentDisposition fileDispositions,
+			@FormDataParam("userName") String username, 
+			@FormDataParam("creationDate") String creationDate,
+			@FormDataParam("updationDate") String updationDate,
+			@FormDataParam("docTypeName") String docTypeName, 
+			@FormDataParam("docTypeId") long docTypeId, 
+			@FormDataParam("docTypeHexColorCode") String docTypeHexColorCode,
+			@FormDataParam("docRecipients") String docRecipients,
+			@FormDataParam("docLinkedDocs") String docLinkedDocs,
+			@FormDataParam("docBackingDocs") String docBackingDocs,
+			@FormDataParam("docImportDocTags") String docImportDocTags,
+			@FormDataParam("docImportDocStatus") String docImportDocStatus,
+			@FormDataParam("docInfoDynamicData") String docInfoDynamicData) {
+		
+		
+		Document responseDoc=null;
+		if(docImportDocStatus == null){
+			docImportDocStatus=Document.STATUS_DRAFT;
+		}
+		
+		//
+		// initialize services
+		documentService.init();
+		userService.init();
+		
+		getLog().info("Recipients for the upload: - " + docRecipients);
+		getLog().info("Upload <status>: - " + docImportDocStatus);
+		
+		getLog().info("[Upload Doc Update] <recipients> - " + docRecipients);
+		getLog().info("[Upload Doc Update] <status>: - " + docImportDocStatus);
+		getLog().info("[Upload Doc Update] <userName>: - " + username);
+		getLog().info("[Upload Doc Update] <creationDate>: - " + creationDate);
+		getLog().info("[Upload Doc Update] <docTypeName>: - " + docTypeName);
+		getLog().info("[Upload Doc Update] <docTypeId>: - " + docTypeId);
+		getLog().info("[Upload Doc Update] <docLinkedDocs>: - " + docLinkedDocs);
+		getLog().info("[Upload Doc Update] <docBackingDocs>: - " + docBackingDocs);
+		getLog().info("[Upload Doc Update] <docImportDocTags>: - " + docImportDocTags);
+		getLog().info("[Upload Doc Update] <docInfoDynamicData>: - " + docInfoDynamicData);
+		getLog().info("[Upload Doc Update] <docTypeHexColorCode>: - " + docTypeHexColorCode);
+		
+		//
+		// initialize Document Data
+		Document doc = null;
+		User user = null;
+				
+		try {
+			doc = new Document();
+			// set the creation/updation timestamp
+			doc.setCreationTimestamp(creationDate);
+			doc.setUpdationTimestamp(updationDate);
+			// set the user data
+			user = userService.getUserByName(username);
+			doc.setOwner(user.getName());
+			doc.setOwnerId(user.getId());
+			long organizationId  = 0;
+			long groupId  = 0;
+			// set the group data
+			if(user.getUserOrganizations().size() > 0) {
+	            organizationId = user.getUserOrganizations().get(0).getId();
+	            groupId = user.getUserGroups().get(0).getId();
+	        }
+			doc.setOrganizationId(organizationId);
+			doc.setGroupId(groupId);
+			
+			// doc type data
+			List<DocumentType> docTypes = documentService.getAllDocumentTypes();
+			
+			DocumentType docType = new DocumentType();
+			docType.setId(docTypeId);
+			docType.setName(docTypeName);
+			docType.setValue(docTypeName);
+			docType.setHexColorCode(docTypeHexColorCode);
+			docType = docTypes.get(docTypes.indexOf(docType));
+			doc.setType(docType);
+			doc.setDocumentType(docTypeName);
+			doc.setTypeHEXColor(docTypeHexColorCode);
+			
+			// set the sync id
+			doc.setSyncID(UUID.randomUUID().toString());
+			// Status
+			doc.setStatus(docImportDocStatus);
+			
+			//
+			// get recipients
+			List<User> recipients = new ArrayList<User>();
+			if(!docRecipients.trim().isEmpty()){
+				String[] recipientIds = docRecipients.split(",");
+				for(int i=0; i< recipientIds.length; i++){
+					long id = Long.parseLong(recipientIds[i]);
+					User recipient = new User();
+					recipient.setId(id);
+					recipients.add(recipient);
+				}
+				doc.setToRecipients(recipients);
+			}
+			
+			//
+			// get doc data
+			List<DynamicFieldData> dynamicDocData = new ArrayList<DynamicFieldData>();
+			if(!docInfoDynamicData.trim().isEmpty()){
+				String[] dynamicDocDataElements = docInfoDynamicData.split(DocumentRESTService.DOC_INFO_DATA_FORMATTING_DELIMITER_SPLITTER);
+				for(int i=0; i< dynamicDocDataElements.length; i++){
+					// extract the sub-elements
+					String[] dataElement = dynamicDocDataElements[i].split(DocumentRESTService.DOC_INFO_DATA_FORMATTING_DELIMITER);
+					
+					long id = Long.parseLong(dataElement[0]);
+					String data = dataElement[1];
+					DynamicFieldData docInfoData = new DynamicFieldData();
+					docInfoData.setDynamicFieldDefinitionId(id);
+					docInfoData.setData(data);
+					dynamicDocData.add(docInfoData);
+				}
+				doc.setDynamicFieldData(dynamicDocData);
+			}
+			
+			//
+			// get linked docs
+			List<Document> linkedDocs = new ArrayList<Document>();
+			if(!docLinkedDocs.trim().isEmpty()){
+				String[] linkedDocsIds = docLinkedDocs.split(",");
+				for(int i=0; i< linkedDocsIds.length; i++){
+					long id = Long.parseLong(linkedDocsIds[i]);
+					Document linkedDoc = new Document();
+					linkedDoc.setId(id);
+					linkedDocs.add(linkedDoc);
+				}
+				doc.setLinkedDocuments(linkedDocs);
+			}
+			
+			//
+			// get backing docs
+			List<Document> backingDocs = new ArrayList<Document>();
+			if(!docBackingDocs.trim().isEmpty()){
+				String[] backingDocsIds = docBackingDocs.split(",");
+				for(int i=0; i< backingDocsIds.length; i++){
+					long id = Long.parseLong(backingDocsIds[i]);
+					Document backingDoc = new Document();
+					backingDoc.setId(id);
+					backingDocs.add(backingDoc);
+				}
+				doc.setAttachedDocuments(backingDocs);
+			}
+			
+			//
+			// get tags
+			List<TagData> docTags = new ArrayList<TagData>();
+			if(!docImportDocTags.trim().isEmpty()){
+				String[] docTagsIds = docImportDocTags.split(DocumentRESTService.DOC_INFO_DATA_FORMATTING_DELIMITER_SPLITTER);
+				for(int i=0; i< docTagsIds.length; i++){
+					long id = Long.parseLong(docTagsIds[i]);
+					TagData docTag = new TagData();
+					docTag.setId(id);
+					docTags.add(docTag);
+				}
+				doc.setTags(docTags);
+			}	
+			
+		} catch (PersistenceException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		for (int i = 0; i < bodyParts.size(); i++) {
+			/*
+			 * Casting FormDataBodyPart to BodyPartEntity, which can give us
+			 * InputStream for uploaded file
+			 */
+			BodyPartEntity bodyPartEntity = (BodyPartEntity) bodyParts.get(i).getEntity();
+			//
+			// process
+			try {
+				List<DocumentPage> pages = documentService.extractPDFDocumentPages(bodyPartEntity.getInputStream());
+				// recollate the pages
+				for(int index = 0; index < pages.size(); index++){
+					pages.get(index).setPageNumber(doc.getPages().size() + (index+1));
+				}
+				doc.addPages(pages);
+			} catch (PersistenceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+
+		//
+		// create the document
+		try {
+			responseDoc = documentService.create(doc);
+		} catch (PersistenceException | IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		
+		// get the sparse version of the doc
+		Document newDoc  = null;
+		try {
+			newDoc = documentService.getDocumentById(responseDoc.getId()).get(0);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		getLog().info("CreatedPDF-Based Doc: - " + newDoc);
+		return Response.status(200)
+				.entity(RESTUtility.getJSON(newDoc)).build();
+		
+	}
+	
+	
+	@Path("/files")
+	@PUT
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public Response uploadUpdatedFiles(
+			@FormDataParam("docId") long docId,
+			@DefaultValue("") @FormDataParam("tags") String tags,
+			@FormDataParam("files") List<FormDataBodyPart> bodyParts,
+			@FormDataParam("files") FormDataContentDisposition fileDispositions,
+			@FormDataParam("userName") String username, 
+			@FormDataParam("creationDate") String creationDate,
+			@FormDataParam("updationDate") String updationDate,
+			@FormDataParam("docTypeName") String docTypeName, 
+			@FormDataParam("docTypeId") long docTypeId, 
+			@FormDataParam("docTypeHexColorCode") String docTypeHexColorCode,
+			@FormDataParam("docRecipients") String docRecipients,
+			@FormDataParam("docLinkedDocs") String docLinkedDocs,
+			@FormDataParam("docBackingDocs") String docBackingDocs,
+			@FormDataParam("docImportDocTags") String docImportDocTags,
+			@FormDataParam("docExistingPageData") String docExistingPageData,
+			@FormDataParam("docImportDocStatus") String docImportDocStatus,
+			@FormDataParam("docInfoDynamicData") String docInfoDynamicData) {
+
+		Document responseDoc=null;
+		if(docImportDocStatus == null){
+			docImportDocStatus=Document.STATUS_DRAFT;
+		}
+		
+		//
+		// initialize services
+		documentService.init();
+		userService.init();
+		
+		getLog().info("[Upload Doc Update] <recipients> - " + docRecipients);
+		getLog().info("[Upload Doc Update] <status>: - " + docImportDocStatus);
+		getLog().info("[Upload Doc Update] <userName>: - " + username);
+		getLog().info("[Upload Doc Update] <creationDate>: - " + creationDate);
+		getLog().info("[Upload Doc Update] <updationDate>: - " + updationDate);
+		getLog().info("[Upload Doc Update] <docTypeName>: - " + docTypeName);
+		getLog().info("[Upload Doc Update] <docTypeId>: - " + docTypeId);
+		getLog().info("[Upload Doc Update] <docExistingPageData>: - " + docExistingPageData);
+		getLog().info("[Upload Doc Update] <docLinkedDocs>: - " + docLinkedDocs);
+		getLog().info("[Upload Doc Update] <docBackingDocs>: - " + docBackingDocs);
+		getLog().info("[Upload Doc Update] <docImportDocTags>: - " + docImportDocTags);
+		getLog().info("[Upload Doc Update] <docInfoDynamicData>: - " + docInfoDynamicData);
+		getLog().info("[Upload Doc Update] <docTypeHexColorCode>: - " + docTypeHexColorCode);
+		
+		//
+		// initialize Document Data
+		Document doc = null;
+		User user = null;
+		List<DocumentPage> existingPages = null;
+		
+		try {
+			doc = new Document();
+			doc.setId(docId);
+			// set the creation timestamp
+			doc.setCreationTimestamp(creationDate);
+			doc.setUpdationTimestamp(updationDate);
+			// set the user data
+			user = userService.getUserByName(username);
+			doc.setOwner(user.getName());
+			long organizationId  = 0;
+			long groupId  = 0;
+			// set the group data
+			if(user.getUserOrganizations().size() > 0) {
+	            organizationId = user.getUserOrganizations().get(0).getId();
+	            groupId = user.getUserGroups().get(0).getId();
+	        }
+			doc.setOrganizationId(organizationId);
+			doc.setGroupId(groupId);
+			
+			// doc type data
+			List<DocumentType> docTypes = documentService.getAllDocumentTypes();
+			
+			DocumentType docType = new DocumentType();
+			docType.setId(docTypeId);
+			docType.setName(docTypeName);
+			docType.setValue(docTypeName);
+			docType.setHexColorCode(docTypeHexColorCode);
+			docType = docTypes.get(docTypes.indexOf(docType));
+			doc.setType(docType);
+			doc.setDocumentType(docTypeName);
+			doc.setTypeHEXColor(docTypeHexColorCode);
+			
+			// set the sync id
+			doc.setSyncID(UUID.randomUUID().toString());
+			// Status
+			doc.setStatus(docImportDocStatus);
+			
+			//
+			// get recipients
+			List<User> recipients = new ArrayList<User>();
+			if(!docRecipients.trim().isEmpty()){
+				String[] recipientIds = docRecipients.split(",");
+				for(int i=0; i< recipientIds.length; i++){
+					long id = Long.parseLong(recipientIds[i]);
+					User recipient = new User();
+					recipient.setId(id);
+					recipients.add(recipient);
+				}
+				doc.setToRecipients(recipients);
+			}
+			
+			// 
+			// get Pages
+			existingPages = new ArrayList<DocumentPage>();
+			if(docExistingPageData != null){
+				if(!docExistingPageData.trim().isEmpty()){
+					String[] pageIds = docExistingPageData.split(",");
+					for(int i=0; i< pageIds.length; i++){
+						long id = Long.parseLong(pageIds[i]);
+						DocumentPage page = new DocumentPage();
+						page.setId(id);
+						page.setPageNumber(i+1);
+						existingPages.add(page);
+					}
+				}
+			}
+			
+			
+			//
+			// get doc data
+			List<DynamicFieldData> dynamicDocData = new ArrayList<DynamicFieldData>();
+			if(!docInfoDynamicData.trim().isEmpty()){
+				String[] dynamicDocDataElements = docInfoDynamicData.split(DocumentRESTService.DOC_INFO_DATA_FORMATTING_DELIMITER_SPLITTER);
+				for(int i=0; i< dynamicDocDataElements.length; i++){
+					// extract the sub-elements
+					String[] dataElement = dynamicDocDataElements[i].split(DocumentRESTService.DOC_INFO_DATA_FORMATTING_DELIMITER);
+					
+					long id = Long.parseLong(dataElement[0]);
+					String data = dataElement[1];
+					DynamicFieldData docInfoData = new DynamicFieldData();
+					docInfoData.setDynamicFieldDefinitionId(id);
+					docInfoData.setData(data);
+					dynamicDocData.add(docInfoData);
+				}
+				doc.setDynamicFieldData(dynamicDocData);
+			}
+			
+			//
+			// get linked docs
+			List<Document> linkedDocs = new ArrayList<Document>();
+			if(!docLinkedDocs.trim().isEmpty()){
+				String[] linkedDocsIds = docLinkedDocs.split(",");
+				for(int i=0; i< linkedDocsIds.length; i++){
+					long id = Long.parseLong(linkedDocsIds[i]);
+					Document linkedDoc = new Document();
+					linkedDoc.setId(id);
+					linkedDocs.add(linkedDoc);
+				}
+				doc.setLinkedDocuments(linkedDocs);
+			}
+			
+			//
+			// get backing docs
+			List<Document> backingDocs = new ArrayList<Document>();
+			if(!docBackingDocs.trim().isEmpty()){
+				String[] backingDocsIds = docBackingDocs.split(",");
+				for(int i=0; i< backingDocsIds.length; i++){
+					long id = Long.parseLong(backingDocsIds[i]);
+					Document backingDoc = new Document();
+					backingDoc.setId(id);
+					backingDocs.add(backingDoc);
+				}
+				doc.setAttachedDocuments(backingDocs);
+			}
+			
+			//
+			// get tags
+			List<TagData> docTags = new ArrayList<TagData>();
+			if(!docImportDocTags.trim().isEmpty()){
+				String[] docTagsIds = docImportDocTags.split(",");
+				for(int i=0; i< docTagsIds.length; i++){
+					long id = Long.parseLong(docTagsIds[i]);
+					TagData docTag = new TagData();
+					docTag.setId(id);
+					docTags.add(docTag);
+				}
+				doc.setTags(docTags);
+			}	
+			
+		} catch (PersistenceException e1) {
+			// TODO Auto-generated catch block
+			getLog().error("[Upload Doc Update] Error Creating Doc Data: " + e1);
+			getLog().error("[Upload Doc Update] Error Creating Doc Data: <stack-trace> : " + ExceptionUtils.getStackTrace(e1));
+			e1.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			getLog().error("[Upload Doc Update] Error Creating Doc Data: " + e);
+			getLog().error("[Upload Doc Update] Error Creating Doc Data: <stack-trace> : " + ExceptionUtils.getStackTrace(e));
+		}
+		if(bodyParts != null){
+			for (int i = 0; i < bodyParts.size(); i++) {
+				/*
+				 * Casting FormDataBodyPart to BodyPartEntity, which can give us
+				 * InputStream for uploaded file
+				 */
+				BodyPartEntity bodyPartEntity = (BodyPartEntity) bodyParts.get(i).getEntity();
+				//
+				// process
+				try {
+					List<DocumentPage> pages = documentService.extractPDFDocumentPages(bodyPartEntity.getInputStream());
+					// re-collate the pages
+					for(int index = 0; index < pages.size(); index++){
+						pages.get(index).setPageNumber(doc.getPages().size() + (index+1));
+					}
+					doc.addPages(pages);
+				} catch (PersistenceException e) {
+					// TODO Auto-generated catch block
+					getLog().error("[Upload Doc Update] Error Extracting PDF: " + e);
+					getLog().error("[Upload Doc Update] Error Extracting PDF: <stack-trace> : " + ExceptionUtils.getStackTrace(e));
+				}
+			}
+		}
+		
+		
+		//
+		// get the current version of the document
+		Document oldDoc = null;
+		try {
+			
+			oldDoc = documentService.getDocumentById(docId).get(0);
+			//
+			// transfer any old pages to the new doc
+			documentService.deleteOmmitedPages(oldDoc,existingPages);
+			
+			//
+			// re-collate all the pages in the new doc
+			if(oldDoc.getPages().size() > 0){
+				for(int i=0; i<doc.getPages().size(); i++){
+					doc.getPages().get(i).setPageNumber(doc.getPages().get(i).getPageNumber() + oldDoc.getPages().size());
+				}
+				for(int i=0; i<oldDoc.getPages().size(); i++){
+					doc.getPages().add(0, oldDoc.getPages().get(i));
+				}
+			}
+
+		} catch (PersistenceException | IllegalArgumentException e2) {
+			// TODO Auto-generated catch block
+			getLog().error("[Upload Doc Update] Error Syncing Update Pages: " + e2);
+			getLog().error("[Upload Doc Update] Error Syncing Update Pages: <stack-trace> : " + ExceptionUtils.getStackTrace(e2));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			getLog().error("[Upload Doc Update] Error Syncing Update Pages: " + e);
+			getLog().error("[Upload Doc Update] Error Syncing Update Pages: <stack-trace> : " + ExceptionUtils.getStackTrace(e));
+		}
+		
+		//
+		// get the old page data from the old doc
+		
+
+		//
+		// create the document
+		try {
+			//
+			// reset session id
+			doc.setSyncID(oldDoc.getSyncID()); 
+			getLog().info("Upload <doc data>: - " + doc);
+			responseDoc = documentService.update(doc);
+		} catch (PersistenceException | IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		// get the sparse version of the doc
+		Document newDoc  = null;
+		try {
+			newDoc = documentService.getDocumentById(responseDoc.getId()).get(0);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		getLog().info("Updated PDF-Based Doc: - " + newDoc);
+		return Response.status(200)
+				.entity(RESTUtility.getJSON(newDoc)).build();
+		
+	}
+	
+	
 	
 	@POST
 	@Path("/upload")
@@ -371,6 +1202,7 @@ public class DocumentRESTService extends BaseRESTService {
 			@FormDataParam("file") FormDataContentDisposition fileDetail,
 			@FormDataParam("userName") String username, 
 			@FormDataParam("creationDate") String creationDate,
+			@FormDataParam("updationDate") String updationDate,
 			@FormDataParam("docTypeName") String docTypeName, 
 			@FormDataParam("docTypeId") long docTypeId, 
 			@FormDataParam("docTypeHexColorCode") String docTypeHexColorCode,
@@ -407,6 +1239,7 @@ public class DocumentRESTService extends BaseRESTService {
 			doc = new Document();
 			// set the creation timestamp
 			doc.setCreationTimestamp(creationDate);
+			doc.setUpdationTimestamp(updationDate);
 			// set the user data
 			user = userService.getUserByName(username);
 			doc.setOwner(user.getName());
@@ -527,7 +1360,7 @@ public class DocumentRESTService extends BaseRESTService {
 		
 		*/
 		
-		// get the spares version of the doc
+		// get the sparse version of the doc
 		Document newDoc  = null;
 		try {
 			newDoc = documentService.getDocumentById(responseDoc.getId()).get(0);
@@ -634,6 +1467,67 @@ public class DocumentRESTService extends BaseRESTService {
 		return Response.status(200).entity(binaryStream).header("Content-Disposition",contentDisposition).build();
 	}
 	
+	
+
+
+	@GET
+	@Path("/tracegpsexport")
+	@Produces("application/csv")
+	/**
+	 * Fetch a dump of gps data for the given trace
+	 * @param docID - the id of the document to fetch
+	 * @param recursive - a flag signifying if we also fetch all the attached and linked documents with this document.
+	 * @return - the list of matching documents (it will be a single doc).
+	 */
+	public Response fetchTraceDocumentGPSExportById(
+			@DefaultValue("0") @QueryParam("doc_id") long docID) {
+		
+		InputStream binaryStream=null;
+		String filename = "trace.gps." + DateUtility.simpleDateFormat(new Date(), DateUtility.FORMAT_DATE_AND_TIME) + ".csv";
+		ContentDisposition contentDisposition = ContentDisposition.type("attachment")
+			    .fileName(filename).creationDate(new Date()).build();
+		List<String[]> csvFormattedData = null;
+		
+		//
+		// Initialize service
+		documentService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+				csvFormattedData = documentService.generateTraceGPSData(docID);
+				// create FileWriter object with file as parameter 
+				ByteArrayOutputStream out = new ByteArrayOutputStream(); 
+				OutputStreamWriter streamWriter = new OutputStreamWriter(out);
+		  
+		        // create CSVWriter object filewriter object as parameter 
+		        CSVWriter writer = new CSVWriter(streamWriter);
+		        writer.writeAll(csvFormattedData);
+				
+				//string fullString = String.Join(String.Empty, list.ToArray());
+		        streamWriter.flush();
+
+		        out.toByteArray();
+				// pdfDoc.save("C:/PdfBox_Examples/my_doc.pdf");
+				
+				binaryStream =  new ByteArrayInputStream(out.toByteArray());
+				streamWriter.close();
+				
+				
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Docuemnt Trace GPS Data By ID: - " + e);
+		}
+		
+		
+		
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(binaryStream).header("Content-Disposition",contentDisposition).build();
+	}
+	
+
+	
 
 	
 	@GET
@@ -710,7 +1604,76 @@ public class DocumentRESTService extends BaseRESTService {
 		return Response.status(200).entity(RESTUtility.getJSON(allDocumentTypes)).build();
 	}
 	
+	@GET
+	@Path("/allscreenings")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Get the list of all the document types.
+	 * @param userName - the name of teh user requesting the list
+	 * @return - the list of document types
+	 */
+	public Response fetchAllScreenings(
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		// results
+		List<Screening> allScreenings=null;
+		
+		getLog().info("HEADER user-name: " + userName);
+		
+		//
+		// Initialize service
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			User user = userService.getUserByName(userName);
+			allScreenings = documentService.fetchScreenings(user.getId());
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Screenings: - " + e.getStackTrace());
+		}
+		
+		getLog().debug("FETCH ALL Screenings: - Result" + allScreenings);
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(allScreenings)).build();
+	}
 	
+	@GET
+	@Path("/allscreeningstotal")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Get the list of all the document types.
+	 * @param userName - the name of teh user requesting the list
+	 * @return - the list of document types
+	 */
+	public Response fetchAllScreeningsTotal(
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		// results
+		List<Screening> allScreenings=null;
+		
+		getLog().info("HEADER user-name: " + userName);
+		
+		//
+		// Initialize service
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			allScreenings = documentService.fetchAllScreenings();
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Screenings: - " + e.getStackTrace());
+		}
+		
+		getLog().debug("FETCH ALL Screenings: - Result" + allScreenings);
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(allScreenings)).build();
+	}
 
 	@GET
 	@Path("/page")
@@ -990,6 +1953,49 @@ public class DocumentRESTService extends BaseRESTService {
 		return Response.status(200).entity(RESTUtility.getJSON(allAttachedDocs)).build();
 	}
 	
+
+	@GET
+	@Path("/fetchrecipientsforuser")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Get attached documents by sync id
+	 * @param userName - the user requesting this
+	 * @param syncId - the sync id for the document
+	 * @return - the list of attached documents.
+	 */
+	public Response fetchRecipientsForUser(
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		// results
+		List<User> allRecipients=null;
+		User user = null;
+		
+		
+		getLog().info("HEADER user-name: " + userName);
+		
+		//
+		// Initialize service
+		documentService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			user = userService.getUserByName(userName);
+			allRecipients = documentService.fetchRecipientsForUser(user);
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Recipients for User: - " + e.getStackTrace());
+		}
+		
+		
+		getLog().debug("FETCH Recipients for User: - Result" + allRecipients);
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(allRecipients)).build();
+	}
+	
+	
+	
+	
 	@GET
 	@Path("/fetchrecipientsbydocumentsyncid")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -1213,6 +2219,7 @@ public class DocumentRESTService extends BaseRESTService {
 	@Produces(MediaType.APPLICATION_JSON)
 	/**
 	 * THis method will insert/update the profile image for the user
+	 * This is used by external client (like the iOS) to create pages individually through a form submission.
 	 * @param incomingData - the user data with the profile image to set
 	 * @return - Simple text response with success of the insertion
 	 */
@@ -1256,6 +2263,152 @@ public class DocumentRESTService extends BaseRESTService {
 
 		// return HTTP response 200 in case of success
 		return Response.status(Status.OK).entity(RESTUtility.getJSON(page)).build();
+	}
+	
+	@PUT
+	@Path("/pageimage")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * THis method will insert/update the profile image for the user
+	 * This is used by external client (like the iOS) to update pages individually through a form submission.
+	 * @param incomingData - the user data with the profile image to set
+	 * @return - Simple text response with success of the insertion
+	 */
+	public Response updateDocumentPage(
+			@FormDataParam("pageId") long pageId,
+			@FormDataParam("userName") String username,
+			@FormDataParam("sessionId") String sessionId,
+			@FormDataParam("pageNumber") int pageNumber) {
+		String result = "/document/pageimage com.wwf.shrimp.application [UPDATE PAGE IMAGE - SUCCESS]";
+		
+		DocumentPage page = new DocumentPage();
+
+		
+		//
+		// Initialize services
+		documentService.init();
+		
+		//
+		// Init page data
+		page.setPageNumber(pageNumber);
+		page.setId(pageId);
+		
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			long docId = documentService.getDocIdBySyncId(sessionId);
+			getLog().info("New Page Insertion Into Doc with ID: " + username + " " + docId);
+
+			page = documentService.updateDocumentPageFromFormData(page);
+
+			
+
+		} catch (Exception e) {
+			getLog().error("Error Updating Page data - " + e.getStackTrace());
+			
+		}
+
+		// return HTTP response 200 in case of success
+		return Response.status(Status.OK).entity(RESTUtility.getJSON(page)).build();
+	}
+	
+	@POST
+	@Path("/createnopages")
+	@Consumes(MediaType.APPLICATION_JSON)
+	/**
+	 * This method will create a new document in the database without any pages
+	 *  
+	 * @param incomingData - the incoming data will hold a JSON string representing
+	 * the instance of the Document entity with a DocumentPage embedded
+	 * @return the response which will contain either the OK response
+	 * or an error response.
+	 *     1. The PK of the generated document.
+	 *     2. Error String if there was an issue
+	 */
+	public Response createNoPages(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("false") @HeaderParam("sparse") boolean sparseFlag) {
+		
+		Document newDocument = null;
+		IdentifiableEntity id = null;
+		User user = new User();
+		User gestureUser = new User();
+		Status httpResponseStatus = Status.OK;
+		
+		//
+		// Extract the object to be written to the database:
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			// get the request reader ready 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData, StandardCharsets.UTF_8));
+			
+			//
+			// get the parser ready
+			Gson gson = new GsonBuilder()
+		            .setDateFormat("YYYY-MM-DD HH:MM:SS")
+		            .create();
+			
+			// parse the JSON input into the specific class
+			// newDocument = gson.fromJson(reader, Document.class);
+			getLog().info("Parsing the Document form JSON payload");
+			newDocument = gson.fromJson(reader, Document.class);
+			getLog().info("DONE - Parsing the Document form JSON payload");
+			getLog().info("DONE - Parsed Document: " + newDocument);
+			
+			//
+			// extract some data
+			user = userService.getUserByName(newDocument.getOwner());
+			gestureUser = userService.getUserByName(userName);
+			//
+			// Add user id to the data
+			newDocument.setOwnerId(user.getId());
+			
+			getLog().info("Creating new Document...");
+			newDocument = documentService.create(newDocument, false);
+			
+			id = new IdentifiableEntity();
+			id.setId(newDocument.getId());
+
+		} catch (Exception e) {
+			getLog().error("Error Creating a new document: - " + e);
+			httpResponseStatus = Status.INTERNAL_SERVER_ERROR;
+		}
+		
+	
+		// sparsify
+		if(sparseFlag == true && newDocument != null){
+			newDocument = DataSparseHelper.sparsify(newDocument);
+		}
+		
+		//
+		// Process any notification creation
+		
+		// get all the group members for this user to whom the notifications should be sent
+		if(newDocument != null){
+			try {
+				processDocumentNotifications(newDocument, gestureUser);
+				
+			}catch (Exception e) {
+				getLog().error("Error Creating notifications for Document-Creation: " + e);
+			}
+		}
+		
+
+		// return HTTP response 200 in case of success
+		return Response.status(httpResponseStatus).entity(RESTUtility.getJSON(newDocument)).build();
 	}
 	
 	@POST
@@ -1313,6 +2466,12 @@ public class DocumentRESTService extends BaseRESTService {
 			// extract some data
 			user = userService.getUserByName(newDocument.getOwner());
 			gestureUser = userService.getUserByName(userName);
+			//
+			// populate additional doc data
+			
+			//
+			// User
+			newDocument.setOwnerId(user.getId());
 			
 			newDocument = documentService.create(newDocument);
 			
@@ -1344,6 +2503,398 @@ public class DocumentRESTService extends BaseRESTService {
 
 		// return HTTP response 200 in case of success
 		return Response.status(httpResponseStatus).entity(RESTUtility.getJSON(newDocument)).build();
+	}
+	
+	
+	@POST
+	@Path("/createocrmatchdata")
+	@Consumes(MediaType.APPLICATION_JSON)
+	/**
+	 * This method will create a new document in the database
+	 *  
+	 * @param incomingData - the incoming data will hold a JSON string representing
+	 * the instance of the Document entity with a DocumentPage embedded
+	 * @return the response which will contain either the OK response
+	 * or an error response.
+	 *     1. The PK of the generated document.
+	 *     2. Error String if there was an issue
+	 */
+	public Response createOCRMatchData(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("false") @HeaderParam("sparse") boolean sparseFlag) {
+		
+		DocumentOCRMatchingData newOCRMatchDataItem = null;
+		IdentifiableEntity id = null;
+		Status httpResponseStatus = Status.OK;
+		
+		//
+		// Extract the object to be written to the database:
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			// get the request reader ready 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData, StandardCharsets.UTF_8));
+			
+			//
+			// get the parser ready
+			Gson gson = new GsonBuilder()
+		            .setDateFormat("YYYY-MM-DD HH:MM:SS")
+		            .create();
+			
+			// parse the JSON input into the specific class
+			// newDocument = gson.fromJson(reader, Document.class);
+			newOCRMatchDataItem = gson.fromJson(reader, DocumentOCRMatchingData.class);
+			System.out.println("New OCR Match Data Item Creation: " + newOCRMatchDataItem);
+			
+			//
+			// extract some data
+			
+			newOCRMatchDataItem = documentService.createDocumentOCRMatchingData(newOCRMatchDataItem);
+			
+			id = new IdentifiableEntity();
+			id.setId(newOCRMatchDataItem.getId());
+
+		} catch (Exception e) {
+			getLog().error("Error Creating a new OCR Match Data Item: - " + e);
+			httpResponseStatus = Status.INTERNAL_SERVER_ERROR;
+		}
+		
+
+		// return HTTP response 200 in case of success
+		return Response.status(httpResponseStatus).entity(RESTUtility.getJSON(newOCRMatchDataItem)).build();
+	}
+	
+	@PUT
+	@Path("/updateocrmatchdata")
+	@Consumes(MediaType.APPLICATION_JSON)
+	/**
+	 * This method will update an existing document in the database
+	 *  
+	 * @param incomingData - the incoming data will hold a JSON string representing
+	 * the instance of the Document entity with a DocumentPage embedded
+	 * @return the response which will contain either the OK response
+	 * or an error response.
+	 *     1. The PK of the generated document.
+	 *     2. Error String if there was an issue
+	 */
+	public Response updateOCRMatchData(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		
+		DocumentOCRMatchingData updatedOCRMatchDataItem = null;
+		
+		//
+		// Extract the object to be written to the database:
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			// get the request reader ready 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData, StandardCharsets.UTF_8));
+			
+			//
+			// get the parser ready
+			Gson gson = new GsonBuilder()
+		            .setDateFormat("YYYY-MM-DD HH:MM:SS")
+		            .create();
+			
+			// parse the JSON input into the specific class
+			// newDocument = gson.fromJson(reader, Document.class);
+			updatedOCRMatchDataItem = gson.fromJson(reader, DocumentOCRMatchingData.class);
+			
+			//
+			// process the request
+			
+			// create a new doc type
+			updatedOCRMatchDataItem = documentService.updateDocumentOCRMatchingData(updatedOCRMatchDataItem);
+
+
+		} catch (Exception e) {
+			getLog().error("Error Updating an existing OCR match type type: - " + e);
+		}
+		
+
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(updatedOCRMatchDataItem)).build();
+	}
+	
+	@GET
+	@Path("/allocrmatchdata")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Get the list of all the document types.
+	 * @param userName - the name of teh user requesting the list
+	 * @return - the list of document types
+	 */
+	public Response fetchAllOCRMatchData(
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		// results
+		List<DocumentOCRMatchingData> allOCRMatchData=null;
+		
+		getLog().info("HEADER user-name: " + userName);
+		
+		//
+		// Initialize service
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			allOCRMatchData = documentService.getDocumentOCRMatchingDataList();
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching OCR Match Data List: - " + e.getStackTrace());
+		}
+		
+		getLog().debug("FETCH ALL OCR Match Data: - Result" + allOCRMatchData);
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(allOCRMatchData)).build();
+	}
+	
+	@DELETE
+	@Path("/delete/ocrmatchdata/{id}")
+	@Produces(MediaType.TEXT_PLAIN)
+	/**
+	 * This will mark a document as deleted
+	 * @param userName - the user requesting the operation
+	 * @param documentId - the id of the document to delete
+	 * @return - request response
+	 */
+	public Response deleteOCRMatchData(
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@PathParam("id") long ocrMatchDataItemId) {
+		
+		String result = "Delete of OCR Match Data with id= " + ocrMatchDataItemId 
+							+ " <SUCCESS>";
+		
+		//
+		// Initialize service
+		documentService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+		
+			documentService.deleteDocumentOCRMatchingData(ocrMatchDataItemId);
+
+		} catch (Exception e) {
+			getLog().error("Error Deleting OCR Match Data with - " + e.getStackTrace());
+		}
+		
+		System.out.println("DELETE OCR Match Data with id=" + ocrMatchDataItemId);
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(result).build();
+	}
+	
+	
+	
+	
+	
+	
+	@POST
+	@Path("/createfielddefinition")
+	@Consumes(MediaType.APPLICATION_JSON)
+	/**
+	 * This method will create a new document in the database
+	 *  
+	 * @param incomingData - the incoming data will hold a JSON string representing
+	 * the instance of the Document entity with a DocumentPage embedded
+	 * @return the response which will contain either the OK response
+	 * or an error response.
+	 *     1. The PK of the generated document.
+	 *     2. Error String if there was an issue
+	 */
+	public Response createFieldDefinition(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		
+		DynamicFieldDefinition newDefinition = null;
+		IdentifiableEntity id = null;
+		
+		//
+		// Extract the object to be written to the database:
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			// get the request reader ready 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData, StandardCharsets.UTF_8));
+			
+			//
+			// get the parser ready
+			Gson gson = new GsonBuilder()
+		            .setDateFormat("YYYY-MM-DD HH:MM:SS")
+		            .create();
+			
+			// parse the JSON input into the specific class
+			// newDocument = gson.fromJson(reader, Document.class);
+			newDefinition = gson.fromJson(reader, DynamicFieldDefinition.class);
+			
+			//
+			// process the request
+			
+			// create a new doc type
+			newDefinition = documentService.createDynamicFieldDefinition(newDefinition);
+			
+			id = new IdentifiableEntity();
+			id.setId(newDefinition.getId());
+
+		} catch (Exception e) {
+			getLog().error("Error Creating a new field defintion: - " + e);
+		}
+		
+
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(newDefinition)).build();
+	}
+	
+	
+	@POST
+	@Path("/createscreening")
+	@Consumes(MediaType.APPLICATION_JSON)
+	/**
+	 * This method will create a new document in the database
+	 *  
+	 * @param incomingData - the incoming data will hold a JSON string representing
+	 * the instance of the Document entity with a DocumentPage embedded
+	 * @return the response which will contain either the OK response
+	 * or an error response.
+	 *     1. The PK of the generated document.
+	 *     2. Error String if there was an issue
+	 */
+	public Response createScreening(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		
+		Screening newScreening = null;
+		IdentifiableEntity id = null;
+		
+		//
+		// Extract the object to be written to the database:
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			// get the request reader ready 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData, StandardCharsets.UTF_8));
+			
+			//
+			// get the parser ready
+			Gson gson = new GsonBuilder()
+		            .setDateFormat("YYYY-MM-DD HH:MM:SS")
+		            .create();
+			
+			// parse the JSON input into the specific class
+			// newDocument = gson.fromJson(reader, Document.class);
+			newScreening = gson.fromJson(reader, Screening.class);
+			User user = userService.getUserByName(userName);
+			
+			//
+			// process the request
+			
+			// create a new doc type
+			newScreening = documentService.createScreening(newScreening, user.getId());
+			
+			id = new IdentifiableEntity();
+			id.setId(newScreening.getId());
+
+		} catch (Exception e) {
+			getLog().error("Error Creating a new screening: - " + e);
+		}
+		
+
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(newScreening)).build();
+	}
+	
+
+	@PUT
+	@Path("/updatefielddefinition")
+	@Consumes(MediaType.APPLICATION_JSON)
+	/**
+	 * This method will create a new document in the database
+	 *  
+	 * @param incomingData - the incoming data will hold a JSON string representing
+	 * the instance of the Document entity with a DocumentPage embedded
+	 * @return the response which will contain either the OK response
+	 * or an error response.
+	 *     1. The PK of the generated document.
+	 *     2. Error String if there was an issue
+	 */
+	public Response updateFieldDefinition(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		
+		DynamicFieldDefinition newDefinition = null;
+		IdentifiableEntity id = null;
+		
+		//
+		// Extract the object to be written to the database:
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			// get the request reader ready 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData, StandardCharsets.UTF_8));
+			
+			//
+			// get the parser ready
+			Gson gson = new GsonBuilder()
+		            .setDateFormat("YYYY-MM-DD HH:MM:SS")
+		            .create();
+			
+			// parse the JSON input into the specific class
+			// newDocument = gson.fromJson(reader, Document.class);
+			newDefinition = gson.fromJson(reader, DynamicFieldDefinition.class);
+			
+			//
+			// process the request
+			
+			// create a new doc type
+			documentService.updateDynamicFieldDefinition(newDefinition);
+
+		} catch (Exception e) {
+			getLog().error("Error Creating a new field defintion: - " + e);
+		}
+		
+
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(newDefinition)).build();
 	}
 	
 	
@@ -1411,6 +2962,69 @@ public class DocumentRESTService extends BaseRESTService {
 		return Response.status(200).entity(RESTUtility.getJSON(newDocumentType)).build();
 	}
 	
+
+	
+	@PUT
+	@Path("/updatedoctype")
+	@Consumes(MediaType.APPLICATION_JSON)
+	/**
+	 * This method will update an existing document in the database
+	 *  
+	 * @param incomingData - the incoming data will hold a JSON string representing
+	 * the instance of the Document entity with a DocumentPage embedded
+	 * @return the response which will contain either the OK response
+	 * or an error response.
+	 *     1. The PK of the generated document.
+	 *     2. Error String if there was an issue
+	 */
+	public Response updateDocType(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		
+		DocumentType updatedDocumentType = null;
+		
+		//
+		// Extract the object to be written to the database:
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			// get the request reader ready 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData, StandardCharsets.UTF_8));
+			
+			//
+			// get the parser ready
+			Gson gson = new GsonBuilder()
+		            .setDateFormat("YYYY-MM-DD HH:MM:SS")
+		            .create();
+			
+			// parse the JSON input into the specific class
+			// newDocument = gson.fromJson(reader, Document.class);
+			updatedDocumentType = gson.fromJson(reader, DocumentType.class);
+			
+			//
+			// process the request
+			
+			// create a new doc type
+			updatedDocumentType = documentService.updateDocType(updatedDocumentType);
+
+
+		} catch (Exception e) {
+			getLog().error("Error Updating an existing document type: - " + e);
+		}
+		
+
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(RESTUtility.getJSON(updatedDocumentType)).build();
+	}
+	
+	
 	
 	
 	@POST
@@ -1471,6 +3085,93 @@ public class DocumentRESTService extends BaseRESTService {
 			gestureUser = userService.getUserByName(userName);
 			
 			newDocument = documentService.update(newDocument);
+
+		} catch (Exception e) {
+			getLog().error("Error Updating a document: - " + e);
+			httpResponseStatus = Status.INTERNAL_SERVER_ERROR;
+		}
+		
+	
+		// sparsify
+		if(sparseFlag == true){
+			newDocument = DataSparseHelper.sparsify(newDocument);
+		}
+		
+		//
+		// Process any notification update
+		
+		try {
+			processDocumentNotifications(newDocument, gestureUser);
+			
+		}catch (Exception e) {
+			getLog().error("Error Creating notifications for Document-Creation: " + e);
+		}
+		
+
+		// return HTTP response 200 in case of success
+		return Response.status(httpResponseStatus).entity(RESTUtility.getJSON(newDocument)).build();
+
+		
+	}
+	
+	@POST
+	@Path("/updatenopages")
+	@Consumes(MediaType.APPLICATION_JSON)
+	/**
+	 * This method will update an existing document in the database
+	 *  
+	 * @param incomingData - the incoming data will hold a JSON string representing
+	 * the instance of the Document entity with a DocumentPage embedded
+	 * @return the response which will contain either the OK response
+	 * or an error response.
+	 *     1. The PK of the generated document.
+	 *     2. Error String if there was an issue
+	 */
+	public Response updateNoPages(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("false") @HeaderParam("sparse") boolean sparseFlag) {
+		
+		Document newDocument = null;
+		IdentifiableEntity id = null;
+		User user = new User();
+		User gestureUser = new User();
+		AuditEntity newAuditEntity = new AuditEntity();
+		Status httpResponseStatus = Status.OK;
+		
+		//
+		// Extract the object to be written to the database:
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			// get the request reader ready 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData, StandardCharsets.UTF_8));
+			
+			//
+			// get the parser ready
+			Gson gson = new GsonBuilder()
+		            .setDateFormat("YYYY-MM-DD HH:MM:SS")
+		            .create();
+			
+			// parse the JSON input into the specific class
+			// newDocument = gson.fromJson(reader, Document.class);
+			newDocument = gson.fromJson(reader, Document.class);
+			System.out.println(newDocument.getCreationTimestamp());
+			System.out.println("Document Updation: " + newDocument);
+			
+			//
+			// extract some data
+			user = userService.getUserByName(newDocument.getOwner());
+			gestureUser = userService.getUserByName(userName);
+			
+			newDocument = documentService.update(newDocument, false);
 
 		} catch (Exception e) {
 			getLog().error("Error Updating a document: - " + e);
@@ -1656,6 +3357,43 @@ public class DocumentRESTService extends BaseRESTService {
 		return Response.status(200).entity(result).build();
 	}
 	
+	@DELETE
+	@Path("/delete/dynamicfielddefinition/{id}")
+	@Produces(MediaType.TEXT_PLAIN)
+	/**
+	 * This will mark a document as deleted
+	 * @param userName - the user requesting the operation
+	 * @param documentId - the id of the document to delete
+	 * @return - request response
+	 */
+	public Response deleteDynamicFieldDefinition(
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@PathParam("id") long dynamicFieldDefinitionId) {
+		
+		String result = "Delete of dynamic field definition id= " + dynamicFieldDefinitionId 
+							+ " <SUCCESS>";
+		
+		//
+		// Initialize service
+		documentService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+		
+			documentService.deleteDynamicFieldDefinition(dynamicFieldDefinitionId);
+
+		} catch (Exception e) {
+			getLog().error("Error Deleting Dynamic Field Definition - " + e.getStackTrace());
+		}
+		
+		System.out.println("DELETE dynamic field definition with id=" + dynamicFieldDefinitionId);
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity(result).build();
+	}
+	
+	
 	@POST
 	@Path("/markread")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -1727,6 +3465,7 @@ public class DocumentRESTService extends BaseRESTService {
 	public Response setStatus(
 			@DefaultValue("0") @QueryParam("doc_id") String docSessionID,
 			@DefaultValue("") @QueryParam("user_name") String userName,
+			@DefaultValue("") @QueryParam("action_timestamp") String actionTimestamp,
 			@DefaultValue("") @QueryParam("doc_status") String status
 			) {
 		
@@ -1764,7 +3503,12 @@ public class DocumentRESTService extends BaseRESTService {
 		 * Process the request
 		 */
 		try {
-			currDoc = documentService.updateDocumentStatus(status, docSessionID, userName);
+			if(actionTimestamp.contentEquals("")) {
+				currDoc = documentService.updateDocumentStatus(status, docSessionID, userName);
+			} else {
+				currDoc = documentService.updateDocumentStatus(status, docSessionID, userName, actionTimestamp);
+			}
+			
 
 		} catch (Exception e) {
 			getLog().error("Error setting document status: - " + e.getStackTrace());
@@ -1784,7 +3528,7 @@ public class DocumentRESTService extends BaseRESTService {
 		
 
 		// return HTTP response 200 in case of success
-		return Response.status(200).entity(RESTUtility.getJSON("Status Set")).build();
+		return Response.status(200).entity(RESTUtility.getJSON(currDoc.getUpdationServerTimestamp())).build();
 	}
 	
 	@POST
@@ -2017,6 +3761,46 @@ public class DocumentRESTService extends BaseRESTService {
 		getLog().debug("FETCH ALL: - Result" + allDocuments);
 				// return HTTP response 200 in case of success
 		return Response.status(200).entity(RESTUtility.getJSON(allDocuments)).build();
+	}
+	
+	@GET
+	@Path("/fetchallfielddefinitions")
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Fetch all the dynamic field definitions accessible to this user
+	 * @param userName - the user who is asking for these definitions
+	 * @return - all the dynamic field definitions that this user has access to
+	 */
+	public Response fetchAllFieldDefinitions(
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		// results
+		List<DynamicFieldDefinition> allDynamicFieldDefinitions = new ArrayList<DynamicFieldDefinition>();
+		User user = null;
+		
+		Status httpResponseStatus = Status.OK;
+		
+		getLog().info("HEADER user-name: " + userName);
+		
+		//
+		// Initialize services
+		documentService.init();
+		userService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			user = userService.getUserByName(userName);
+			allDynamicFieldDefinitions = documentService.getDynamicFieldDefinitionsByOrgId(user.getUserOrganizations().get(0).getId());
+
+		} catch (Exception e) {
+			getLog().error("Error Fetching Dynamic Field Definitions: - " + e);
+			httpResponseStatus = Status.NOT_FOUND;
+		}
+		
+		getLog().debug("FETCH ALL: - Result" + allDynamicFieldDefinitions);
+				// return HTTP response 200 in case of success
+		return Response.status(httpResponseStatus).entity(RESTUtility.getJSON(allDynamicFieldDefinitions)).build();
 	}
 	
 	

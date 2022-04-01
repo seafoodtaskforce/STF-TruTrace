@@ -50,6 +50,7 @@ public class SecurityInterceptingFilter implements ContainerRequestFilter {
     @Override
     public ContainerRequest filter(ContainerRequest request) {
     	boolean checkTokenHeader = true;
+    	String userName;
     	
     	//
     	// extract configuration data first
@@ -59,17 +60,64 @@ public class SecurityInterceptingFilter implements ContainerRequestFilter {
     	// log the entry data
     	//
     	log.info("<Security Filter Intercept>");
+    	
+    	
+    	if( isActiveField(request.getRequestHeaders().get("user-name"))){
+    		// replace the value
+    		userName = request.getRequestHeaders().get("user-name").get(0).toLowerCase();
+    		log.info("Header <exists> user-name: " + request.getRequestHeaders().get("user-name").get(0));
+    		request.getRequestHeaders().remove("user-name");
+    		request.getRequestHeaders().add("user-name", userName);
+    		
+    	}
+    	if( isActiveField(request.getRequestHeaders().get("user_name"))){
+    		// replace the value
+    		userName = request.getRequestHeaders().get("user_name").get(0).toLowerCase();
+    		log.info("Header <exists> user_name: " + request.getRequestHeaders().get("user_name").get(0));
+    		request.getRequestHeaders().remove("user_name");
+    		request.getRequestHeaders().add("user_name", userName);
+    	}
+    	if( isActiveField(request.getQueryParameters().get("user-name"))){
+    		// replace the value
+    		userName = request.getQueryParameters().get("user-name").get(0).toLowerCase();
+    		log.info("Parameters <exists> user-name: " + request.getQueryParameters().get("user-name").get(0));
+    		request.getQueryParameters().remove("user-name");
+    		request.getQueryParameters().add("user-name", userName);
+    	}
+    	if( isActiveField(request.getQueryParameters().get("user_name"))){
+    		// replace the value
+    		userName = request.getQueryParameters().get("user_name").get(0).toLowerCase();
+    		log.info("Parameters <exists> user_name: " + request.getQueryParameters().get("user_name").get(0));
+    		request.getQueryParameters().remove("user_name");
+    		request.getQueryParameters().add("user_name", userName);
+    	}
+    	
+
+    	
+
     	log.info("Verb " + request.getMethod());
     	log.info("Path " + request.getPath());
     	log.info("Parameters " + request.getQueryParameters());
-    	log.info("Headers " + request.getHeaderValue(OAuthParameters.AUTHORIZATION_HEADER));
+    	log.info("Headers " + request.getRequestHeaders());
+    	log.info("Auth Header " + request.getHeaderValue(OAuthParameters.AUTHORIZATION_HEADER));
     	log.info("Process Header Token? <" + checkTokenHeader + ">");
+    	
+    	
+    	//
+    	// Process username data
+    	log.info("Header user_name: " + request.getRequestHeaders().get("user-name"));
+    	log.info("Header user-name: " + request.getRequestHeaders().get("user_name"));
+    	log.info("Parameters user_name: " + request.getQueryParameters().get("user-name"));
+    	log.info("Parameters user-name: " + request.getQueryParameters().get("user_name"));
     	
     	// 
     	// Process Request Data
     	if(checkTokenHeader){
     		request = processHeader(request);
     	}
+    	
+
+    	
 
     	// Extract the underlying entity if it exists
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -219,5 +267,13 @@ public class SecurityInterceptingFilter implements ContainerRequestFilter {
     	return request;
     }
     	
+    
+    private boolean isActiveField(Object fieldValue) {
+    	if (fieldValue == null) {
+    		return false;
+    	}else{
+    		return true;
+    	}
+    }
 }
 

@@ -25,16 +25,23 @@ import javax.ws.rs.core.Response.Status;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataParam;
+import com.wwf.shrimp.application.exceptions.PersistenceException;
 import com.wwf.shrimp.application.models.Group;
 import com.wwf.shrimp.application.models.GroupType;
 import com.wwf.shrimp.application.models.Organization;
 import com.wwf.shrimp.application.models.OrganizationStage;
+import com.wwf.shrimp.application.models.RESTResponse;
+import com.wwf.shrimp.application.models.ResponseErrorData;
+import com.wwf.shrimp.application.models.ResponseMessageData;
 import com.wwf.shrimp.application.models.User;
 import com.wwf.shrimp.application.models.search.OrganizationSearchCriteria;
 import com.wwf.shrimp.application.models.search.UserSearchCriteria;
 import com.wwf.shrimp.application.services.main.BaseRESTService;
 import com.wwf.shrimp.application.services.main.dao.impl.mysql.OrganizationMySQLDao;
 import com.wwf.shrimp.application.services.main.dao.impl.mysql.UserMySQLDao;
+import com.wwf.shrimp.application.utils.CSVUtils;
 import com.wwf.shrimp.application.utils.RESTUtility;
 
 
@@ -106,6 +113,254 @@ public class OrganizationRESTService extends BaseRESTService {
 
 		// return HTTP response 200 in case of success
 		return Response.status(200).entity(RESTUtility.getJSON(newGroup)).build();
+	}
+	
+	@POST
+	@Path("/registergrouporganization")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * This method will create a new group organization in the database
+	 *  
+	 * @param incomingData - the incoming data will hold a JSON string representing
+	 * the instance of the group organization entity with all additional data embedded
+	 * @return the response which will contain either the OK response
+	 * or an error response.
+	 *     1. The PK of the generated user.
+	 *     2. Error String if there was an issue
+	 */
+	public Response registerOrganizationGroup(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("") @HeaderParam("stage-name") String stageName) {
+		
+		Group newGroup = null;
+		Status httpResponseStatus = Status.OK;
+		String responseMessage = "";
+		boolean failedFlag = false;
+		long orgId = -1;
+		
+		//
+		// Extract the object to be written to the database:
+		
+		//
+		// Initialize services
+		organizationService.init();
+		
+		//
+		// Initialize response
+		responseMessage = "Organization has been registered succesfully!";
+		httpResponseStatus = Status.OK;
+		responseMessage = RESTUtility.getJSON(responseMessage);
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			// get the request reader ready 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData, StandardCharsets.UTF_8));
+			
+			//
+			// get the parser ready
+			Gson gson = new GsonBuilder()
+		            .setDateFormat("YYYY-MM-DD HH:MM:SS")
+		            .create();
+			
+			// parse the JSON input into the specific class
+			// newDocument = gson.fromJson(reader, Document.class);
+			newGroup = gson.fromJson(reader, Group.class);
+			System.out.println(newGroup.getName());
+			System.out.println("New Group Organization Creation: " + newGroup);
+			
+			//
+			// get the org id for this stage and verify the stage name
+			List<OrganizationStage> stages = organizationService.getStageByName(stageName);
+			if(stages.size() == 0) {
+				orgId =  stages.get(0).getOrgID();
+				getLog().error("Registration Failed: The Provided Stage Name does not exist: - " + stageName);
+				responseMessage = "Registration Failed: The Provided Stage Name does not exist.";
+				httpResponseStatus = Status.ACCEPTED;
+				responseMessage = RESTUtility.getJSON(responseMessage);
+				failedFlag = true;
+			} 
+			//
+			// Check the email address availability
+			String emailAddress = newGroup.getEmailAddress();
+			if(!userService.isEmailUnique(emailAddress)){
+				getLog().error("Registration Failed: The Provideed Email Adddress must be unique in the system: - " + emailAddress);
+				responseMessage = "Registration Failed: The Provided Email Adddress already exists, must be unique in the system.";
+				httpResponseStatus = Status.ACCEPTED;
+				responseMessage = RESTUtility.getJSON(responseMessage);
+				failedFlag = true;
+			}
+			//
+			// Check if the Company Name Already Exists
+			String orgName = newGroup.getLegalBusinessName();
+			String orgBusinessNumber = newGroup.getBusinessIDNumber();
+			if(organizationService.doesOrganizationExist(orgName, orgBusinessNumber, orgId)){
+				getLog().error("Registration Failed: The Provideed Organization must be unique: - " + emailAddress);
+				responseMessage = "Registration Failed: The Organization must be unique in the system. Please check the Legal Name and/or the Busines ID.";
+				httpResponseStatus = Status.ACCEPTED;
+				responseMessage = RESTUtility.getJSON(responseMessage);
+				failedFlag = true;
+			}
+			
+			//
+			// Check GPS coordinates for 
+			
+			
+			if(!failedFlag) {
+				newGroup.setOrganizationId(orgId);
+				
+				//
+				// create the new organization with a user as wella
+				newGroup = userService.importOrgRegistration(newGroup,stages.get(0).getId(), orgId);
+			}
+			
+
+		} catch (Exception e) {
+			getLog().error("Error Creating a new organization group: - " + e);
+			responseMessage = "Registration Failed: There was a Server Error. Please try again.";
+			httpResponseStatus = Status.INTERNAL_SERVER_ERROR;
+			responseMessage = RESTUtility.getJSON(responseMessage);
+			failedFlag = true;
+		}
+
+		// return HTTP response 200 in case of success
+		getLog().info("Org Manual Registration: - " + "Success");
+		
+		return Response.status(httpResponseStatus).entity(responseMessage).build();
+
+	}
+	
+	@POST
+	@Path("/batchorgupload")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	/**
+	 * Returns text response to caller containing uploaded file location
+	 * 
+	 * @return error response in case of missing parameters an internal
+	 *         exception or success response if file has been stored
+	 *         successfully
+	 */
+	public Response uploadOrgBatchFile(
+			@FormDataParam("file") InputStream uploadedInputStream,
+			@FormDataParam("file") FormDataContentDisposition fileDetail,
+			@FormDataParam("userName") String username,
+			@FormDataParam("matrixName") String matrixName,
+			@FormDataParam("stageName") String stageName,
+			@FormDataParam("stageId") String stageId){
+		//
+		// Response to the caller
+		RESTResponse result = new RESTResponse();
+		
+		List<Group> batchOrgs=null;
+		byte [] bDocImportCSV = new byte [0];
+		Object verificationResponse = null;
+		
+		//
+		// check if all form parameters are provided
+		if (uploadedInputStream == null || fileDetail == null)
+			return Response.status(400).entity("Invalid form data").build();
+		
+		//
+		// initialize services
+		userService.init();
+		
+		//
+		// Get the CVS file in bytes
+		bDocImportCSV = CSVUtils.getCSVBytesFromInputStream(uploadedInputStream);
+		
+		//
+		// Verify that the file is legitimate
+		try {
+			verificationResponse = organizationService.verifyBatchOrgCSVFile(bDocImportCSV, username);
+		} catch (PersistenceException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		//
+		// Check if we will process the data
+		if(verificationResponse instanceof ResponseErrorData){
+			 result.getErrorData().add((ResponseErrorData)verificationResponse);
+			 
+		 } else {
+			 result.getMessageData().add((ResponseMessageData)verificationResponse);
+			 try {
+					//
+					// Parse the user records
+				 	batchOrgs = userService.importBatchOrgCSVFile(bDocImportCSV, username, stageId);
+					result.setData(batchOrgs);
+				} catch (PersistenceException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+			}
+		 }
+		 
+
+		getLog().info("Batch Processing if Org Input: - " + "Success");
+		return Response.status(200)
+				.entity(RESTUtility.getJSON(result)).build();
+	}
+
+	
+	@POST
+	@Path("/updategrouporganization")
+	@Consumes(MediaType.APPLICATION_JSON)
+	/**
+	 * This method will update an existing group organization in the database
+	 *  
+	 * @param incomingData - the incoming data will hold a JSON string representing
+	 * the instance of the group organization entity with all additional data embedded
+	 * @return the response which will contain either the OK response
+	 * or an error response.
+	 *     1. The PK of the generated user.
+	 *     2. Error String if there was an issue
+	 */
+	public Response update(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName) {
+		
+		Group updateGroup = null;
+		
+		//
+		// Extract the object to be written to the database:
+		
+		//
+		// Initialize services
+		organizationService.init();
+		
+		/**
+		 * Process the request
+		 */
+		try {
+			
+			// get the request reader ready 
+			BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData, StandardCharsets.UTF_8));
+			
+			//
+			// get the parser ready
+			Gson gson = new GsonBuilder()
+		            .setDateFormat("YYYY-MM-DD HH:MM:SS")
+		            .create();
+			
+			// parse the JSON input into the specific class
+			// newDocument = gson.fromJson(reader, Document.class);
+			updateGroup = gson.fromJson(reader, Group.class);
+			System.out.println(updateGroup.getName());
+			System.out.println("Existing Group Organization Update: " + updateGroup);
+			
+			//
+			// create the new user
+			organizationService.updateOrganizationGroup(updateGroup);
+
+		} catch (Exception e) {
+			getLog().error("Error Creating a new organization group: - " + e);
+		}
+
+		// return HTTP response 200 in case of success
+		return Response.status(200).entity("Update Succesful").build();
 	}
 
 	
@@ -536,12 +791,26 @@ public class OrganizationRESTService extends BaseRESTService {
 		
 			// get all the organizations
 			if(groupType.isEmpty()){
-				allGroupOrganizations = organizationService.getAllOrganizationGroups(user.getUserOrganizations().get(0).getId());
+				//
+				// get all groups with full support data (sparse flag is false
+				allGroupOrganizations = organizationService.getAllOrganizationGroups(user.getUserOrganizations().get(0).getId(), false);
 			}else{
 				allGroupOrganizations = organizationService.getAllOrganizationGroups(user.getUserOrganizations().get(0).getId(), groupType);
 			}
 			
+			//
+			// for each group get the org admins for the group
 
+	        	//
+	        	// get additional data for each group
+	        	for(int i=0; i<allGroupOrganizations.size(); i++){
+	        		//
+	        		// get user ids for each
+	        		List<User> users = userService.getOrgAdminsForGroup(allGroupOrganizations.get(i));
+	        		// 
+	        		// add to the group
+	        		allGroupOrganizations.get(i).setUsers(users);
+	        	}
 
 		} catch (Exception e) {
 			getLog().error("Error Fetching Group Organizations: - " + e);

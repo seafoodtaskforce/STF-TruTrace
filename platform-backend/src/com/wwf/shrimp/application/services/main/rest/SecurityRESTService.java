@@ -4,8 +4,12 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -21,6 +25,7 @@ import com.wwf.shrimp.application.services.main.BaseRESTService;
 import com.wwf.shrimp.application.services.main.SecurityService;
 import com.wwf.shrimp.application.services.main.impl.TokenBasedSecurityService;
 import com.wwf.shrimp.application.utils.RESTUtility;
+import com.wwf.shrimp.application.utils.SingletonMapGlobal;
 
 /**
  * General security RESTful service which will have the functionality for authentication
@@ -33,11 +38,13 @@ import com.wwf.shrimp.application.utils.RESTUtility;
 @Path("/security")
 public class SecurityRESTService extends BaseRESTService {
 	
-	public final static int TOKEN_EXPIRY_INTERVAL_SECONDS = 3600;
-	
 	//
 	// Token based security service
 	private SecurityService securityService =  new TokenBasedSecurityService();
+	//
+	// Diagnostics
+	private SingletonMapGlobal DIAGNOSTIC_MAP = SingletonMapGlobal.getInstance();
+	
 		
 	@POST
 	@Path("/authenticate")
@@ -53,12 +60,24 @@ public class SecurityRESTService extends BaseRESTService {
 	 *     1. SecurityToken - if no issues
 	 *     2. Error String if there was an issue
 	 */
-	public Response authenticate(InputStream incomingData) {
-
+	public Response authenticate(InputStream incomingData,
+			@DefaultValue("") @HeaderParam("user-name") String userName,
+			@DefaultValue("") @HeaderParam("origin") String origin,
+			@DefaultValue("") @HeaderParam("device-id") String deviceID) {
+		
+		
+		// final String DIAGNOSTIC_KEY = "SecurityRESTService.authenticate";
+		final String DIAGNOSTIC_KEY =  DIAGNOSTIC_MAP.getDiagnosticKey();
 		PasswordCredentials credentials = null;
 		User user=null;
 		Status httpResponseStatus = null;
 		String responseMessage=null;
+		List<String> diagnostics = new ArrayList<String>();
+		DIAGNOSTIC_MAP.clearDiagnostics(DIAGNOSTIC_KEY);
+		
+		DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY, "<REST><Info> <IP Address>: - " + DIAGNOSTIC_MAP.getIPAddress());
+		DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY, "<REST><Info> <External IP ADdress>: - " + DIAGNOSTIC_MAP.getExternalIP());
+		DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY, "<REST><Info> <Host>: - " + DIAGNOSTIC_MAP.getIPAddressHost());
 		
 				
 		/**
@@ -74,6 +93,7 @@ public class SecurityRESTService extends BaseRESTService {
 			// parse the JSON input into the specific class
 			credentials = gson.fromJson(reader, PasswordCredentials.class);
 			getLog().info("Credentials from client: - " + credentials.toString());
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY, "<REST><Info> Credentials from client: - " + credentials.toString());
 			
 			//
 			// Test that the user indeed exists in the database
@@ -87,23 +107,45 @@ public class SecurityRESTService extends BaseRESTService {
 				httpResponseStatus = Status.UNAUTHORIZED;
 				responseMessage = "Wrong credentials.";
 				user = initBlankUser((UserCredentials) credentials);
+				DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+						, "<REST><Error> User is *NOT* authenticated (not found): - " + credentials.getUsername());
 				
 			}else if(user.getCredentials().getToken() == null){
 				getLog().info("User is *NOT* authenticated (bad credentials): - " + credentials.getUsername());
 				httpResponseStatus = Status.UNAUTHORIZED;
 				responseMessage = "Wrong credentials.";
 				user = initBlankUser((UserCredentials) credentials);
+				DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+						, "<REST><Error> User is *NOT* authenticated (bad credentials): - " + credentials.getUsername());
+								
+			}else if(!user.getContactInfo().isActivated() || !user.getContactInfo().isVerified() ) {
+				getLog().info("User is NOT activated/verified: - " + credentials.getUsername());
+				httpResponseStatus = Status.UNAUTHORIZED;
+				responseMessage = "Not activated/verified";
+				DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+						, "<REST><Error> User is *NOT* authenticated (verification/activation failure): - " + credentials.getUsername());
 				
 			}else{
-				getLog().info("User is authenticated: - " + user.toString());
+				getLog().info("User is authenticated: - " + credentials.getUsername());
 				httpResponseStatus = Status.OK;
 				responseMessage = "Ok";
+				DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+						, "<REST><Info> User is authenticated: - " + credentials.getUsername());
 				
 			}
+			
 
 		} catch (Exception e) {
 			getLog().error("Error Parsing: - " + e);
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<REST><Error> Error Parsing: - " + e.getMessage());
 		}
+		
+		//
+		// Add diagnostics
+		diagnostics = DIAGNOSTIC_MAP.getDiagnostics(DIAGNOSTIC_KEY);
+		user.getDiagnostic().addAll(0,diagnostics);
+		DIAGNOSTIC_MAP.clearDiagnostics(DIAGNOSTIC_KEY);
 
 		
 		// return HTTP response 200 in case of success
@@ -181,6 +223,7 @@ public class SecurityRESTService extends BaseRESTService {
 		User user = new User();
 		user.getCredentials().setRequestOrigin(credentials.getRequestOrigin());
 		user.getCredentials().setUsername(credentials.getUsername());
+		user.setDiagnostic(new ArrayList<String>());
 		
 		return user;
 		
