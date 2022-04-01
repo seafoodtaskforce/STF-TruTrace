@@ -167,9 +167,21 @@
 		<dependency>
     		<groupId>com.github.vandeseer</groupId>
     		<artifactId>easytable</artifactId>
-    		<version>0.6.0</version>
+    		<version>0.8.4</version>
 		</dependency>
-
 		
+		<!--  CVS API -->
+		<dependency> 
+		    <groupId>com.opencsv</groupId> 
+		    <artifactId>opencsv</artifactId> 
+		    <version>4.1</version> 
+		</dependency>
+		
+		<!-- JAVA MAIL -->
+		 <dependency>
+	        <groupId>com.sun.mail</groupId>
+	        <artifactId>javax.mail</artifactId>
+	        <version>1.6.2</version>
+   		 </dependency>
 	</dependencies>
 </project>
