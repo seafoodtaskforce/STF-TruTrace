@@ -1,6 +1,8 @@
 package com.wwf.shrimp.application.utils;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.text.DecimalFormat;
 
 public class FileUtils {
@@ -25,6 +27,20 @@ public class FileUtils {
     public static String fileSize(File file) {
 
         return FileUtils.readableFileSize(file.length());
+    }
+    
+    public static String getWebInfPath(String filename, Object caller) throws UnsupportedEncodingException {
+    	String path = caller.getClass().getClassLoader().getResource("").getPath();
+    	String fullPath = URLDecoder.decode(path, "UTF-8");
+    	String pathArr[] = fullPath.split("/WEB-INF/classes/");
+    	System.out.println(fullPath);
+    	System.out.println(pathArr[0]);
+    	fullPath = pathArr[0];
+
+    	String reponsePath = "";
+    	// to read a file from webcontent
+    	reponsePath = new File(fullPath).getPath() + File.separatorChar + filename;
+    	return reponsePath;
     }
 
 }

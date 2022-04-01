@@ -14,10 +14,12 @@ public class DateUtility {
 	
 	public static int FORMAT_DATE_ONLY = 11;
 	public static int FORMAT_DATE_AND_TIME = 13;
+	public static int FORMAT_DATE_SHORT = 15;
 	
     public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String DATE_ONLY_FORMAT = "yyyy-MM-dd";
     public static final String DATE_FORMAT_FORMALIZED = "dd/MM/yy HH:mm";
+    public static final String DATE_FORMAT_FORMALIZED_SHORT = "dd/MM/yyyy";
 	
 	
 	/**
@@ -35,6 +37,8 @@ public class DateUtility {
 			formatter = new SimpleDateFormat(DATE_ONLY_FORMAT);	
 		}else if(formatOption == FORMAT_DATE_AND_TIME){
 			formatter = new SimpleDateFormat(DATE_FORMAT);
+		}else if(formatOption == FORMAT_DATE_SHORT){
+			formatter = new SimpleDateFormat(DATE_FORMAT_FORMALIZED_SHORT);
 		}
 		
 		result = formatter.format(date);
@@ -58,6 +62,8 @@ public class DateUtility {
 			formatter = new SimpleDateFormat(DATE_ONLY_FORMAT);	
 		}else if(formatOption == FORMAT_DATE_AND_TIME){
 			formatter = new SimpleDateFormat(DATE_FORMAT);
+		}else if(formatOption == FORMAT_DATE_AND_TIME){
+			formatter = new SimpleDateFormat(DATE_FORMAT);
 		}
 		
 		try {
@@ -69,6 +75,22 @@ public class DateUtility {
 		
 		return result;
 	}
+	
+	/**
+	 * Format the date to a simple format as a string
+	 * 
+	 * @param date - the date to be formatted
+	 * @return - the formatted date
+	 */
+	public static String extractDateOnlyFromString(String date){
+		String result;
+		
+		String[] splitResult = date.split(" ");
+		result = splitResult[0];
+		
+		return result;
+	}
+	
 	
 	/**
 	 *  a full date with "/" used as date element separators into a simplified date 

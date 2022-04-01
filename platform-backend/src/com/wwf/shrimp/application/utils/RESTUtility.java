@@ -16,6 +16,8 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.wwf.shrimp.application.services.main.ConfigurationService;
+import com.wwf.shrimp.application.services.main.impl.PropertyConfigurationService;
 
 /**
  * REST helper methods specific to JSON related functionalities
