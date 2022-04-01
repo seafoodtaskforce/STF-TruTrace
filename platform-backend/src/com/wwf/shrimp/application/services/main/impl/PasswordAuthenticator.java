@@ -10,7 +10,10 @@ import com.wwf.shrimp.application.models.User;
 import com.wwf.shrimp.application.models.UserCredentials;
 import com.wwf.shrimp.application.models.search.UserSearchCriteria;
 import com.wwf.shrimp.application.services.main.Authenticator;
+import com.wwf.shrimp.application.services.main.ConfigurationService;
 import com.wwf.shrimp.application.services.main.dao.impl.mysql.UserMySQLDao;
+import com.wwf.shrimp.application.utils.HashingUtils;
+import com.wwf.shrimp.application.utils.SingletonMapGlobal;
 
 /**
  * Simple password authenticator based on username and password pair
@@ -19,6 +22,13 @@ import com.wwf.shrimp.application.services.main.dao.impl.mysql.UserMySQLDao;
  *
  */
 public class PasswordAuthenticator implements Authenticator {
+	
+	// Configuration Service
+    ConfigurationService configService = new PropertyConfigurationService();
+	//
+	// Diagnostics
+	private SingletonMapGlobal DIAGNOSTIC_MAP = SingletonMapGlobal.getInstance();
+	
 
 	
 	@Override
@@ -32,12 +42,20 @@ public class PasswordAuthenticator implements Authenticator {
 		PasswordCredentials passwordCredentials = null;
 		String userPassword = null;
 		UserMySQLDao<User, UserSearchCriteria> userService = new UserMySQLDao<User, UserSearchCriteria>();
+		final String DIAGNOSTIC_KEY =  DIAGNOSTIC_MAP.getDiagnosticKey();
+		
+		DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+				, "<BACK-Password><Info> Using Password Authenticator");
 		
 		//
 		// Check the type of credentials
 		if(PasswordCredentials.class.isInstance( credentials )){
 			// cast the credentials
 			passwordCredentials = (PasswordCredentials) credentials;
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<BACK-Password><Info> Using Password Authenticator <verified>");
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<BACK-Password><Info> Using Password Authenticator <verified>: " + passwordCredentials);
 			
 			//
 			// process the actual data
@@ -46,6 +64,9 @@ public class PasswordAuthenticator implements Authenticator {
 			if((passwordCredentials.getPassword() == null 
 					|| passwordCredentials.getPassword().isEmpty())
 					&& passwordCredentials.getToken() == null){
+				DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+						, "<BACK-Password><Error> Credentials are is missing. Expecting Credentials for " 
+						+ credentials.getUsername());
 				throw new AuthenticationException(
 						"Credentials are is missing. Expecting Credentials for " 
 						+ credentials.getUsername());
@@ -56,6 +77,10 @@ public class PasswordAuthenticator implements Authenticator {
 			 */
 			if(passwordCredentials.getPassword() != null 
 					&& !passwordCredentials.getPassword().isEmpty()){
+				
+				DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+						, "<BACK-Password><Info> Looking for <password match> for user: " 
+						+ credentials.getUsername());
 				//
 				// check if the user and password matches
 				userService.init();
@@ -65,14 +90,33 @@ public class PasswordAuthenticator implements Authenticator {
 					userPassword = userService.fetchUserPassword(credentials.getUsername());
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
+					DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+							, "<BACK-Password><ERROR> Exception when Looking for <password match> " 
+							+ e.getMessage());
 					throw new AuthenticationException(
 							"User password failed for user " 
 							+ credentials.getUsername(), 
 							e);
 				}
-				if(passwordCredentials.getPassword().equals(userPassword)){
-					result = true;
-					return result;
+				
+				//
+				// are we hashing the passwords
+				this.configService.open();
+				if(Boolean.parseBoolean(this.configService.readConfigurationProperty("security.psw.hash"))){
+					DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+							, "<BACK-Password><Info> Password is *IS* Hashed ");
+					String hashedPassword = HashingUtils.hashStringOneWay(passwordCredentials.getPassword());
+					if(hashedPassword.equals(userPassword)){
+						result = true;
+						return result;
+					}
+				}else{
+					DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+							, "<BACK-Password><Info> Password *NOT* Hashed ");
+					if(passwordCredentials.getPassword().equals(userPassword)){
+						result = true;
+						return result;
+					}
 				}
 			}
 			/**
@@ -82,17 +126,25 @@ public class PasswordAuthenticator implements Authenticator {
 				//
 				// compare the token provided to the one stored for the user
 				try {
+					DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+							, "<BACK-Password><Info> Looking for <token> for user: " 
+							+ credentials.getUsername());
 					List<UserCredentials> tokens = userService.fetchUserTokens(passwordCredentials.getUsername());
 					Iterator<UserCredentials> iter = tokens.iterator();
 					while(iter.hasNext()){
 						UserCredentials token = iter.next();
-						if(token.equals(passwordCredentials.getToken())){
+						if(token.getToken().getTokenValue().equals(passwordCredentials.getToken().getTokenValue())){
 							result = true;
 							return result;
 						}
 					}
+					DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+							, "<BACK-Password><Info> <token> was *NOT* found for user: " 
+							+ credentials.getUsername());
 				} catch (PersistenceException e) {
 					// TODO Auto-generated catch block
+					DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+							, "<BACK-Password><ERROR> exception thrown: " + e.getMessage());
 					e.printStackTrace();
 				}
 			}
@@ -100,6 +152,9 @@ public class PasswordAuthenticator implements Authenticator {
 		//
 		// Wrong type of credentials provided
 		}else{
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<BACK-Password><ERROR> exception thrown: Incorrect type of credentials. Expecting PasswordCredentials for " 
+							+ credentials.getUsername());
 			throw new AuthenticationException(
 					"Incorrect type of credentials. Expecting PasswordCredentials for " 
 					+ credentials.getUsername());

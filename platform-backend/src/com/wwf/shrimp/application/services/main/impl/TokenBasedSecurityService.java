@@ -1,5 +1,6 @@
 package com.wwf.shrimp.application.services.main.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -9,18 +10,23 @@ import com.wwf.shrimp.application.exceptions.AuthenticationException;
 import com.wwf.shrimp.application.exceptions.PersistenceException;
 import com.wwf.shrimp.application.exceptions.ServiceManagementException;
 import com.wwf.shrimp.application.models.AppResource;
+import com.wwf.shrimp.application.models.Document;
+import com.wwf.shrimp.application.models.DynamicFieldDefinition;
 import com.wwf.shrimp.application.models.LookupEntity;
 import com.wwf.shrimp.application.models.SecurityToken;
 import com.wwf.shrimp.application.models.User;
 import com.wwf.shrimp.application.models.UserCredentials;
+import com.wwf.shrimp.application.models.search.DocumentSearchCriteria;
 import com.wwf.shrimp.application.models.search.LookupDataSearchCriteria;
 import com.wwf.shrimp.application.models.search.UserSearchCriteria;
 import com.wwf.shrimp.application.services.main.Authenticator;
 import com.wwf.shrimp.application.services.main.BaseSecurityService;
+import com.wwf.shrimp.application.services.main.dao.impl.mysql.DocumentMySQLDao;
 import com.wwf.shrimp.application.services.main.dao.impl.mysql.LookupDataMySQLDao;
 import com.wwf.shrimp.application.services.main.dao.impl.mysql.UserMySQLDao;
 import com.wwf.shrimp.application.services.worker.SecurityTokenGeneratorService;
 import com.wwf.shrimp.application.services.worker.impl.SecurityTokenUUIDGeneratorService;
+import com.wwf.shrimp.application.utils.SingletonMapGlobal;
 
 /**
  * Token Based SecurityService implementation which checks user's
@@ -44,7 +50,12 @@ public class TokenBasedSecurityService extends BaseSecurityService {
 	// Token generator for authentication
 	private SecurityTokenGeneratorService tokenGenerator;
 	private UserMySQLDao<User, UserSearchCriteria> userService = new UserMySQLDao<User, UserSearchCriteria>();
+	private DocumentMySQLDao<Document, DocumentSearchCriteria> documentService = new DocumentMySQLDao<Document, DocumentSearchCriteria>();
 	private LookupDataMySQLDao<LookupEntity, LookupDataSearchCriteria> lookupService = new LookupDataMySQLDao<LookupEntity, LookupDataSearchCriteria>();
+	
+	//
+	// Diagnostics
+	private SingletonMapGlobal DIAGNOSTIC_MAP = SingletonMapGlobal.getInstance();
 
 	/**
 	 * Login the user by generating a unique token to be stored for 
@@ -63,10 +74,13 @@ public class TokenBasedSecurityService extends BaseSecurityService {
 		SecurityToken token = new SecurityToken();
 		Authenticator authenticator = new PasswordAuthenticator();
 		UserCredentials returnCredentials = new UserCredentials();
+		List<DynamicFieldDefinition> allDynamicFieldDefinitions = new ArrayList<DynamicFieldDefinition>();
+		final String DIAGNOSTIC_KEY =  DIAGNOSTIC_MAP.getDiagnosticKey();
 		
 		// initialize the user service
 		userService.init();
 		lookupService.init();
+		documentService.init();
 		
 		//
 		// initialize the return credentials
@@ -77,8 +91,16 @@ public class TokenBasedSecurityService extends BaseSecurityService {
 		// Find the user in the data store and verify their credentials
 		try {
 			user = userService.getUserByName(credentials.getUsername()) ;
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<BACK-Token><Info> Getting User By Name: <<" + user + ">>");
 
 		} catch (Exception e) {
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<BACK-Token><Info> User cannot be logged in. Cannot get find user in persistence: " 
+					+ credentials.getUsername());
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<BACK-Token><ERROR> Exception: " 
+					+ e.getMessage());
 			e.printStackTrace();
 			throw new AuthenticationException(
 					"User cannot be logged in. Cannot get find user in persistence: " 
@@ -90,6 +112,8 @@ public class TokenBasedSecurityService extends BaseSecurityService {
 		// authenticate the user
 		if(user != null && authenticator.isAuthenticated(credentials)){
 			getLog().info("User is authenticated: - " + user.toString());
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<BACK-Token><Info> User is authenticated: - " + user.toString());
 			//
 			// token generation
 			tokenGenerator = new SecurityTokenUUIDGeneratorService();
@@ -98,11 +122,24 @@ public class TokenBasedSecurityService extends BaseSecurityService {
 			expiryDate = DateUtils.addSeconds(expiryDate, TOKEN_EXPIRY_INTERVAL_SECONDS);
 			try {
 				token = tokenGenerator.generateUniqueToken(expiryDate);
+				DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+						, "<BACK-Token><Info> Generated Session Token: - " + token.getTokenValue());
 				returnCredentials.setToken(token);
 				user.setCredentials(returnCredentials);
+				
+				//
+				// get the dynamic fields
+				allDynamicFieldDefinitions = documentService.getDynamicFieldDefinitionsByOrgId(user.getUserOrganizations().get(0).getId());
+				user.setDynamicFieldDefinitions(allDynamicFieldDefinitions);
+				
+				//
+				// get the languages for this user
+				user.setLanguageLookupEntities(lookupService.getAllAppLanguagesForOrg(user.getUserOrganizations().get(0).getId()));
+				
 				//
 				// store the token in persistence;
 				userService.writeUserToken(returnCredentials);
+
 				//
 				// finally get the resources
 				allResources = lookupService.getAllAppResources();
@@ -110,13 +147,24 @@ public class TokenBasedSecurityService extends BaseSecurityService {
 				
 			} catch (ServiceManagementException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+						, "<BACK-Token><ERROR> User is *NOT* authenticated: - " 
+						+ e.getMessage() + " " +returnCredentials.getUsername());
+				getLog().error("User is *NOT* authenticated: - " + e.getMessage() + " " +returnCredentials.getUsername());
+				//e.printStackTrace();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+						, "<BACK-Token><ERROR> User is *NOT* authenticated: - " 
+						+ e.getMessage() + " " +returnCredentials.getUsername());
+				getLog().error("User is *NOT* authenticated: - " + e.getMessage() + " " +returnCredentials.getUsername());
+				//e.printStackTrace();
 			}
 			
 		}else{
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<BACK-Token><ERROR> User is *NOT* authenticated: - " 
+					+ returnCredentials.getUsername());
 			getLog().info("User is *NOT* authenticated: - " + returnCredentials.getUsername());
 		}
 		
