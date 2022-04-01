@@ -10,7 +10,6 @@ import java.util.Locale;
 
 import com.mysql.cj.api.jdbc.Statement;
 import com.wwf.shrimp.application.exceptions.PersistenceException;
-import com.wwf.shrimp.application.exceptions.ServiceManagementException;
 import com.wwf.shrimp.application.models.AuditAction;
 import com.wwf.shrimp.application.models.AuditEntity;
 import com.wwf.shrimp.application.models.AuditUserType;
@@ -25,6 +24,9 @@ import com.wwf.shrimp.application.models.search.AuditSearchCriteria;
  * @param <S> - The specific search criteria for audit entity <T>
  */
 public class AuditMySQLDao<T, S> extends BaseMySQLDao<AuditEntity, AuditSearchCriteria> {
+	
+	
+	
 	
 	public AuditEntity create(AuditEntity newAuditEntity) throws PersistenceException, IllegalArgumentException { 
 		PreparedStatement preparedINSERTstatement;
@@ -247,6 +249,7 @@ public class AuditMySQLDao<T, S> extends BaseMySQLDao<AuditEntity, AuditSearchCr
 	private List<AuditEntity> extractAuditEntitiesFromResult(ResultSet resultSet) throws PersistenceException {
 		List<AuditEntity> auditEntities= new ArrayList<AuditEntity>();
 		
+		
 		// process the extractions - there will only be one user
 		//
 		try {
@@ -282,7 +285,7 @@ public class AuditMySQLDao<T, S> extends BaseMySQLDao<AuditEntity, AuditSearchCr
 			    audit.setPrevValue(previousValue);
 			    audit.setNewValue(newValue);
 			    audit.setTimestamp(timestamp);
-			    
+
 			    // add to the list
 			    auditEntities.add(audit);
 			}

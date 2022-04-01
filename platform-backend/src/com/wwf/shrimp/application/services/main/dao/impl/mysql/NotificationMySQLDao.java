@@ -12,9 +12,12 @@ import com.mysql.cj.api.jdbc.Statement;
 import com.wwf.shrimp.application.exceptions.PersistenceException;
 import com.wwf.shrimp.application.models.AuditEntity;
 import com.wwf.shrimp.application.models.AuditUserType;
+import com.wwf.shrimp.application.models.Document;
 import com.wwf.shrimp.application.models.NotificationData;
+import com.wwf.shrimp.application.models.NotificationDataItemType;
 import com.wwf.shrimp.application.models.NotificationType;
 import com.wwf.shrimp.application.models.User;
+import com.wwf.shrimp.application.models.search.DocumentSearchCriteria;
 import com.wwf.shrimp.application.models.search.NotificationSearchCriteria;
 import com.wwf.shrimp.application.utils.DateUtility;
 
@@ -27,7 +30,7 @@ import com.wwf.shrimp.application.utils.DateUtility;
  * @param <S> - The specific search criteria for entity <T>
  */
 public class NotificationMySQLDao<T, S> extends BaseMySQLDao<NotificationData, NotificationSearchCriteria>  {
-
+	
 	/**
 	 * Create a new notification instance
 	 * 
@@ -408,7 +411,7 @@ public class NotificationMySQLDao<T, S> extends BaseMySQLDao<NotificationData, N
             notification.setAuditData(auditData);
             notification.setNotificationText(notificationText);
             notification.setNotificationDescription(notificationDescription);
-            
+              
             // add to the list
             notificationEntities.add(notification);
         }

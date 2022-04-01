@@ -10,6 +10,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 
 import com.wwf.shrimp.application.exceptions.ConfigurationException;
@@ -20,6 +21,8 @@ import com.wwf.shrimp.application.models.search.SearchResult;
 import com.wwf.shrimp.application.services.main.ConfigurationService;
 import com.wwf.shrimp.application.services.main.dao.GenericDAO;
 import com.wwf.shrimp.application.services.main.impl.PropertyConfigurationService;
+import com.wwf.shrimp.application.utils.SingletonMapGlobal;
+
 import javax.sql.DataSource;
 
 /**
@@ -31,6 +34,10 @@ import javax.sql.DataSource;
  * @param <S> - The specific search criteria for entity <T>
  */
 public abstract class BaseMySQLDao<T extends IdentifiableEntity, S> implements GenericDAO<T, S> {
+	
+	//
+	// Diagnostics
+	private SingletonMapGlobal DIAGNOSTIC_MAP = SingletonMapGlobal.getInstance();
 	
 	@Override
 	public T get(long id) throws PersistenceException, EntityNotFoundException, IllegalArgumentException {
@@ -111,7 +118,7 @@ public abstract class BaseMySQLDao<T extends IdentifiableEntity, S> implements G
 			Context initContext = new InitialContext();
             Context envContext = (Context) initContext.lookup("java:comp/env");
             DataSource ds = (DataSource) envContext.lookup("jdbc/Backend_DATA");
-			
+	
 			
 		} catch (ConfigurationException e1) {
 			// TODO Auto-generated catch block
@@ -131,7 +138,7 @@ public abstract class BaseMySQLDao<T extends IdentifiableEntity, S> implements G
 		 */
 		try{
 	        // Register JDBC driver
-			Class.forName(jdbcDriverClassName).newInstance();
+			//Class.forName(jdbcDriverClassName).newInstance();
 	    }catch(Exception e) {
 	    	//
 		    //Handle errors for JDBC
@@ -158,6 +165,8 @@ public abstract class BaseMySQLDao<T extends IdentifiableEntity, S> implements G
 	 */
 	protected Connection openConnection() throws PersistenceException{
 		
+		final String DIAGNOSTIC_KEY =  DIAGNOSTIC_MAP.getDiagnosticKey();
+		
 		Connection conn = null;
 		
 		// Execute the processing logic
@@ -168,7 +177,8 @@ public abstract class BaseMySQLDao<T extends IdentifiableEntity, S> implements G
             Context envContext = (Context) initContext.lookup("java:comp/env");
             DataSource dataSource = (DataSource) envContext.lookup("jdbc/Backend_DATA");
 			
-			
+            DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<JDBC><Info> <fetch connection> Getting Connection - " + dataSource.toString());
 			// create a connection 
             conn = dataSource.getConnection();
             
@@ -179,17 +189,38 @@ public abstract class BaseMySQLDao<T extends IdentifiableEntity, S> implements G
 		    	
 		    // log the issue
 			log.error("[ERROR] " + se);
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<JDBC><ERROR> SQL CONN Exception: " + se.getMessage());
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<JDBC><ERROR> SQL CONN Exception <ERROR CODE>: " + se.getErrorCode());
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<JDBC><ERROR> SQL CONN Exception <TRACE>: " + se.toString());
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<JDBC><ERROR> SQL CONN Exception <TRACE>: " + ExceptionUtils.getStackTrace(se));
 		    	
 		    // do the rest
 		    se.printStackTrace();
 		    throw new PersistenceException("Cannot create connection for MySQL", se);
 		} catch (NamingException e) {
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<JDBC><ERROR> NAMING CONN Exception: " + e.getMessage());
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<JDBC><ERROR> NAMING CONN Exception <TRACE>: " + e.toString());
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<JDBC><ERROR> NAMING CONN Exception <TRACE>: " + ExceptionUtils.getStackTrace(e));
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}finally{
 			// nothing to do here
 		}
 		
+		if(conn == null){
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<JDBC><ERROR> <fetch connection> *NULL* connection - ");
+		}else{
+			DIAGNOSTIC_MAP.addDiagnostic(DIAGNOSTIC_KEY
+					, "<JDBC><Info> <fetch connection> <SUCCESS> - " + conn.toString());
+		}
 		// return the result
 	    return conn;
 	}

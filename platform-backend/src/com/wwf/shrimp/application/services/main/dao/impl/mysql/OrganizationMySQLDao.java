@@ -1,13 +1,20 @@
 package com.wwf.shrimp.application.services.main.dao.impl.mysql;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.mysql.cj.api.jdbc.Statement;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import com.wwf.shrimp.application.exceptions.PersistenceException;
 import com.wwf.shrimp.application.exceptions.ServiceManagementException;
 import com.wwf.shrimp.application.models.DocumentType;
@@ -17,9 +24,17 @@ import com.wwf.shrimp.application.models.LookupEntity;
 import com.wwf.shrimp.application.models.Organization;
 import com.wwf.shrimp.application.models.OrganizationStage;
 import com.wwf.shrimp.application.models.PasswordCredentials;
+import com.wwf.shrimp.application.models.RESTResponse;
+import com.wwf.shrimp.application.models.ResponseErrorData;
+import com.wwf.shrimp.application.models.ResponseIssue;
+import com.wwf.shrimp.application.models.ResponseMessageData;
+import com.wwf.shrimp.application.models.Role;
 import com.wwf.shrimp.application.models.User;
+import com.wwf.shrimp.application.models.UserContact;
 import com.wwf.shrimp.application.models.search.LookupDataSearchCriteria;
 import com.wwf.shrimp.application.models.search.OrganizationSearchCriteria;
+import com.wwf.shrimp.application.models.search.UserSearchCriteria;
+import com.wwf.shrimp.application.utils.EmailUtils;
 
 /**
  * The persistence implementation for Organization entities based on the MySQL database
@@ -29,7 +44,6 @@ import com.wwf.shrimp.application.models.search.OrganizationSearchCriteria;
  * @param <S> - The specific search criteria for entity <T>
  */
 public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, OrganizationSearchCriteria>{
-	
 	private LookupDataMySQLDao<LookupEntity, LookupDataSearchCriteria> lookupService = new LookupDataMySQLDao<LookupEntity, LookupDataSearchCriteria>();
 	
 	
@@ -121,6 +135,51 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		return organizationResult;
 	}
 	
+	
+	/**
+	 * Get all the organization Headers (Stages)
+	 * 
+	 * @return - a list of all the Organization Stages; empty if none found
+	 * 
+	 * @throws Exception
+	 * 			- if there were any issues with the request
+	 */
+	public List<OrganizationStage> getStageByName(String stageName) throws Exception{
+		List<OrganizationStage> organizationResult=null;
+		PreparedStatement preparedSELECTstatement;
+		ResultSet resultSet = null;
+		
+		// look up the user by name which should be unique
+		//
+		
+		// get the connection
+		Connection conn = openConnection();
+		
+		// 
+		// process the request
+		
+		// create the statement
+		preparedSELECTstatement = conn
+                .prepareStatement("SELECT * "
+                				+ "FROM group_data_type "
+                				+ "WHERE upper(value)=? ");
+		// insert the variable
+		preparedSELECTstatement.setString(1, stageName.toUpperCase());
+		// execute the statement 
+		resultSet = preparedSELECTstatement.executeQuery();
+		
+        //
+        // process the result
+        organizationResult = extractOrganizationStagesFromResult(resultSet);
+        
+
+		// release the connection
+		closeConnection(conn);
+				
+		// return the result
+		return organizationResult;
+	}
+	
 
 	/**
 	 * 
@@ -160,6 +219,54 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 				
 		// return the result
 		return organizationResult;
+	}
+	
+	public boolean doesOrganizationExist(String orgName, String orgBusinessNumber, long orgId)  throws Exception {
+		boolean result = false;
+		List<Group> organizationResult=null;
+		PreparedStatement preparedSELECTstatement;
+		ResultSet resultSet = null;
+		
+		// look up the user by name which should be unique
+		//
+		
+		// get the connection
+		Connection conn = openConnection();
+		
+		// 
+		// process the request
+		orgName = orgName.toUpperCase();
+		
+		// create the statement
+		preparedSELECTstatement = conn
+                .prepareStatement("SELECT a.id, a.name AS organization_name, a.description AS organization_description, a.group_data_type_id, "
+                		+ "a.business_id_number, a.legal_business_name, a.business_address, a.gps_location, a.email_address, a.verified, "
+                		+ "b.name AS organization_type, b.order_index, b.org_id "
+                		+ "FROM group_data a "
+                		+ "JOIN group_data_type b on b.id = a.group_data_type_id "
+                		+ "WHERE business_id_number = ? OR "
+                		+ "upper(legal_business_name) = ? ");
+
+		// insert the variable
+		preparedSELECTstatement.setString(1, orgBusinessNumber);
+		preparedSELECTstatement.setString(2, orgName);
+		// execute the statement 	
+        resultSet = preparedSELECTstatement.executeQuery();
+        
+        //
+        // process the result
+        organizationResult = extractGroupOrganizationsFromResult(resultSet);
+
+		// release the connection
+		closeConnection(conn);
+		
+		if(organizationResult.size() > 0) {
+			result = true;
+		} else {
+			result = false;
+		}
+		return result;
+		
 	}
 	
 	
@@ -287,7 +394,7 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		preparedSELECTstatement.setLong(1, orgId);
         resultSet = preparedSELECTstatement.executeQuery();
         
-        //
+        //F
         // process the result
         result = extractTreeGroupsFromResult(resultSet);
 
@@ -322,7 +429,9 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		
 		// create the statement to get all JOINS of the different tree elements
 		preparedSELECTstatement = conn
-                .prepareStatement("SELECT a.parent_org_id, a.group_id, b.name, b.description, c.value as group_type, c.id AS group_type_id, "
+                .prepareStatement("SELECT a.parent_org_id, a.group_id, "
+                				+ "b.name, b.description, b.business_id_number, b.legal_business_name, b.business_address, b.gps_location, b.email_address, "
+                				+ "c.value as group_type, c.name as group_value, c.id AS group_type_id, "
                 				+ "c.color_hex_code as group_type_color, c.order_index AS group_type_order_index, gadr.doc_type_ids "
                 				+ "FROM organization_group_rel_tree a "
                 				+ "JOIN group_data b ON a.group_id=b.id "
@@ -345,6 +454,58 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		// return the result
 		return result;
 	}
+	
+	
+	/**
+	 * Get all the available groups for the given name
+	 * 
+	 * @param name - the name of the group/organization
+	 * @return - the list of matching groups; empty if none found
+	 * @throws Exception
+	 * 			- if there were any issues with the request
+	 */
+	public List<Group> getAllGroupsByName(String name) throws Exception {
+		List<Group> result=null;
+		PreparedStatement preparedSELECTstatement;
+		ResultSet resultSet = null;
+		
+	
+		// get the connection
+		Connection conn = openConnection();
+		
+		// 
+		// process the request
+		
+		// get first all the 
+		
+		// create the statement to get all JOINS of the different tree elements
+		preparedSELECTstatement = conn
+                .prepareStatement("SELECT a.parent_org_id, a.group_id, "
+                				+ "b.name, b.description, b.business_id_number, b.legal_business_name, b.business_address, b.gps_location, b.email_address, "
+                				+ "c.value as group_type, c.id AS group_type_id, "
+                				+ "c.color_hex_code as group_type_color, c.order_index AS group_type_order_index, gadr.doc_type_ids "
+                				+ "FROM organization_group_rel_tree a "
+                				+ "JOIN group_data b ON a.group_id=b.id "
+                				+ "JOIN group_data_type c ON b.group_data_type_id=c.id "
+                				+ "JOIN group_allowed_doctype_rel gadr ON gadr.parent_group_type_id = c.id "
+                				+ "WHERE b.name = ? "
+                		);
+
+		// execute the statement 
+		preparedSELECTstatement.setString(1, name);
+        resultSet = preparedSELECTstatement.executeQuery();
+        
+        //
+        // process the result
+        result = extractGroupsFromResult(resultSet);
+
+		// release the connection
+		closeConnection(conn);
+				
+		// return the result
+		return result;
+	}
+
 	
 	/**
 	 * Get all the group types
@@ -371,11 +532,11 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		
 		// create the statement to get all JOINS of the different tree elements
 		preparedSELECTstatement = conn
-                .prepareStatement("SELECT c.value as group_type, c.name as group_key, c.id AS group_type_id, "
-                		+ "c.color_hex_code as group_type_color, c.order_index AS group_type_order_index, "
+                .prepareStatement("SELECT DISTINCT c.value as group_type, c.name as group_key, c.id AS group_type_id, "
+                		+ "c.color_hex_code as group_type_color, c.order_index AS group_type_order_index, c.associated_groups, "
                 		+ "gadr.doc_type_ids AS allowed_doc_types "
                 		+ "FROM group_data_type c "
-                		+ "JOIN group_allowed_doctype_rel gadr ON gadr.parent_group_type_id = c.id "
+                		+ "LEFT JOIN group_allowed_doctype_rel gadr ON gadr.parent_group_type_id = c.id "
                 		+ "WHERE c.org_id = ?"
 
                 		);
@@ -386,7 +547,7 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
         
         //
         // process the result
-        result = extractGroupTypesFromResult(resultSet);
+        result = extractAllGroupTypesFromResult(resultSet);
 
 		// release the connection
 		closeConnection(conn);
@@ -402,7 +563,7 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 	 * @throws Exception
 	 * 			- if there were any issues with the request
 	 */
-	public List<Group> getAllOrganizationGroups(long organizationId) throws Exception{
+	public List<Group> getAllOrganizationGroups(long organizationId, boolean sparseFlag) throws Exception{
 		List<Group> result=null;
 		PreparedStatement preparedSELECTstatement;
 		ResultSet resultSet = null;
@@ -421,8 +582,9 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		// create the statement to get all JOINS of the different tree elements
 		preparedSELECTstatement = conn
                 .prepareStatement("SELECT a.id, a.name AS organization_name, a.description AS organization_description, a.group_data_type_id, "
+                		+ "a.business_id_number, a.legal_business_name, a.business_address, a.gps_location, a.email_address, a.verified, "
                 		+ "b.name AS organization_type, b.order_index, b.org_id "
-                		+ "FROM wwf_shrimp_database_v2.group_data a "
+                		+ "FROM group_data a "
                 		+ "JOIN group_data_type b on b.id = a.group_data_type_id "
                 		+ "WHERE b.org_id = ?"
                 		);
@@ -435,6 +597,7 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
         //
         // process the result
         result = extractGroupOrganizationsFromResult(resultSet);
+
 
 		// release the connection
 		closeConnection(conn);
@@ -468,9 +631,9 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		
 		// create the statement to get all JOINS of the different tree elements
 		preparedSELECTstatement = conn
-                .prepareStatement("SELECT a.id, a.name AS organization_name, a.description AS organization_description, a.group_data_type_id, "
+                .prepareStatement("SELECT a.id, a.name AS organization_name, a.description AS organization_description, a.group_data_type_id, a.email_address, a.verified, "
                 		+ "b.name AS organization_type, b.order_index, b.org_id "
-                		+ "FROM wwf_shrimp_database_v2.group_data a "
+                		+ "FROM group_data a "
                 		+ "JOIN group_data_type b on b.id = a.group_data_type_id "
                 		+ "WHERE b.name = ? AND b.org_id = ? "
                 		);
@@ -490,6 +653,61 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		// return the result
 		return result;
 	}
+	
+	/**
+	 * get all the groups of the given type for the organization
+	 * 
+	 * @param groupType
+	 * @return - the list of all matching groups
+	 * @throws Exception
+	 * 			- if there were any issues with the request
+	 */
+	public Group getOrganizationGroupByName(long organizationId, String groupName) throws Exception{
+		Group result = null;
+		List<Group> tempResult = null;
+		PreparedStatement preparedSELECTstatement;
+		ResultSet resultSet = null;
+		
+		// look up the user by name which should be unique
+		//
+		
+		// get the connection
+		Connection conn = openConnection();
+		
+		// 
+		// process the request
+		
+		// get first all the 
+		
+		// create the statement to get all JOINS of the different tree elements
+		preparedSELECTstatement = conn
+                .prepareStatement("SELECT a.id, a.name AS organization_name, a.description AS organization_description, a.group_data_type_id, "
+                		+ "a.business_id_number, a.legal_business_name, a.business_address, a.gps_location, a.email_address, a.verified, "
+                		+ "b.name AS organization_type, b.order_index, b.org_id "
+                		 + "FROM group_data a " 
+                		 + "JOIN group_data_type b on b.id = a.group_data_type_id " 
+                		 + "WHERE b.org_id = ? AND a.name = ?"
+                		);
+
+		// execute the statement 
+		preparedSELECTstatement.setLong(1, organizationId);
+		preparedSELECTstatement.setString(2, groupName);
+        resultSet = preparedSELECTstatement.executeQuery();
+        
+        //
+        // process the result
+        tempResult = extractGroupOrganizationsFromResult(resultSet);
+        if(tempResult.size() > 0){
+        	result = tempResult.get(0);
+        }
+
+		// release the connection
+		closeConnection(conn);
+				
+		// return the result
+		return result;
+	}
+	
 	
 	/**
 	 * Get all available group types
@@ -525,6 +743,50 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
         //
         // process the result
         result = extractGroupsTypesFromResult(resultSet);
+
+		// release the connection
+		closeConnection(conn);
+				
+		// return the result
+		return result;
+	}
+	
+	
+	/**
+	 * Get all available group types
+	 * 
+	 * @return - list of all group types
+	 * @throws Exception
+	 * 			- if there were any issues with the request
+	 */
+	public List<GroupType> getGroupDataTypeById(long orgTypeId) throws Exception{
+		List<GroupType> result=null;
+		PreparedStatement preparedSELECTstatement;
+		ResultSet resultSet = null;
+		
+		// look up the user by name which should be unique
+		//
+		
+		// get the connection
+		Connection conn = openConnection();
+		
+		// 
+		// process the request
+		
+		// get first all the 
+		
+		// create the statement to get all JOINS of the different tree elements
+		preparedSELECTstatement = conn
+                .prepareStatement("SELECT * FROM group_data_type WHERE id = ? ");
+                		
+
+		// execute the statement 
+		preparedSELECTstatement.setLong(1, orgTypeId);
+        resultSet = preparedSELECTstatement.executeQuery();
+        
+        //
+        // process the result
+        result = extractGroupDataTypesFromResult(resultSet);
 
 		// release the connection
 		closeConnection(conn);
@@ -786,9 +1048,15 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		String insertQuery = " insert into group_data ("
 				+ "name, "
 				+ "description, "
-				+ "group_data_type_id "
+				+ "group_data_type_id, "
+				+ "business_id_number, "
+				+ "legal_business_name, "
+				+ "business_address, "
+				+ "gps_location, "
+				+ "email_address, "
+				+ "verified "
 				+ ")"
-		        + " values (?,?,?)";
+		        + " values (?,?,?,?,?,?,?,?,?)";
 
 		// execute the statement 
 		//
@@ -801,11 +1069,24 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 			String groupOrganizationName =  groupOrganization.getName();
 			String groupOrganizationDescription =  groupOrganization.getDescription();
 			long groupOrganizationTypeId = groupOrganization.getGroupType().getId();
+			String businessIDNumber =  groupOrganization.getBusinessIDNumber();
+			String legalBusinessName =  groupOrganization.getLegalBusinessName();
+			String businessAddress =  groupOrganization.getBusinessAddress();
+			String gpsCoordinates =  groupOrganization.getGpsCoordinates();
+			String emailAddress =  groupOrganization.getEmailAddress();
+			boolean verified =  groupOrganization.isVerified();
 			
 			// execute the statement 
 			preparedINSERTstatement.setString(1, groupOrganizationName);
 			preparedINSERTstatement.setString(2,groupOrganizationDescription);
 			preparedINSERTstatement.setLong(3,groupOrganizationTypeId);
+			preparedINSERTstatement.setString(4,businessIDNumber);
+			preparedINSERTstatement.setString(5,legalBusinessName);
+			preparedINSERTstatement.setString(6,businessAddress);
+			preparedINSERTstatement.setString(7,gpsCoordinates);
+			preparedINSERTstatement.setString(8,emailAddress);
+			preparedINSERTstatement.setBoolean(9,verified);
+			
 			
 			
 			preparedINSERTstatement.executeUpdate();
@@ -874,6 +1155,68 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		// release the connection
 		closeConnection(conn);
 	}
+	
+	/**
+	 * This will update the specific group organization data
+	 * 
+	 * @param credentials - the user credentials
+	 * @throws PersistenceException
+	 * 		- if there were any issues with the request/processing
+	 */
+	public void updateOrganizationGroup(Group groupOrganization)  throws PersistenceException {
+		PreparedStatement preparedUPDATEStatement;
+		
+		// get the connection
+		Connection conn = openConnection();
+		
+	
+		// create the query for user
+		// create the query
+		String updateQuery = " UPDATE group_data  "
+				+ "set name = ?, "
+				+ "description = ?, "
+				+ "group_data_type_id = ?, "
+				+ "business_id_number = ?, "
+				+ "legal_business_name = ?, "
+				+ "business_address = ?, "
+				+ "gps_location = ?,  "
+				+ "email_address = ?, "
+				+ "verified = ? "
+				+ "WHERE id = ?";
+		
+		//
+		// create the user data
+		try {
+			
+			// get the data
+			// create the statement
+			preparedUPDATEStatement = conn
+	                .prepareStatement(updateQuery);
+			// execute the statement
+
+			preparedUPDATEStatement.setString(1, groupOrganization.getName());
+			preparedUPDATEStatement.setString(2, groupOrganization.getDescription());
+			preparedUPDATEStatement.setLong(3, groupOrganization.getGroupType().getId());
+			preparedUPDATEStatement.setString(4, groupOrganization.getBusinessIDNumber());
+			preparedUPDATEStatement.setString(5, groupOrganization.getLegalBusinessName());
+			preparedUPDATEStatement.setString(6, groupOrganization.getBusinessAddress());
+			preparedUPDATEStatement.setString(7, groupOrganization.getGpsCoordinates());
+			preparedUPDATEStatement.setString(8, groupOrganization.getEmailAddress());
+			preparedUPDATEStatement.setBoolean(9, groupOrganization.isVerified());
+			
+			preparedUPDATEStatement.setLong(10, groupOrganization.getId());
+			
+			//execute
+			preparedUPDATEStatement.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+
+		// release the connection
+		closeConnection(conn);
+	}
 
 
 	/**
@@ -927,6 +1270,347 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		closeConnection(conn);
 	}
 	
+	/**
+	 * Update the profile image for the user
+	 * @param profileImage - the image data
+	 * @param username - the user for whom the update is done
+	 * @throws PersistenceException
+	 * 		- if there were any issues in processing this request
+	 */
+	public Object verifyBatchOrgCSVFile(byte [] bDocImportCSV, String username) throws PersistenceException {
+		List<String> result = new ArrayList<String>();
+		ResponseErrorData errorData = new ResponseErrorData();
+		ResponseMessageData messageData = new ResponseMessageData();
+		boolean errorsFlag = false;
+	    
+		//
+		// get the bytes of the file
+	    try {
+	          
+				// get the reader for the CSV file
+				CSVReader csvReader = new CSVReaderBuilder(
+				    new InputStreamReader(
+				        new ByteArrayInputStream(bDocImportCSV)))
+				  			.withSkipLines(1) 
+				  			.build();
+			
+				//
+				// Fetch the CVS File contents
+				List<String[]> allData = csvReader.readAll(); 
+	    
+	          //
+	          // Process the CSV File contents
+				
+			  // line numbers
+			  int lineNumber = 1;	
+	          for (String[] row : allData) { 
+	        	  int column = 0;								// column counter
+	        	  
+	              for (String cell : row) { 
+	                  System.out.print(cell + "\t"); 
+	                  
+	                  switch(column++) {
+                  		case 0:
+                  			//
+		                    // Process Display Name
+                  			//
+		                	if(cell.isEmpty()){
+		                		// Add empty issue
+		                		result.add(
+	                				RESTResponse.createCVSErrorMessage(
+                						lineNumber, 
+                						"Display Name should not be empty", 
+                						column + 1, 
+                						"Display Name	"));
+		                		errorsFlag = true;
+		                		// set the issue
+		                		ResponseIssue issue = new ResponseIssue();
+		                		issue.setLineNumber(String.valueOf(lineNumber));
+		                		issue.setColumnNumber(String.valueOf(column + 1));
+		                		issue.setColumnName("Display Name");
+		                		issue.setIssue("Display Name should not be empty");
+		                		issue.setRawMessage(result.get(result.size()-1));
+		                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_FATAL_ERROR);
+		                		errorData.getIssues().add(issue);
+		                	}
+		                    break;
+		                    
+                  		case 1:
+                  			//
+		                	// Process Legal Business Name
+                  			//
+							if(cell.isEmpty()){
+								// Add empty issue
+								result.add(
+									RESTResponse.createCVSErrorMessage(
+										lineNumber, 
+										"Legal Business Name should not be empty", 
+										column + 1,
+										"Legal Business Name"));
+								errorsFlag = true;
+								// set the issue
+		                		ResponseIssue issue = new ResponseIssue();
+		                		issue.setLineNumber(String.valueOf(lineNumber));
+		                		issue.setColumnNumber(String.valueOf(column + 1));
+		                		issue.setColumnName("Legal Business Name");
+		                		issue.setIssue("Legal Business Name should not be empty");
+		                		issue.setRawMessage(result.get(result.size()-1));
+		                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_FATAL_ERROR);
+		                		errorData.getIssues().add(issue);
+							}
+		                    break;
+		                    
+                  		case 2:
+                  			//
+							// Process Business Number
+                  			//
+                  			
+                  			// check for empty Business Number
+							if(cell.isEmpty()){
+								// Add empty issue
+								result.add(
+									RESTResponse.createCVSErrorMessage(
+										lineNumber, 
+										"Business Number should not be empty", 
+										column + 1,
+										"Business Number"));
+								errorsFlag = true;
+								// set the issue
+		                		ResponseIssue issue = new ResponseIssue();
+		                		issue.setLineNumber(String.valueOf(lineNumber));
+		                		issue.setColumnNumber(String.valueOf(column + 1));
+		                		issue.setColumnName("Business Number");
+		                		issue.setIssue("Business Number should not be empty");
+		                		issue.setRawMessage(result.get(result.size()-1));
+		                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_FATAL_ERROR);
+		                		errorData.getIssues().add(issue);
+							}
+							
+							// check uniqueness
+							if(!cell.isEmpty() && !isBusinessNumberUnique(cell)){
+								// Add unique issue
+								result.add(
+									RESTResponse.createCVSErrorMessage(
+										lineNumber, 
+										"Business Number must be unique. " + cell + " is already taken.", 
+										column + 1,
+										"Business Number"));
+								errorsFlag = true;
+								// set the issue
+		                		ResponseIssue issue = new ResponseIssue();
+		                		issue.setLineNumber(String.valueOf(lineNumber));
+		                		issue.setColumnNumber(String.valueOf(column + 1));
+		                		issue.setColumnName("Business Number");
+		                		issue.setIssue("Business Number must be unique. " + cell + " is already taken.");
+		                		issue.setRawMessage(result.get(result.size()-1));
+		                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_FATAL_ERROR);
+		                		errorData.getIssues().add(issue);
+							}
+		                    break;
+		                    
+                  		case 3:
+                  			//
+							// Process Business Address
+                  			//
+                  			
+                  			// check for empty email address
+							if(cell.isEmpty()){
+								// Add empty issue
+								result.add(
+									RESTResponse.createCVSErrorMessage(
+										lineNumber, 
+										"Business Address should not be empty", 
+										column + 1,
+										"Business Address"));
+								errorsFlag = true;
+								// set the issue
+		                		ResponseIssue issue = new ResponseIssue();
+		                		issue.setLineNumber(String.valueOf(lineNumber));
+		                		issue.setColumnNumber(String.valueOf(column + 1));
+		                		issue.setColumnName("Business Address");
+		                		issue.setIssue("Business Address should not be empty.");
+		                		issue.setRawMessage(result.get(result.size()-1));
+		                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_FATAL_ERROR);
+		                		errorData.getIssues().add(issue);
+							}
+		                    break;
+		                    
+		                  case 4:
+		                	//
+							// Process GPS Location
+		                	//  
+							if(cell.isEmpty()){
+								// Add empty issue
+								result.add(
+									RESTResponse.createCVSErrorMessage(
+										lineNumber, 
+										"GPS Location is empty", 
+										column + 1,
+										"GPS Location"));
+								errorsFlag = true;
+								// set the issue
+		                		ResponseIssue issue = new ResponseIssue();
+		                		issue.setLineNumber(String.valueOf(lineNumber));
+		                		issue.setColumnNumber(String.valueOf(column + 1));
+		                		issue.setColumnName("GPS Location");
+		                		issue.setIssue("GPS Location is empty.");
+		                		issue.setRawMessage(result.get(result.size()-1));
+		                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_WARNING);
+		                		errorData.getIssues().add(issue);
+							}		                
+		                    break;
+		                    
+		                  case 5:
+	                  			//
+								// Process email address
+	                  			//
+	                  			
+	                  			// check for empty email address
+								if(cell.isEmpty()){
+									// Add empty issue
+									result.add(
+										RESTResponse.createCVSErrorMessage(
+											lineNumber, 
+											"email should not be empty", 
+											column + 1,
+											"email"));
+									errorsFlag = true;
+									// set the issue
+			                		ResponseIssue issue = new ResponseIssue();
+			                		issue.setLineNumber(String.valueOf(lineNumber));
+			                		issue.setColumnNumber(String.valueOf(column + 1));
+			                		issue.setColumnName("email");
+			                		issue.setIssue("email should not be empty.");
+			                		issue.setRawMessage(result.get(result.size()-1));
+			                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_FATAL_ERROR);
+			                		errorData.getIssues().add(issue);
+								}
+								
+								// check uniqueness
+								if(!cell.isEmpty() && !isEmailUnique(cell)){
+									// Add unique issue
+									result.add(
+										RESTResponse.createCVSErrorMessage(
+											lineNumber, 
+											"email address must be unique. " + cell + " is already taken.", 
+											column + 1,
+											"email"));
+									errorsFlag = true;
+									// set the issue
+			                		ResponseIssue issue = new ResponseIssue();
+			                		issue.setLineNumber(String.valueOf(lineNumber));
+			                		issue.setColumnNumber(String.valueOf(column + 1));
+			                		issue.setColumnName("email");
+			                		issue.setIssue("email address must be unique. " + cell + " is already taken.");
+			                		issue.setRawMessage(result.get(result.size()-1));
+			                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_FATAL_ERROR);
+			                		errorData.getIssues().add(issue);
+								}
+								
+								// check email formatting
+								if(!cell.isEmpty() && isEmailUnique(cell)){
+									// Add formatting issue
+									if(!EmailUtils.isValid(cell)) {
+										String errorMessage = "Email format issue. " + cell + " is *NOT* a valid email address.";
+										result.add(
+												
+												RESTResponse.createCVSErrorMessage(
+													lineNumber, 
+													errorMessage, 
+													column + 1,
+													"email"));
+											errorsFlag = true;
+											// set the issue
+					                		ResponseIssue issue = new ResponseIssue();
+					                		issue.setLineNumber(String.valueOf(lineNumber));
+					                		issue.setColumnNumber(String.valueOf(column + 1));
+					                		issue.setColumnName("email");
+					                		issue.setIssue(errorMessage);
+					                		issue.setRawMessage(result.get(result.size()-1));
+					                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_FATAL_ERROR);
+					                		errorData.getIssues().add(issue);
+									}
+									
+								}
+			                    break;
+			                    
+		                  case 6:
+	                  			//
+			                    // Process First Name
+	                  			//
+			                	if(cell.isEmpty()){
+			                		// Add empty issue
+			                		result.add(
+		                				RESTResponse.createCVSErrorMessage(
+	                						lineNumber, 
+	                						"First Name should not be empty", 
+	                						column + 1, 
+	                						"First Name"));
+			                		errorsFlag = true;
+			                		// set the issue
+			                		ResponseIssue issue = new ResponseIssue();
+			                		issue.setLineNumber(String.valueOf(lineNumber));
+			                		issue.setColumnNumber(String.valueOf(column + 1));
+			                		issue.setColumnName("First Name");
+			                		issue.setIssue("First Name should not be empty");
+			                		issue.setRawMessage(result.get(result.size()-1));
+			                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_FATAL_ERROR);
+			                		errorData.getIssues().add(issue);
+			                	}
+			                    break;
+			                    
+	                  		case 7:
+	                  			//
+			                	// Process Last Name
+	                  			//
+								if(cell.isEmpty()){
+									// Add empty issue
+									result.add(
+										RESTResponse.createCVSErrorMessage(
+											lineNumber, 
+											"Last Name should not be empty", 
+											column + 1,
+											"Last Name"));
+									errorsFlag = true;
+									// set the issue
+			                		ResponseIssue issue = new ResponseIssue();
+			                		issue.setLineNumber(String.valueOf(lineNumber));
+			                		issue.setColumnNumber(String.valueOf(column + 1));
+			                		issue.setColumnName("Last Name");
+			                		issue.setIssue("Last Name should not be empty");
+			                		issue.setRawMessage(result.get(result.size()-1));
+			                		issue.setSeverity(ResponseIssue.ISSUE_SEVERITY_FATAL_ERROR);
+			                		errorData.getIssues().add(issue);
+								}
+			                    break;
+	
+		                  default:
+		                    // Nothing to do
+	                } // end switch
+	                  
+	              } // for loop per row
+	              lineNumber++;
+	          } // for loop total
+	          
+	          
+	    } catch (Exception e) { 
+	        e.printStackTrace();
+	    }
+	    
+	    //
+	    // Process the results
+	    if(errorsFlag) {
+	    	return errorData;
+	    }else{
+	    	messageData.getMessages().add("There are no issues with the input file.");
+	    	return messageData;
+	    }
+
+	}
+
+	
+	
+	
 	
 	
 	
@@ -959,12 +1643,26 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
             String organizationType = resultSet.getString("organization_type");
             int organizationTypeOrderIndex = resultSet.getInt("order_index");
             
+            String businessIDNumber = resultSet.getString("business_id_number");
+			String legalBusinessName = resultSet.getString("legal_business_name");
+			String businessAddress = resultSet.getString("business_address");
+			String gpsCoordinates = resultSet.getString("gps_location");
+			String emailAddress = resultSet.getString("email_address");
+			boolean verified = resultSet.getBoolean("verified");
+            
             // populate the Group entity
             Group org = new Group();
             org.setId(id);
             org.setName(name);
             org.setDescription(description);
             org.setOrganizationId(organizationId);
+            org.setBusinessIDNumber(businessIDNumber); 
+            org.setLegalBusinessName(legalBusinessName);
+            org.setBusinessAddress(businessAddress);
+            org.setGpsCoordinates(gpsCoordinates);
+            org.setEmailAddress(emailAddress);
+            org.setVerified(verified);
+            
             
             GroupType orgType = new GroupType();
             orgType.setId(organizationTypeId);
@@ -1126,10 +1824,16 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
             String name = resultSet.getString("name");
             String description = resultSet.getString("description");
             String groupTypeName = resultSet.getString("group_type");
+            String groupTypeValue = resultSet.getString("group_value");
             String groupTypeColor = resultSet.getString("group_type_color");
             long groupTypeId= resultSet.getLong("group_type_id");
             int groupTypeOrderIndex = resultSet.getInt("group_type_order_index");
             String allowedDocTypeIds = resultSet.getString("doc_type_ids");
+            String businessIDNumber = resultSet.getString("business_id_number");
+			String legalBusinessName = resultSet.getString("legal_business_name");
+			String businessAddress = resultSet.getString("business_address");
+			String gpsCoordinates = resultSet.getString("gps_location");
+			String emailAddress = resultSet.getString("email_address");
             
             // populate the allowed doc types for this user
             //
@@ -1157,6 +1861,7 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
             // populate group type
             groupType.setId(groupTypeId);
             groupType.setName(groupTypeName);
+            groupType.setValue(groupTypeValue);
             groupType.setHexColorCode(groupTypeColor);
             groupType.setOrderIndex(groupTypeOrderIndex);
             
@@ -1167,6 +1872,11 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
             group.setDescription(description);
             group.setGroupType(groupType);
             group.setAllowedDocTypes(allowedDocTypes);
+            group.setBusinessIDNumber(businessIDNumber); 
+            group.setLegalBusinessName(legalBusinessName);
+            group.setBusinessAddress(businessAddress);
+            group.setGpsCoordinates(gpsCoordinates);
+            group.setEmailAddress(emailAddress);
 
             // add the user to the list
             result.add(group);
@@ -1213,6 +1923,102 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 		return result;
 	}
 	
+	
+	/**
+	 * Extract the flat group data, all related to the input organization id
+	 * 
+	 * @param resultSet - the db set to parse out
+	 * @return - the list of group data
+	 * @throws SQLException
+	 * 			- if there were any issues with the request
+	 */
+	private List<GroupType> extractGroupDataTypesFromResult(ResultSet resultSet) throws SQLException {
+		List<GroupType> result = new ArrayList<GroupType>();
+	
+		// process the groups
+		//
+		
+		// extract the main data about the organization
+		while (resultSet.next()) {
+			GroupType groupType = new GroupType();
+			
+			// extract the data
+            String groupTypeName = resultSet.getString("name");
+            String groupTypeColor = resultSet.getString("color_hex_code");
+            long groupTypeId= resultSet.getLong("id");
+            long ordId= resultSet.getLong("org_id");
+            int groupTypeOrderIndex = resultSet.getInt("order_index");
+            String associatedGroupsUnparsed = resultSet.getString("associated_groups");
+            
+            // pre-process any data
+            // 
+            String[] associatedGroupsParsed = null; 
+            long[] associatedGroupIds = null;
+            if(associatedGroupsUnparsed != null && !associatedGroupsUnparsed.isEmpty()) {
+            	associatedGroupsParsed = associatedGroupsUnparsed.split(",");
+            	associatedGroupIds = new long[associatedGroupsParsed.length];
+            	for(int i=0; i<associatedGroupsParsed.length; i++ ){
+            		associatedGroupIds[i] = Long.parseLong(associatedGroupsParsed[i]);
+            	}
+            }
+            
+            
+            // populate the Group entity
+            //
+            
+            // populate group type
+            groupType.setId(groupTypeId);
+            groupType.setName(groupTypeName);
+            groupType.setHexColorCode(groupTypeColor);
+            groupType.setOrderIndex(groupTypeOrderIndex);
+            groupType.setMatrixId(ordId);
+            groupType.setAssociatedStageIds(associatedGroupIds);
+            
+            // add the user to the list
+            result.add(groupType);
+        }
+		return result;
+	}
+	
+	/**
+	 * Extract the flat group data, all related to the input organization id
+	 * 
+	 * @param resultSet - the db set to parse out
+	 * @return - the list of group data
+	 * @throws SQLException
+	 * 			- if there were any issues with the request
+	 */
+	private List<GroupType> extractGroupTypesFromResult(ResultSet resultSet) throws SQLException {
+		List<GroupType> result = new ArrayList<GroupType>();
+	
+		// process the groups
+		//
+		
+		// extract the main data about the organization
+		while (resultSet.next()) {
+			GroupType groupType = new GroupType();
+			
+			// extract the data
+            String groupTypeName = resultSet.getString("group_type");
+            String groupTypeColor = resultSet.getString("group_type_color");
+            long groupTypeId= resultSet.getLong("group_type_id");
+            int groupTypeOrderIndex = resultSet.getInt("group_type_order_index");
+            
+            // populate the Group entity
+            //
+            
+            // populate group type
+            groupType.setId(groupTypeId);
+            groupType.setName(groupTypeName);
+            groupType.setHexColorCode(groupTypeColor);
+            groupType.setOrderIndex(groupTypeOrderIndex);
+            
+            // add the user to the list
+            result.add(groupType);
+        }
+		return result;
+	}
+	
 	/**
 	 * Extract the expanded group type data, all related to the input group type id
 	 * 
@@ -1221,7 +2027,7 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
 	 * @throws Exception 
 	 * 			- if there were any issues with the request
 	 */
-	private List<GroupType> extractGroupTypesFromResult(ResultSet resultSet) throws Exception {
+	private List<GroupType> extractAllGroupTypesFromResult(ResultSet resultSet) throws Exception {
 		List<GroupType> result = new ArrayList<GroupType>();
 		lookupService.init();
 	
@@ -1239,6 +2045,19 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
             int groupTypeOrderIndex = resultSet.getInt("group_type_order_index");
             String allowedDocTypeIds = resultSet.getString("allowed_doc_types");
             List<DocumentType> allowedDocTypes = new ArrayList<DocumentType>();
+            String associatedGroupsUnparsed = resultSet.getString("associated_groups");
+            
+            // pre-process any data
+            // 
+            String[] associatedGroupsParsed = new String[0]; 
+            long[] associatedGroupIds = new long[0];
+            if(associatedGroupsUnparsed != null && !associatedGroupsUnparsed.isEmpty()) {
+            	associatedGroupsParsed = associatedGroupsUnparsed.split(",");
+            	associatedGroupIds = new long[associatedGroupsParsed.length];
+            	for(int i=0; i<associatedGroupsParsed.length; i++ ){
+            		associatedGroupIds[i] = Long.parseLong(associatedGroupsParsed[i]);
+            	}
+            }
             
             // populate the Group entity
             //
@@ -1249,6 +2068,7 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
             groupType.setValue(groupTypeKey);
             groupType.setHexColorCode(groupTypeColor);
             groupType.setOrderIndex(groupTypeOrderIndex);
+            groupType.setAssociatedStageIds(associatedGroupIds);
             
             // populate the allowed doc types for this user
             //
@@ -1315,4 +2135,89 @@ public class OrganizationMySQLDao <T, S> extends BaseMySQLDao<Organization, Orga
         }
 		return result;
 	}
+	
+	
+	
+	/**
+	 * Checks of the given business number is unique in the system
+	 * @param businessNumber - the business Number  to check
+	 * @return - true if it is unique and false otherwise
+	 * @throws PersistenceException - if there was an issue with persistence
+	 */
+	public boolean isBusinessNumberUnique(String businessNumber) throws PersistenceException {
+		boolean result = true;
+		PreparedStatement preparedSELECTstatement;
+		ResultSet resultSet = null;
+		
+		
+		// get the connection
+		Connection conn = openConnection();
+		
+		// 
+		// process the request
+		
+		// create the statement
+		try {
+			preparedSELECTstatement = conn
+			        .prepareStatement("SELECT * from group_data WHERE business_id_number=?");
+			
+		
+			// execute the statement 
+			preparedSELECTstatement.setString(1, businessNumber);
+	        resultSet = preparedSELECTstatement.executeQuery();
+	        
+	        while (resultSet.next()) {
+				// extract the data
+	        	result = false;
+	        	
+	        }
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Checks of the given email address is unique in the system
+	 * @param emailAddress - the email address to check
+	 * @return - true if it is unique and false otherwise
+	 * @throws PersistenceException - if there was an issue with persistence
+	 */
+	public boolean isEmailUnique(String emailAddress) throws PersistenceException {
+		boolean result = true;
+		PreparedStatement preparedSELECTstatement;
+		ResultSet resultSet = null;
+		
+		
+		// get the connection
+		Connection conn = openConnection();
+		
+		// 
+		// process the request
+		
+		// create the statement
+		try {
+			preparedSELECTstatement = conn
+			        .prepareStatement("SELECT * from user_contact WHERE email_address=?");
+			
+		
+			// execute the statement 
+			preparedSELECTstatement.setString(1, emailAddress);
+	        resultSet = preparedSELECTstatement.executeQuery();
+	        
+	        while (resultSet.next()) {
+				// extract the data
+	        	result = false;
+	        	
+	        }
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+
 }

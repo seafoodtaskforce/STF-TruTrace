@@ -10,6 +10,7 @@ import java.util.List;
 import com.mysql.cj.api.jdbc.Statement;
 import com.wwf.shrimp.application.models.AppResource;
 import com.wwf.shrimp.application.models.DocumentType;
+import com.wwf.shrimp.application.models.DynamicFieldType;
 import com.wwf.shrimp.application.models.LookupEntity;
 import com.wwf.shrimp.application.models.search.LookupDataSearchCriteria;
 
@@ -62,6 +63,39 @@ public class LookupDataMySQLDao<T, S> extends BaseMySQLDao<LookupEntity, LookupD
 				
 	}
 	
+	public List<DynamicFieldType> getAllDynamicFieldTypes() throws Exception{
+		List<DynamicFieldType> result=null;
+		PreparedStatement preparedSELECTstatement;
+		ResultSet resultSet = null;
+		
+		// look up the user by name which should be unique
+		//
+		
+		// get the connection
+		Connection conn = openConnection();
+		
+		// 
+		// process the request
+		
+		// create the statement
+		preparedSELECTstatement = conn
+                .prepareStatement("SELECT id, name, value, mask from dynamic_field_type");
+		// execute the statement 
+        resultSet = preparedSELECTstatement.executeQuery();
+        
+        //
+        // process the result
+        result = extractDynamicFieldTypesFromResult(resultSet);
+
+		// release the connection
+		closeConnection(conn);
+		
+				
+		// return the result
+		return result;
+				
+	}
+	
 	
 	/**
 	 * 
@@ -85,7 +119,7 @@ public class LookupDataMySQLDao<T, S> extends BaseMySQLDao<LookupEntity, LookupD
 		
 		// create the statement
 		preparedSELECTstatement = conn
-                .prepareStatement("SELECT A.id, A.name, A.value FROM wwf_shrimp_database_v2.supported_languages A "
+                .prepareStatement("SELECT A.id, A.name, A.value FROM supported_languages A "
                 		+"JOIN supported_languages_org_rel B ON A.id = B.language_id "
                 		+ "WHERE B.org_id = ?");
 		
@@ -352,6 +386,54 @@ public class LookupDataMySQLDao<T, S> extends BaseMySQLDao<LookupEntity, LookupD
 	}
 	
 
+	/**
+	 * Get all the document types.
+	 * 
+	 * @return - the list of all available document types; empty if none found
+	 * @throws Exception - if there were any issues
+	 */
+	public List<AppResource> getAppResource(String key) throws Exception{
+		List<AppResource> result=null;
+		PreparedStatement preparedSELECTstatement;
+		ResultSet resultSet = null;
+		
+		// look up the user by name which should be unique
+		//
+		
+		// get the connection
+		Connection conn = openConnection();
+		
+		// 
+		// process the request
+		
+		// create the statement
+		preparedSELECTstatement = conn
+                .prepareStatement("SELECT * from app_resources "
+                		+ "WHERE resource_key = ?"
+                		);
+		
+		// insert the variable
+		preparedSELECTstatement.setString(1, key);
+		// execute the statement 
+        resultSet = preparedSELECTstatement.executeQuery();
+        
+        //
+        // process the result
+        result = extractAppResourcesFromResult(resultSet);
+
+		// release the connection
+		closeConnection(conn);
+		
+				
+		// return the result
+		return result;
+				
+	}
+	
+
+	
+	
+	
 	
 	/**
 	 * Get all the document types.
@@ -492,6 +574,7 @@ public class LookupDataMySQLDao<T, S> extends BaseMySQLDao<LookupEntity, LookupD
             String key = resultSet.getString("resource_key");
             String type = resultSet.getString("type");
             String subType = resultSet.getString("sub_type");
+            String platform = resultSet.getString("platform");
       
             
             // Create a new app resource
@@ -504,10 +587,48 @@ public class LookupDataMySQLDao<T, S> extends BaseMySQLDao<LookupEntity, LookupD
             resource.setKey(key);
             resource.setType(type);
             resource.setSubType(subType);
+            resource.setPlatform(platform);
 
             appResources.add(resource);
         }
 		
 		return appResources;
+	}
+	
+	
+	/**
+	 * Get all the field types for dynamic fields
+	 * 
+	 * @param resultSet - the set to extract from
+	 * @return - the extracted and converted data
+	 * @throws SQLException - if there were any issues
+	 */
+	private List<DynamicFieldType> extractDynamicFieldTypesFromResult(ResultSet resultSet) throws SQLException {
+		List<DynamicFieldType> fieldTypes = new ArrayList<DynamicFieldType>();
+		
+		// process the extractions - there will only be one user
+		//
+		while (resultSet.next()) {
+			// extract the data
+			long id = resultSet.getLong("id");
+            String name = resultSet.getString("name");
+            String value = resultSet.getString("value");
+            String valueMask = resultSet.getString("mask");
+      
+            
+            // Create a new app resource
+            DynamicFieldType fieldType = new DynamicFieldType();
+            
+            // populate the entity
+            fieldType.setId(id);
+            fieldType.setName(name);
+            fieldType.setValue(value);
+            fieldType.setValueMask(valueMask);
+
+
+            fieldTypes.add(fieldType);
+        }
+		
+		return fieldTypes;
 	}
 }
