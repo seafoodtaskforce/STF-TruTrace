@@ -52,6 +52,20 @@ public class NotificationData extends IdentifiableEntity{
 	public void setNotificationDescription(String notificationDescription) {
 		this.notificationDescription = notificationDescription;
 	}
+	/**
+	 * Get the item for the notification
+	 * @return - the item or null if not set
+	 */
+	public Object getItem() {
+		return item;
+	}
+	/**
+	 * Set the notification item
+	 * @param item - The item to be set; can be null
+	 */
+	public void setItem(Object item) {
+		this.item = item;
+	}
 	
 	private User user;
 	private NotificationType notificationType;
@@ -60,4 +74,5 @@ public class NotificationData extends IdentifiableEntity{
 	private AuditEntity auditData;
 	private String notificationText;
 	private String notificationDescription;
+	private Object item;
 }

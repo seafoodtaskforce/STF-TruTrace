@@ -11,6 +11,7 @@ public class AppResource extends IdentifiableEntity {
 	private String subType;
 	private String value;
 	private String platform;
+	private String description;
 	
 	public String getKey() {
 		return key;
@@ -49,15 +50,22 @@ public class AppResource extends IdentifiableEntity {
 	public void setPlatform(String platform) {
 		this.platform = platform;
 	}
-	
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((key == null) ? 0 : key.hashCode());
 		result = prime * result + ((locale == null) ? 0 : locale.hashCode());
+		result = prime * result + ((platform == null) ? 0 : platform.hashCode());
 		result = prime * result + ((subType == null) ? 0 : subType.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
 		return result;
 	}
 	@Override
@@ -79,6 +87,11 @@ public class AppResource extends IdentifiableEntity {
 				return false;
 		} else if (!locale.equals(other.locale))
 			return false;
+		if (platform == null) {
+			if (other.platform != null)
+				return false;
+		} else if (!platform.equals(other.platform))
+			return false;
 		if (subType == null) {
 			if (other.subType != null)
 				return false;
@@ -89,13 +102,18 @@ public class AppResource extends IdentifiableEntity {
 				return false;
 		} else if (!type.equals(other.type))
 			return false;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
+			return false;
 		return true;
 	}
-	
 	@Override
 	public String toString() {
-		return "AppResource [key=" + key + ", locale=" + locale + ", type=" + type + ", subtype=" + subType + ", value="
-				+ value + "]";
+		return "AppResource [key=" + key + ", locale=" + locale + ", type=" + type + ", subType=" + subType + ", value="
+				+ value + ", platform=" + platform + ", description=" + description + "]";
 	}
+
 
 }

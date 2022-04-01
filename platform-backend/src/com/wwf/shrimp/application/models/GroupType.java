@@ -14,6 +14,8 @@ public class GroupType extends LookupEntity {
 	private String hexColorCode;
 	private int orderIndex;
 	private List<DocumentType> allowedDocTypes = new ArrayList<DocumentType>();
+	private long matrixId;
+	private long[] associatedStageIds;
 
 	/**
 	 * @return the orderIndex
@@ -45,4 +47,19 @@ public class GroupType extends LookupEntity {
 		this.allowedDocTypes = allowedDocTypes;
 	}
 
+	public long getMatrixId() {
+		return matrixId;
+	}
+
+	public void setMatrixId(long matrixId) {
+		this.matrixId = matrixId;
+	}
+
+	public long[] getAssociatedStageIds() {
+		return associatedStageIds;
+	}
+
+	public void setAssociatedStageIds(long[] associatedStageIds) {
+		this.associatedStageIds = associatedStageIds;
+	}
 }

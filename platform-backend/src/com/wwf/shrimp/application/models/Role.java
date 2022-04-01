@@ -16,6 +16,14 @@ import java.util.List;
  *
  */
 public class Role extends LookupEntity {
+	
+	public static final String ROLE_NAME_SUPER_ADMIN = "Super Admin";
+	public static final String ROLE_NAME_MATRIX_ADMIN = "Matrix Admin";
+	public static final String ROLE_NAME_ORG_ADMIN = "Org Admin";
+	public static final String ROLE_NAME_USER = "User";
+	public static final String ROLE_NAME_GENERAL_USER = "General";
+
+	
 	private List<Permission> permissions = new ArrayList<Permission>();
 
 	/**

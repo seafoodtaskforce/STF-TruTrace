@@ -20,6 +20,11 @@ public class SecurityToken {
 	private Date expirationDate;
 	
 	/**
+	 * Optional seed for the token
+	 */
+	private String seed;
+	
+	/**
 	 * Flag for valid/invalid token
 	 */
 	private boolean invalidated = false;
@@ -60,6 +65,24 @@ public class SecurityToken {
 	public void setExpirationDate(Date expirationDate) {
 		this.expirationDate = expirationDate;
 	}
+	
+	
+	/**
+	 * Get the seed used for this token
+	 * @return the seed for this token and null if none was used
+	 */
+	public String getSeed() {
+		return seed;
+	}
+	
+	/**
+	 * Set the seed for this token. Can be null
+	 * @param seed - the seed used to create this token. Can be null
+	 */
+	public void setSeed(String seed) {
+		this.seed = seed;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -70,6 +93,7 @@ public class SecurityToken {
 		result = prime * result + ((tokenValue == null) ? 0 : tokenValue.hashCode());
 		return result;
 	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */

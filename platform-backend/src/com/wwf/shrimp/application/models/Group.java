@@ -27,6 +27,14 @@ public class Group extends ProfileEntity {
 	private long organizationId = 0;
 	private GroupType groupType;
 	
+	// Organization Data
+	private String businessIDNumber;
+	private String legalBusinessName;
+	private String businessAddress;
+	private String gpsCoordinates;
+	private String emailAddress;
+	private boolean verified;
+	
 
 
 	private List<Group> subGroups = new ArrayList<Group>();
@@ -112,5 +120,54 @@ public class Group extends ProfileEntity {
 	public void setGroupType(GroupType groupType) {
 		this.groupType = groupType;
 	}
+	public String getBusinessIDNumber() {
+		return businessIDNumber;
+	}
+	public void setBusinessIDNumber(String businessIDNumber) {
+		this.businessIDNumber = businessIDNumber;
+	}
+	public String getLegalBusinessName() {
+		return legalBusinessName;
+	}
+	public void setLegalBusinessName(String legalBusinessName) {
+		this.legalBusinessName = legalBusinessName;
+	}
+	public String getBusinessAddress() {
+		return businessAddress;
+	}
+	public void setBusinessAddress(String businessAddress) {
+		this.businessAddress = businessAddress;
+	}
+	public String getGpsCoordinates() {
+		return gpsCoordinates;
+	}
+	public void setGpsCoordinates(String gpsCoordinates) {
+		this.gpsCoordinates = gpsCoordinates;
+	}
+	
+	public String getEmailAddress() {
+		return emailAddress;
+	}
+	public void setEmailAddress(String emailAddress) {
+		this.emailAddress = emailAddress;
+	}
+
+	public boolean isVerified() {
+		return verified;
+	}
+	public void setVerified(boolean verified) {
+		this.verified = verified;
+	}
+	
+	@Override
+	public String toString() {
+		return "Group [parentId=" + parentId + ", childId=" + childId + ", organizationId=" + organizationId
+				+ ", groupType=" + groupType + ", businessIDNumber=" + businessIDNumber + ", legalBusinessName="
+				+ legalBusinessName + ", businessAddress=" + businessAddress + ", gpsCoordinates=" + gpsCoordinates
+				+ ", subGroups=" + subGroups + ", users=" + users + ", roles=" + roles + ", allowedDocTypes="
+				+ allowedDocTypes + "]";
+	}
+	
+	
 
 }

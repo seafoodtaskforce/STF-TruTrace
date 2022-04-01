@@ -115,16 +115,16 @@ public class AuditEntity extends IdentifiableEntity {
 	public void setTimestamp(String timestamp) {
 		this.timestamp = timestamp;
 	}
-	
-	
+
 	private User actor;
 	private AuditUserType userType;
 	private AuditAction action;
 	private String itemType;
 	private String itemId;
-	private  String fieldName;
-	private  String prevValue;
-	private  String newValue;
-	private  String timestamp;
+	private String fieldName;
+	private String prevValue;
+	private String newValue;
+	private String timestamp;
+
 
 }

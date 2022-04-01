@@ -1,5 +1,8 @@
 package com.wwf.shrimp.application.models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Base class for all entities that have an id
  * 
@@ -19,6 +22,11 @@ public class IdentifiableEntity {
 	 * Keeps track of a soft-delete functionality for filtering deleted entities.
 	 */
 	private boolean deleted = false;
+	
+	/**
+	 * Allows for diagnostic payload to be added to the response
+	 */
+	private List<String> diagnostic;
 
 	/**
 	 * @return the id
@@ -26,6 +34,7 @@ public class IdentifiableEntity {
 	public long getId() {
 		return id;
 	}
+	
 
 	/**
 	 * @param id the id to set
@@ -62,6 +71,22 @@ public class IdentifiableEntity {
 	public void setDeleted(boolean deleted) {
 		this.deleted = deleted;
 	}
+	
+	
+	
+
+	public List<String> getDiagnostic() {
+		if(diagnostic == null){
+			diagnostic = new ArrayList<String>();
+		}
+		return diagnostic;
+	}
+
+
+	public void setDiagnostic(List<String> diagnostic) {
+		this.diagnostic = diagnostic;
+	}
+
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()

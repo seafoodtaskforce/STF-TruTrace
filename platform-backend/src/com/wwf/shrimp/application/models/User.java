@@ -23,6 +23,11 @@ public class User extends ProfileEntity {
 	private List<Organization> userOrganizations = new ArrayList<Organization>();
 	// resources for this user
 	private List<AppResource> appResources = new ArrayList<AppResource>(); 
+	// Dynamic Field definitions for this user
+	private List<DynamicFieldDefinition> dynamicFieldDefinitions = new ArrayList<DynamicFieldDefinition>();
+	// Languages available for this user
+	List<LookupEntity> languageLookupEntities = new ArrayList<LookupEntity>();
+	
 	
 	/**
 	 * @return the credentials
@@ -98,15 +103,29 @@ public class User extends ProfileEntity {
 	public void setUserOrganizations(List<Organization> userOrganizations) {
 		this.userOrganizations = userOrganizations;
 	}
-	
-	
-	
+
 	public List<AppResource> getAppResources() {
 		return appResources;
 	}
 
 	public void setAppResources(List<AppResource> appResources) {
 		this.appResources = appResources;
+	}
+	
+	public List<DynamicFieldDefinition> getDynamicFieldDefinitions() {
+		return dynamicFieldDefinitions;
+	}
+
+	public void setDynamicFieldDefinitions(List<DynamicFieldDefinition> dynamicFieldDefinitions) {
+		this.dynamicFieldDefinitions = dynamicFieldDefinitions;
+	}
+	
+	public List<LookupEntity> getLanguageLookupEntities() {
+		return languageLookupEntities;
+	}
+
+	public void setLanguageLookupEntities(List<LookupEntity> languageLookupEntities) {
+		this.languageLookupEntities = languageLookupEntities;
 	}
 
 	/* (non-Javadoc)

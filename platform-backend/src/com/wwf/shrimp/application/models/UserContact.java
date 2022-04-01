@@ -14,6 +14,8 @@ public class UserContact extends IdentifiableEntity {
 	private String lastName;
 	private String nickName;
 	private String lineId;
+	private boolean activated;
+	private boolean verified;
 	
 	
 	/**
@@ -71,11 +73,23 @@ public class UserContact extends IdentifiableEntity {
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
 	}
-	
+
+	public boolean isActivated() {
+		return activated;
+	}
+	public void setActivated(boolean activated) {
+		this.activated = activated;
+	}
+	public boolean isVerified() {
+		return verified;
+	}
+	public void setVerified(boolean verified) {
+		this.verified = verified;
+	}
 	@Override
 	public String toString() {
 		return "UserContact [emailAddress=" + emailAddress + ", cellNumber=" + cellNumber + ", firstName=" + firstName
-				+ ", lastName=" + lastName + ", nickName=" + nickName + ", lineId=" + lineId + "]";
+				+ ", lastName=" + lastName + ", nickName=" + nickName + ", lineId=" + lineId + ", activated="
+				+ activated + ", verified=" + verified + "]";
 	}
-
 }

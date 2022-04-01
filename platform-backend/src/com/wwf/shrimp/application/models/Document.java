@@ -36,7 +36,11 @@ public class Document extends IdentifiableEntity implements IResource {
 	private DocumentType type;
 	private String documentType;
 	private String owner;
+	private long ownerId;
+	private User ownerUser;
 	private String creationTimestamp;
+	private String updationTimestamp;
+	private String updationServerTimestamp;
 	private String documentImageURI;
 	private String base64ImageData;
     private String TypeHEXColor;
@@ -48,11 +52,16 @@ public class Document extends IdentifiableEntity implements IResource {
     private long organizationId;
     private String groupName;
     private String groupTypeName;
+    private String groupTypeValue;
     private int groupTypeOrderIndex;
+    private String groupGPSCoordinates="";
+    private String groupBusinessId="";
     private List<User> toRecipients = new ArrayList<User>();
     private String status;
     private List<NoteData> notes = new ArrayList<NoteData>();
-    private String gpsLocation;
+    private String gpsLocation="";
+    private List<DynamicFieldData> dynamicFieldData = new ArrayList<DynamicFieldData>();
+	private boolean isLocked = false;
 
     
 	public List<NoteData> getNotes() {
@@ -183,6 +192,18 @@ public class Document extends IdentifiableEntity implements IResource {
 	public void setCreationTimestamp(String creationTimestamp) {
 		this.creationTimestamp = creationTimestamp;
 	}
+	
+	
+	
+	
+	public String getUpdationTimestamp() {
+		return updationTimestamp;
+	}
+
+	public void setUpdationTimestamp(String updationTimestamp) {
+		this.updationTimestamp = updationTimestamp;
+	}
+
 	/**
 	 * @return the owner
 	 */
@@ -195,6 +216,15 @@ public class Document extends IdentifiableEntity implements IResource {
 	public void setOwner(String owner) {
 		this.owner = owner;
 	}
+
+	public long getOwnerId() {
+		return ownerId;
+	}
+
+	public void setOwnerId(long ownerId) {
+		this.ownerId = ownerId;
+	}
+
 	/**
 	 * @return the documentType
 	 */
@@ -243,6 +273,13 @@ public class Document extends IdentifiableEntity implements IResource {
 	public void setPages(List<DocumentPage> pages) {
 		this.pages = pages;
 	}
+	/**
+	 * @param pages the pages to add
+	 */
+	public void addPages(List<DocumentPage> pages) {
+		this.pages.addAll(pages);
+	}	
+	
 	/**
 	 * @return the tags
 	 */
@@ -365,6 +402,67 @@ public class Document extends IdentifiableEntity implements IResource {
 		this.gpsLocation = gpsLocation;
 	}
 
+	public List<DynamicFieldData> getDynamicFieldData() {
+		return dynamicFieldData;
+	}
+
+	public void setDynamicFieldData(List<DynamicFieldData> dynamicFieldData) {
+		this.dynamicFieldData = dynamicFieldData;
+	}
+
+	public String getGroupGPSCoordinates() {
+		return groupGPSCoordinates;
+	}
+
+	public void setGroupGPSCoordinates(String groupGPSCoordinates) {
+		this.groupGPSCoordinates = groupGPSCoordinates;
+	}
+
+	public String getGroupBusinessId() {
+		return groupBusinessId;
+	}
+
+	public void setGroupBusinessId(String groupBusinessId) {
+		this.groupBusinessId = groupBusinessId;
+	}
+	
+	public boolean isLocked() {
+		return isLocked;
+	}
+
+	public void setLocked(boolean isLocked) {
+		this.isLocked = isLocked;
+	}
+	
+	
+
+	public String getGroupTypeValue() {
+		return groupTypeValue;
+	}
+
+	public void setGroupTypeValue(String groupTypeValue) {
+		this.groupTypeValue = groupTypeValue;
+	}
+	
+	
+
+	public User getOwnerUser() {
+		return ownerUser;
+	}
+
+	public void setOwnerUser(User ownerUser) {
+		this.ownerUser = ownerUser;
+	}
+	
+	
+
+	public String getUpdationServerTimestamp() {
+		return updationServerTimestamp;
+	}
+
+	public void setUpdationServerTimestamp(String updationServerTimestamp) {
+		this.updationServerTimestamp = updationServerTimestamp;
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
