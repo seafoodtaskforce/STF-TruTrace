@@ -16,17 +16,19 @@ import com.wwf.shrimp.application.models.SecurityToken;
 public interface SecurityTokenGeneratorService {
 	/**
 	 * Generate a unique token string with no expiry constraints.
+	 * @param seed - an optional seed to be used in creating the token
 	 * @return - the generated security token
 	 * @throws ServiceManagementException if there were any issues with the generation process
 	 */
-	public SecurityToken generateUniqueToken() throws ServiceManagementException ;
+	public SecurityToken generateUniqueToken(String... seed) throws ServiceManagementException ;
 	
 	/**
 	 * Generate a unique security string.
 	 * @param expiryDate - the expiry date for the token
+	 * @param seed - an optional seed to be used in creating the token
 	 * @return - the generated security token
 	 * @throws ServiceManagementException if there were any issues with the generation process.
 	 *  - if the provided token is in the past this exception will be thrown
 	 */
-	public SecurityToken generateUniqueToken(Date expiryDate) throws ServiceManagementException;
+	public SecurityToken generateUniqueToken(Date expiryDate, String... seed) throws ServiceManagementException;
 }
