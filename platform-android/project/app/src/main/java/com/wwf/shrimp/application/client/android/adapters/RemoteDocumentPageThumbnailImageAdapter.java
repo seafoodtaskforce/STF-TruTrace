@@ -13,6 +13,7 @@ import com.wwf.shrimp.application.client.android.R;
 import com.wwf.shrimp.application.client.android.models.dto.DocumentPage;
 import com.wwf.shrimp.application.client.android.models.view.GalleryDocumentPage;
 import com.wwf.shrimp.application.client.android.system.SessionData;
+import com.wwf.shrimp.application.client.android.utils.adapters.dynamicgrid.BaseDynamicGridAdapter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,16 +25,26 @@ import java.util.List;
  *
  * @author AleaActaEst
  */
-public class RemoteDocumentPageThumbnailImageAdapter extends BaseAdapter {
+public class RemoteDocumentPageThumbnailImageAdapter extends BaseDynamicGridAdapter {
     private Context mContext;
     private SessionData globalVariable = null;
     private List<GalleryDocumentPage> mDataSet = new ArrayList<>();
 
+    /**
     public RemoteDocumentPageThumbnailImageAdapter(Context c, List<GalleryDocumentPage> dataSet) {
 
         mContext = c;
         globalVariable = (SessionData) mContext.getApplicationContext();
         this.mDataSet = dataSet;
+    }
+     */
+
+    public RemoteDocumentPageThumbnailImageAdapter(Context context, List<?> items, int columnCount) {
+        super(context, items, columnCount);
+
+        mContext = context;
+        globalVariable = (SessionData) mContext.getApplicationContext();
+        this.mDataSet = (List<GalleryDocumentPage>) items;
     }
 
     public int getCount() {
@@ -71,9 +82,11 @@ public class RemoteDocumentPageThumbnailImageAdapter extends BaseAdapter {
         mDataSet.get(position).setDeleted(value);
     }
 
+    /**
     public long getItemId(int position) {
         return position;
     }
+     */
 
     // create a new ImageView for each item referenced by the Adapter
     public View getView(int position, View convertView, ViewGroup parent) {

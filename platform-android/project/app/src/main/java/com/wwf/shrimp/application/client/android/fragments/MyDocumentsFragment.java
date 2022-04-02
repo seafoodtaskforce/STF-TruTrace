@@ -1,7 +1,6 @@
 package com.wwf.shrimp.application.client.android.fragments;
 
 import android.Manifest;
-import android.animation.Animator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -10,36 +9,32 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomSheetBehavior;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
+import com.wwf.shrimp.application.client.android.MyDocsFilterActivity;
+
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.content.ContextCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -54,9 +49,9 @@ import com.wwf.shrimp.application.client.android.models.dto.Document;
 import com.wwf.shrimp.application.client.android.models.dto.DocumentType;
 import com.wwf.shrimp.application.client.android.models.dto.Organization;
 import com.wwf.shrimp.application.client.android.models.dto.User;
-import com.wwf.shrimp.application.client.android.models.dto.search.DocumentSearchCriteria;
 import com.wwf.shrimp.application.client.android.models.dto.search.SearchResult;
 import com.wwf.shrimp.application.client.android.models.view.DocumentCardItem;
+import com.wwf.shrimp.application.client.android.models.view.FilterDTO;
 import com.wwf.shrimp.application.client.android.services.CameraIntentService;
 import com.wwf.shrimp.application.client.android.services.dao.DocumentJSONService;
 import com.wwf.shrimp.application.client.android.system.SessionData;
@@ -93,6 +88,7 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
 
     // logging tag
     private static final String LOG_TAG = "List My Docs Activity";
+    private static final int MY_DOCUMENTS_FRAGMENT_ACTIVITY_ID = 2;
     // GPS Functionality
     private FusedLocationProviderClient fusedLocationClient;
 
@@ -104,21 +100,10 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
     // UI elements
     //
     private SwipeRefreshLayout mSwipeRefreshLayout;
-
-    // Custom Fabs
-    private FloatingActionButton fabDocumentFilter;
+    Menu menu;
 
     // The Dimmer View
     View backgroundDimmer;
-
-    // Bottom Sheet
-    BottomSheetBehavior bottomSheetFilterBehavior;
-    TextView textViewNumberRecords;
-    Spinner spinnerOwners;
-    Spinner spinnerDocumentTypes;
-    Button buttonDismissFilter;
-    CardView cardViewUsers;
-
     //
     // UI Data
 
@@ -163,8 +148,45 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
         Log.i(LOG_TAG, "CREATE Call for MyDocs Doc");
         super.onCreate(savedInstanceState);
         globalVariable  = (SessionData) getContext().getApplicationContext();
+        setHasOptionsMenu(true);
         setRetainInstance(true);
     }
+
+     @Override
+     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+         inflater.inflate(R.menu.mydocs_page, menu);
+         this.menu = menu;
+         super.onCreateOptionsMenu(menu, inflater);
+     }
+
+     @Override
+     public void onPrepareOptionsMenu(Menu menu) {
+
+         MenuItem settingsItem = menu.findItem(R.id.action_doc_filter);
+         // set your desired icon here based on a flag if you like
+         //
+         // check the menu items syatus
+         if(globalVariable.getMyDocsFilter().getStatus() == FilterDTO.FILTER_STATUS_CLEAR){
+             settingsItem.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_filter_no_checkmark));
+         } else if(globalVariable.getMyDocsFilter().getStatus() == FilterDTO.FILTER_STATUS_SET){
+             settingsItem.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_filter_and_checkmark));
+         }
+          super.onPrepareOptionsMenu(menu);
+     }
+
+     @Override
+     public boolean onOptionsItemSelected(MenuItem item) {
+         // Handle item selection
+         switch (item.getItemId()) {
+             case R.id.action_doc_filter:
+                 Toast.makeText(getActivity(), "Filter Click", Toast.LENGTH_SHORT).show();
+                 Intent intent = new Intent(getContext(), MyDocsFilterActivity.class);
+                 startActivityForResult(intent, MyDocsFilterActivity.MY_DOCUMENTS_FILTER_ACTIVITY_ID);
+                 return true;
+             default:
+                 return super.onOptionsItemSelected(item);
+         }
+     }
 
     /**
      * Instance creation with global data access initialization
@@ -195,7 +217,6 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
 
                 syncedInstanceCardItems = globalVariable.getDocumentLocalMap().get(MyDocumentsFragment.ADAPTER_DATA_TAG);
                 savedInstanceState.putString(MyDocumentsFragment.FRAGMENT_TAG, null);
-
         }
 
 
@@ -238,44 +259,6 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
 
         }
 
-        fabDocumentFilter = (FloatingActionButton)view.findViewById(R.id.fab_document_filter);
-        fabDocumentFilter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Toast.makeText(globalVariable, "Clicked Filter", Toast.LENGTH_SHORT).show();
-                if(bottomSheetFilterBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED){
-                    bottomSheetFilterBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                }else{
-                    menuFABAction.animate().scaleX(0).scaleY(0).setDuration(300).setListener(new Animator.AnimatorListener() {
-                        @Override
-                        public void onAnimationStart(Animator animation) {
-
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            menuFABAction.setVisibility(View.GONE);
-                            hideFABDocTypeButtons();
-                        }
-
-                        @Override
-                        public void onAnimationCancel(Animator animation) {
-
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animator animation) {
-
-                        }
-                    }).start();
-                    bottomSheetFilterBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                    //
-                    // set the doc types
-                    initializeDocumentFilterBottomSheet();
-                }
-
-            }
-        });
         wireFABDocTypeButtons();
 
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -494,334 +477,6 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
         globalVariable.setDocumentAdapter(RECYCLER_ADAPTER_KEY, mAdapter);
 
         //
-        // bottom sheets
-        //
-        View bottomSheet = view.findViewById(R.id.bottom_sheet_document_filter);
-        cardViewUsers = (CardView) view.findViewById(R.id.card_view_users);
-        cardViewUsers.setVisibility(View.GONE);
-        bottomSheetFilterBehavior = BottomSheetBehavior.from(bottomSheet);
-        bottomSheetFilterBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                // React to state change
-                //
-                switch(newState){
-                    case BottomSheetBehavior.STATE_DRAGGING:
-                        Log.d(LOG_TAG, "Filter Transition State: Dragging ");
-
-                        break;
-
-                    case BottomSheetBehavior.STATE_COLLAPSED:
-                        Log.d(LOG_TAG, "Filter Transition State: Collapsed ");
-                        buttonDismissFilter.setVisibility(View.VISIBLE);
-                        break;
-
-                    case BottomSheetBehavior.STATE_HIDDEN:
-                        Log.d(LOG_TAG, "Filter Transition State: Hidden ");
-                        // show the button
-                        fabDocumentFilter.setVisibility(View.VISIBLE);
-                        fabDocumentFilter.animate().scaleX(1).scaleY(1).setDuration(300).setListener(new Animator.AnimatorListener() {
-                            @Override
-                            public void onAnimationStart(Animator animation) {
-
-                            }
-
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-
-                            }
-
-                            @Override
-                            public void onAnimationCancel(Animator animation) {
-
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(Animator animation) {
-
-                            }
-                        }).start();
-
-
-
-                        // turn the filter off
-                        globalVariable.setDocumentSearchFilterState(SessionData.DOCUMENT_FILTER_MY_DOCS, false);
-                        buttonDismissFilter.setVisibility(View.GONE);
-                        // TODO Bypass remote
-                        // refreshItemsLocalData();
-
-                        if(syncedInstanceCardItems == null){
-                            refreshItemsRemoteData();
-                        }else{
-                            refreshItemsLocalData();
-                        }
-
-                        break;
-
-                    case BottomSheetBehavior.STATE_EXPANDED:
-                        Log.d(LOG_TAG, "Filter Transition State: Expanded ");
-                        // hide the button
-
-                        fabDocumentFilter.animate().scaleX(0).scaleY(0).setDuration(300).setListener(new Animator.AnimatorListener() {
-                            @Override
-                            public void onAnimationStart(Animator animation) {
-
-                            }
-
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                fabDocumentFilter.setVisibility(View.GONE);
-                                buttonDismissFilter.setVisibility(View.VISIBLE);
-                            }
-
-                            @Override
-                            public void onAnimationCancel(Animator animation) {
-
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(Animator animation) {
-
-                            }
-                        }).start();
-
-                        // turn the filter on
-                        globalVariable.setDocumentSearchFilterState(SessionData.DOCUMENT_FILTER_MY_DOCS, true);
-                        // TODO Bypass remote
-                        refreshItemsLocalData();
-                        /**
-                        if(syncedInstanceCardItems == null){
-                            refreshItemsRemoteData();
-                        }else{
-                            refreshItemsLocalData();
-                        }
-                         */
-                        break;
-
-                }
-
-                // this part hides the button immediately and waits bottom sheet
-                // to collapse to show
-                //if (BottomSheetBehavior.STATE_DRAGGING == newState) {
-                //    fabDocumentFilter.animate().scaleX(0).scaleY(0).setDuration(300).start();
-                //} else if (BottomSheetBehavior.STATE_COLLAPSED == newState) {
-                //    fabDocumentFilter.animate().scaleX(1).scaleY(1).setDuration(300).start();
-                //}
-            }
-
-            @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                // React to dragging events
-                //fabDocumentFilter.animate()
-                //        .scaleX(1 - slideOffset).scaleY(1 - slideOffset).setDuration(0).start();
-            }
-        });
-        bottomSheetFilterBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-
-        //
-        // Bottom sheet elements
-        textViewNumberRecords = (TextView) view.findViewById(R.id.textView_number_records);
-        spinnerOwners = (Spinner) view.findViewById(R.id.spinner_owners);
-        spinnerOwners.setEnabled(false);
-        spinnerDocumentTypes = (Spinner) view.findViewById(R.id.spinner_doctypes);
-        buttonDismissFilter = (Button) view.findViewById(R.id.button_filter_dimiss);
-
-        //
-        // Bottom Sheet elements listeners
-        //
-
-
-        // Spinner for User data element
-        spinnerOwners.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View arg1, int position,long id) {
-                DocumentSearchCriteria search;
-
-                if(parent.getItemAtPosition(position).toString().equals(getResources().getString(R.string.document_filter_all_user_options))){
-                    // remove the current search value
-                    globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS).setUserName(null);
-                    return;
-                }
-                search = globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS);
-                if(search == null){
-                    search = new DocumentSearchCriteria();
-                    search.setUserName(parent.getItemAtPosition(position).toString());
-                    globalVariable.setDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS, search);
-                }else{
-                    search.setUserName(parent.getItemAtPosition(position).toString());
-
-                }
-                // TODO Bypass remote
-                refreshItemsLocalData();
-                /**
-                if(syncedInstanceCardItems == null){
-                    refreshItemsRemoteData();
-                }else{
-                    refreshItemsLocalData();
-                }
-                 */
-                // Toast.makeText(getContext(), parent.getItemAtPosition(position).toString(), Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-                // TODO Auto-generated method stub
-
-            }
-
-        });
-
-        // Spinner for Document data element
-        spinnerDocumentTypes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View arg1, int position,long id) {
-                DocumentSearchCriteria search;
-                DocumentType docType = new DocumentType();
-                docType.setId(getDocTypeIdFromValue(parent.getItemAtPosition(position).toString()));
-
-                if(parent.getItemAtPosition(position).toString().equals(getResources().getString(R.string.document_filter_all_doctypes_options))){
-                    // remove the current search value
-                    if(globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS) != null) {
-                        globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS).setDocType(null);
-                    }
-                    globalVariable.setDocumentSearchFilterState(SessionData.DOCUMENT_FILTER_MY_DOCS, true);
-                    // TODO Bypass remote
-                    refreshItemsLocalData();
-                    /**
-                    if(syncedInstanceCardItems == null){
-                        refreshItemsRemoteData();
-                    }else{
-                        refreshItemsLocalData();
-                    }
-                     */
-                    return;
-                }
-                search = globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS);
-                globalVariable.setDocumentSearchFilterState(SessionData.DOCUMENT_FILTER_MY_DOCS, true);
-                if(search == null){
-                    search = new DocumentSearchCriteria();
-                    search.setDocType(docType);
-                    globalVariable.setDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS, search);
-                }else{
-                    search.setDocType(docType);
-                }
-                // Toast.makeText(getContext(), parent.getItemAtPosition(position).toString(), Toast.LENGTH_LONG).show();
-                // TODO Bypass remote
-                refreshItemsLocalData();
-                /**
-                if(syncedInstanceCardItems == null){
-                    refreshItemsRemoteData();
-                }else{
-                    refreshItemsLocalData();
-                }
-                 */
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-                // TODO Auto-generated method stub
-
-            }
-
-        });
-
-        /**
-        checkBoxFilterUsers.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DocumentSearchCriteria search;
-                CheckBox checkBox = (CheckBox)v;
-
-                search = globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS);
-                if(search == null) {
-                    search = new DocumentSearchCriteria();
-                    globalVariable.setDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS,search);
-                }
-
-                if(!checkBox.isChecked()){
-                    // enabled the spinner
-                    spinnerOwners.setEnabled(false);
-                    // remove the current search value
-                    globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS).setUserName(null);
-                }else{
-                    spinnerOwners.setEnabled(true);
-                    // use the input value to search
-                    spinnerOwners.getSelectedItem();
-                    globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS).setUserName(""+ spinnerOwners.getSelectedItem());
-                }
-
-                // refresh the data set
-                refreshItems();
-            }
-        });
-
-        checkBoxFilterDocTypes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DocumentSearchCriteria search;
-                DocumentType docType = new DocumentType();
-                docType.setId(getDocTypeIdFromValue(""+spinnerDocumentTypes.getSelectedItem()));
-
-                CheckBox checkBox = (CheckBox)v;
-
-                search = globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS);
-                if(search == null) {
-                    search = new DocumentSearchCriteria();
-                    globalVariable.setDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS, search);
-                }
-
-                if(!checkBox.isChecked()){
-                    // enabled the spinner
-                    spinnerDocumentTypes.setEnabled(false);
-                    // remove the current search value
-                    globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS).setDocType(null);
-                }else{
-                    spinnerDocumentTypes.setEnabled(true);
-                    // use the input value to search
-                    spinnerDocumentTypes.getSelectedItem();
-                    globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS).setDocType(docType);
-                }
-
-                // refresh the data set
-                refreshItems();
-            }
-        });
-
-         */
-
-        buttonDismissFilter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                menuFABAction.setVisibility(View.VISIBLE);
-                showFABDocTypeButtons();
-                menuFABAction.animate().scaleX(1).scaleY(1).setDuration(300).setListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {
-
-                    }
-                }).start();
-                bottomSheetFilterBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                globalVariable.setDocumentSearchFilterState(SessionData.DOCUMENT_FILTER_MY_DOCS, false);
-                buttonDismissFilter.setVisibility(View.GONE);
-            }
-        });
-
-        //
         // Refresh the data items, which will fill in the documentList variable
         if(syncedInstanceCardItems == null){
             refreshItemsRemoteData();
@@ -985,8 +640,11 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
         }
         ft.addToBackStack(null);
 
+        // set profile docs
+        document.setAttachedDocuments(globalVariable.getProfileDocs());
         // set the document to be worked on the session
         globalVariable.setNextDocument(document);
+
 
         // Create and show the dialog.
         TabbedDocumentDialog dialogFragment = new TabbedDocumentDialog();
@@ -1138,7 +796,7 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
         //
         // Try to get data from the local database
         //documentService = new DocumentService(getContext());
-        //documentService.open();
+        documentService.open();
         //    documentList = documentService.getAllMyDocuments((globalVariable.getCurrentUser().getCredentials()).getUsername());
         //documentService.close();
         if(globalVariable.isDocumentSearchFilterState(SessionData.DOCUMENT_FILTER_MY_DOCS)){
@@ -1147,7 +805,6 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
             // get the number of records
             DocumentCardItemAdapter adapter = globalVariable.getDocumentAdapter(RECYCLER_ADAPTER_KEY);
             adapter.getDataSet().size();
-            textViewNumberRecords.setText("" + adapter.getDataSet().size());
 
             return;
         }
@@ -1163,7 +820,6 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
         docTypesList = convertDocTypeData(docTypes);
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_dropdown_item_1line, docTypesList);
-        spinnerDocumentTypes.setAdapter(arrayAdapter);
     }
 
     /**
@@ -1473,8 +1129,7 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
     private void applyFilters(List<DocumentCardItem> filteredCardItems){
         // apply any filter data
         List<DocumentCardItem> tempDocumentList = null;
-        if(globalVariable.isDocumentSearchFilterState(SessionData.DOCUMENT_FILTER_MY_DOCS)
-                && !spinnerDocumentTypes.getSelectedItem().toString().equals(getResources().getString(R.string.document_filter_all_doctypes_options))){
+        if(globalVariable.isDocumentSearchFilterState(SessionData.DOCUMENT_FILTER_MY_DOCS)){
             DocumentType docType = globalVariable.getDocumentSearchFilterData(SessionData.DOCUMENT_FILTER_MY_DOCS).getDocType();
             tempDocumentList = new ArrayList<>();
             for(int i=0; i<filteredCardItems.size(); i++){
@@ -1501,9 +1156,6 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
         globalVariable
                 .getDocumentAdapter(RECYCLER_ADAPTER_KEY)
                 .notifyDataSetChanged();
-
-        // get the number of records
-        textViewNumberRecords.setText("" + filteredCardItems.size());
     }
 
     private DocumentType getDocTypeByFABId(int fabId){
@@ -1526,6 +1178,13 @@ public class MyDocumentsFragment extends Fragment implements View.OnClickListene
                     // TODO Extract the data returned from the child Activity.
                     refreshList();
                 }
+                break;
+            }
+            case (MyDocsFilterActivity.MY_DOCUMENTS_FILTER_ACTIVITY_ID) : {
+                //if (resultCode == Activity.RESULT_OK) {
+                    // TODO Extract the data returned from the child Activity.
+                    getActivity().invalidateOptionsMenu();
+                //}
                 break;
             }
         }

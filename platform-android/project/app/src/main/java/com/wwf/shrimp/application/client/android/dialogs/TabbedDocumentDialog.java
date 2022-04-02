@@ -16,18 +16,17 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.Nullable;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.tabs.TabLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -49,7 +48,6 @@ import com.wwf.shrimp.application.client.android.DocumentTaggingActivity;
 import com.wwf.shrimp.application.client.android.R;
 import com.wwf.shrimp.application.client.android.adapters.CustomPagedDocumentDialogAdapter;
 import com.wwf.shrimp.application.client.android.adapters.DocumentPageImageAdapter;
-import com.wwf.shrimp.application.client.android.adapters.RemoteDocumentPageThumbnailImageAdapter;
 import com.wwf.shrimp.application.client.android.adapters.ShowAttachedDocumentsListRecyclerViewAdapter;
 import com.wwf.shrimp.application.client.android.adapters.ShowLinkedDocumentsListRecyclerViewAdapter;
 import com.wwf.shrimp.application.client.android.adapters.helpers.AttachedDocumentItemDataHelper;
@@ -63,6 +61,8 @@ import com.wwf.shrimp.application.client.android.fragments.MyDocumentsFragment;
 import com.wwf.shrimp.application.client.android.fragments.ProfileDocumentsFragment;
 import com.wwf.shrimp.application.client.android.models.dto.Document;
 import com.wwf.shrimp.application.client.android.models.dto.DocumentPage;
+import com.wwf.shrimp.application.client.android.models.dto.DynamicFieldData;
+import com.wwf.shrimp.application.client.android.models.dto.DynamicFieldDefinition;
 import com.wwf.shrimp.application.client.android.models.dto.NoteData;
 import com.wwf.shrimp.application.client.android.models.dto.TagData;
 import com.wwf.shrimp.application.client.android.models.view.DocumentCardItem;
@@ -75,14 +75,18 @@ import com.wwf.shrimp.application.client.android.utils.FileUtils;
 import com.wwf.shrimp.application.client.android.utils.ImageUtils;
 import com.wwf.shrimp.application.client.android.utils.RESTUtils;
 import com.wwf.shrimp.application.client.android.utils.ViewPagerFixed;
+import com.wwf.shrimp.application.client.android.utils.adapters.dynamicgrid.BaseDynamicGridAdapter;
 import com.wwf.shrimp.application.client.android.utils.dialogs.CancelDialogUtility;
 import com.wwf.shrimp.application.opennotescanner.OpenNoteScannerActivity;
 import com.wwf.shrimp.application.opennotescanner.helpers.Utils;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -92,6 +96,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.UUID;
 
+import static com.wwf.shrimp.application.client.android.utils.DocumentPOJOUtils.getAllDynamicFieldData;
+import static com.wwf.shrimp.application.client.android.utils.DocumentPOJOUtils.getAllDynamicFieldsForDocument;
+import static com.wwf.shrimp.application.client.android.utils.DocumentPOJOUtils.getAllOCRDynamicFieldsForDocument;
+import static com.wwf.shrimp.application.client.android.utils.OCRUtils.getFullOCRText;
 import static com.wwf.shrimp.application.client.android.utils.OCRUtils.getTagFromDocument;
 
 /**
@@ -189,6 +197,7 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
 
         /**
          * FAB Handling for taking a new Photo and attaching an existing photo
+         * as well as swapping photos
          */
         fabTakeDocImage = (FloatingActionButton) rootview.findViewById(R.id.fabTakeImage);
         fabAttachDocImage = (FloatingActionButton) rootview.findViewById(R.id.fabAttachImage);
@@ -231,28 +240,10 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
         fabAttachDocImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Get the snapshot here or camera data
-
-                // TODO add settings for different cameras later, current setting calls scanner
-                // snapCameraPhoto(getContext());
-
-                // start gellery
-                //Intent intent = new Intent(Intent.ACTION_PICK,
-                //android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                //intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent,"Select Document Image"), IMG_RESULT_ATTACH);
-
-                //startActivityForResult(intent, IMG_RESULT_ATTACH);
-
-                globalVariable.setCurrFragment(getParentFragmentCustom());
+                // attach the document page
+                attachDocumentPage();
             }
         });
-
 
         /**
          * Handling of the bottom buttons
@@ -335,7 +326,8 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
                         + globalVariable.getConfigurationData().getRestDocumentDeletePagesURL();
                 //
                 // remove them from the actual document
-                RESTUtils.executeDELETEDocumentPagesRequest(deletePagesUrl, globalVariable.getNextDocument().getSyncID(), globalVariable, null);
+                // <TODO> Deletion Issues
+                //RESTUtils.executeDELETEDocumentPagesRequest(deletePagesUrl, globalVariable.getNextDocument().getSyncID(), globalVariable, null);
 
                 /**
                  * remove the marked pages from the grid adapter
@@ -366,7 +358,13 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
                     }
                 }
 
+                //
+                // recollate pages in the document
+                //globalVariable.getNextDocument().setDocumentPages(DocumentPOJOUtils.collateGalleryDocPages(globalVariable.getNextDocument().getDocumentPages()));
 
+                //
+                // recollate pages
+                recollateDocumentPages();
 
                 //
                 // update the index page
@@ -374,7 +372,7 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
                         = (CustomFragmentDocumentPageIndex) adapter.getFragmentByTitle(getResources().getString(FRAGMENT_TAB_INDEX));
                 if(documentPageIndex.getGridview() != null){
                     Log.i(LOG_TAG, "GridView is *NOT* null.");
-                    RemoteDocumentPageThumbnailImageAdapter indexAdapter = (RemoteDocumentPageThumbnailImageAdapter) documentPageIndex.getGridview().getAdapter();
+                    BaseDynamicGridAdapter indexAdapter = (BaseDynamicGridAdapter) documentPageIndex.getGridview().getAdapter();
                     indexAdapter.removeAllDeletedItems();
                 }else{
                     Log.i(LOG_TAG, "GridView *IS* null.");
@@ -399,7 +397,7 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
                         }
                         if(myGalleryFrag.getGridview() != null) {
                             Log.i(LOG_TAG, "GridView <2nd pass> is *NOT* null.");
-                            RemoteDocumentPageThumbnailImageAdapter indexAdapter = (RemoteDocumentPageThumbnailImageAdapter) myGalleryFrag.getGridview().getAdapter();
+                            BaseDynamicGridAdapter indexAdapter = (BaseDynamicGridAdapter) myGalleryFrag.getGridview().getAdapter();
                             indexAdapter.removeAllDeletedItems();
                         }else{
                             Log.i(LOG_TAG, "GridView <2nd pass> *IS* null.");
@@ -407,6 +405,8 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
                     }
                 }
 
+                //
+                // Update all the dynamic tabs that deal with individual pages
                 Iterator pageIter = tempDocs.iterator();
                 while(pageIter.hasNext()){
                     GalleryDocumentPage page = (GalleryDocumentPage)pageIter.next();
@@ -630,13 +630,14 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
             // set text
             doneButton.setText((getResources().getString(R.string.document_custom_dialog_done_button)));
             // set visibility based on user/owner
-            if (globalVariable.getCurrentUser().getName().equals(document.getUsername())) {
+            if (globalVariable.getCurrentUser().getName().toLowerCase().equals(document.getUsername().toLowerCase())) {
                 if (!document.getStatus().equals(Document.STATUS_DRAFT)
                         && !document.getStatus().equals(Document.STATUS_REJECTED)) {
                     doneButton.setVisibility(View.INVISIBLE);
                     // Cannot edit
                     fabTakeDocImage.setVisibility(View.INVISIBLE);
                     fabAttachDocImage.setVisibility(View.INVISIBLE);
+
                 } else {
                     doneButton.setVisibility(View.VISIBLE);
                     // TODO Reject <Add later>
@@ -733,7 +734,7 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
 
         //
         // check for edit buttons, only my own docs can be edited.
-        if (!globalVariable.getCurrentUser().getName().equals(globalVariable.getNextDocument().getUsername())
+        if (!globalVariable.getCurrentUser().getName().toLowerCase().equals(globalVariable.getNextDocument().getUsername().toLowerCase())
                 || globalVariable.getNextDocumentStackSize() > 1
                 || globalVariable.getNextDocument().getStatus().equals(Document.STATUS_SUBMITTED)
                 || globalVariable.getNextDocument().getStatus().equals(Document.STATUS_RESUBMITTED)
@@ -804,132 +805,19 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        String imageEncoded;
-        List<String> imagesEncodedList;
 
         //
         // Received a result from CV Camera
         if (requestCode == OpenNoteScannerActivity.FETCH_PAGES_RQ) {
-            if (resultCode == android.app.Activity.RESULT_OK) {
-                //
-                // remove any cached data
-                // globalVariable.getNextDocument().getImagePages().clear();
-                ImageUtils.removeCachedScannerImages(globalVariable);
-                if (globalVariable.isSmartCameraSync()) {
-                    // check for gallery data transfer
-                    ArrayList<String> galleryFiles = new ArrayList<>();
-                    galleryFiles = new Utils(getContext()).getFilePaths(null);
-                    for (int i = 0; i < galleryFiles.size(); i++) {
-                        // TODO OCR Extraction
-                        //if (i == 0 && globalVariable.getNextDocument().getSyncID() == null) {
-                            // extract the ocr from the first image
-                        //    doOCRExtraction(galleryFiles.get(i));
-                        //}
-                        saveImageToGallery(new File(galleryFiles.get(i)));
-                    }
-                    globalVariable.setSmartCameraSync(false);
-                }
-                //
-
-                // refreshUI();
-                refreshSummaryPageUI();
-                refreshGalleryPageUI();
-                adapter.notifyDataSetChanged();
-
-            } else {
-
-            }
+            // delegate the processing
+            processCameraPageData(resultCode, data);
         }
 
         //
         // Received a a result form gallery
-        if (requestCode == IMG_RESULT_ATTACH && resultCode == android.app.Activity.RESULT_OK
-                && null != data) {
-            // Get the Image from data
-
-            String[] filePathColumn = { MediaStore.Images.Media.DATA };
-            imagesEncodedList = new ArrayList<String>();
-            if(data.getData()!=null){
-
-                Uri mImageUri=data.getData();
-                String wholeID = DocumentsContract.getDocumentId(mImageUri);
-                // Split at colon, use second item in the array
-                String id = wholeID.split(":")[1];
-                String[] column = { MediaStore.Images.Media.DATA };
-
-                // where id is equal to
-                String sel = MediaStore.Images.Media._ID + "=?";
-
-                // Get the cursor
-                //Cursor cursor = getActivity().getContentResolver().query(mImageUri,
-                //        filePathColumn, null, null, null);
-
-                Cursor cursor = getActivity().getContentResolver().
-                        query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        column, sel, new String[]{ id }, null);
-                // Move to first row
-                cursor.moveToFirst();
-
-                int columnIndex = cursor.getColumnIndex(column[0]);
-                imageEncoded  = cursor.getString(columnIndex);
-                imagesEncodedList.add(imageEncoded);
-                String savedFileLocation = ImageUtils.saveImage(BitmapFactory.decodeFile(imageEncoded)
-                        , globalVariable
-                        , getContext());
-                // saveImageToGallery(new File(imageEncoded));
-                saveImageToGallery(new File(savedFileLocation));
-                cursor.close();
-
-            } else {
-                if (data.getClipData() != null) {
-                    ClipData mClipData = data.getClipData();
-                    ArrayList<Uri> mArrayUri = new ArrayList<Uri>();
-                    for (int i = 0; i < mClipData.getItemCount(); i++) {
-
-                        ClipData.Item item = mClipData.getItemAt(i);
-                        Uri uri = item.getUri();
-                        String wholeID = DocumentsContract.getDocumentId(uri);
-                        // Split at colon, use second item in the array
-                        String id = wholeID.split(":")[1];
-                        String[] column = { MediaStore.Images.Media.DATA };
-
-                        // where id is equal to
-                        String sel = MediaStore.Images.Media._ID + "=?";
-
-                        mArrayUri.add(uri);
-                        // Get the cursor
-                        //Cursor cursor = getActivity().getContentResolver().query(uri, filePathColumn, null, null, null);
-
-                        Cursor cursor = getActivity().getContentResolver().
-                                query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                        column, sel, new String[]{ id }, null);
-                        // Move to first row
-                        cursor.moveToFirst();
-
-                        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                        imageEncoded  = cursor.getString(columnIndex);
-                        imagesEncodedList.add(imageEncoded);
-                        // save it
-                        String savedFileLocation = ImageUtils.saveImage(BitmapFactory.decodeFile(imageEncoded)
-                                    , globalVariable
-                                    , getContext());
-                        // saveImageToGallery(new File(imageEncoded));
-                        saveImageToGallery(new File(savedFileLocation));
-                        cursor.close();
-
-                    }
-                    Log.v("LOG_TAG", "Selected Images " + mArrayUri.size());
-                }
-            }
-            Log.v("LOG_TAG", "Selected Images converted " + imagesEncodedList.size());
-            // refreshUI();
-            refreshSummaryPageUI();
-            refreshGalleryPageUI();
-            adapter.notifyDataSetChanged();
-
-        } else {
-            Toast.makeText(getContext(), "You haven't picked Image",
-                    Toast.LENGTH_LONG).show();
+        if (requestCode == IMG_RESULT_ATTACH) {
+            // delegate the processing
+            processAttachementPageData(resultCode, data);
         }
     }
 
@@ -982,9 +870,12 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
 
         // set the next image
         //
+        int totalPagesSoFar = globalVariable.getNextDocument().getImagePages().size() + globalVariable.getNextDocument().getDocumentPages().size();
+        GalleryDocumentPage newDoc = new GalleryDocumentPage(file, false, totalPagesSoFar);
+        newDoc.setPageNumber(newDoc.getPosition() + 1);
         globalVariable.getNextDocument()
                 .getImagePages()
-                .add(new GalleryDocumentPage(file));
+                .add(newDoc);
 
 
         /**
@@ -994,6 +885,7 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
          , CustomFragmentDocumentImagePage.createInstance(dataMode, globalVariable.getNextDocument().getImagePages().size()-1, file)
          );
          adapter.notifyDataSetChanged();
+         */
 
          // update the index page
          CustomFragmentDocumentPageIndex documentPageIndex
@@ -1001,11 +893,16 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
 
          //
          // check the type of data being pushed
-         documentPageIndex.getGridview().setAdapter(new DocumentPageImageAdapter(getContext(), globalVariable.getNextDocument().getImagePages()));
+         //documentPageIndex.getGridview().setAdapter(new DocumentPageImageAdapter(getContext(), globalVariable.getNextDocument().getImagePages()));
 
-         BaseAdapter indexAdapter = (BaseAdapter) documentPageIndex.getGridview().getAdapter();
-         indexAdapter.notifyDataSetChanged();
-         */
+          //documentPageIndex.setAdapter(documentPageIndex.getNewestPageData(globalVariable), getContext(),3);
+        if(documentPageIndex.getGridview() != null) {
+             BaseDynamicGridAdapter indexAdapter = (BaseDynamicGridAdapter) documentPageIndex.getGridview().getAdapter();
+             indexAdapter.clear();
+             indexAdapter.add(documentPageIndex.getNewestPageData(globalVariable));
+        }
+         // indexAdapter.notifyDataSetChanged();
+
     }
 
     public Fragment getParentFragmentCustom() {
@@ -1137,11 +1034,11 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
         }
 
         List<GalleryDocumentPage> tempDocumentPageImageList = document.getImagePages();
-        Collections.sort(tempDocumentPageImageList, new Comparator<GalleryDocumentPage>() {
-            public int compare(GalleryDocumentPage f1, GalleryDocumentPage f2) {
-                return ((File)f1.getPage()).getName().compareTo(((File)f2.getPage()).getName());
-            }
-        });
+        //Collections.sort(tempDocumentPageImageList, new Comparator<GalleryDocumentPage>() {
+        //    public int compare(GalleryDocumentPage f1, GalleryDocumentPage f2) {
+        //        return ((File)f1.getPage()).getName().compareTo(((File)f2.getPage()).getName());
+        //    }
+        //});
         document.setImagePages(tempDocumentPageImageList);
         if (globalVariable.getNextDocument().getImagePages().size() > 0) {
             while (index < (tempDocumentPageImageList.size() + globalVariable.getNextDocument().getDocumentPages().size())) {
@@ -1208,11 +1105,83 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
         }
     }
 
+    private void doOCRExtraction2(Bitmap bitmap) {
+        try {
+            if (detector.isOperational() && bitmap != null) {
+
+                Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+                SparseArray<TextBlock> textBlocks = detector.detect(frame);
+                // get the OCR Data
+                String ocrText = getFullOCRText(textBlocks);
+                Log.i(LOG_TAG, "OCR Text Extracted " + ocrText);
+                //
+                // get all dynamic field definitions for OCR for this document
+                List<DynamicFieldDefinition> allOcrDefinitions = getAllOCRDynamicFieldsForDocument(globalVariable, globalVariable.getNextDocument());
+                //
+                // get all the actual fields currently available for this document
+                List<DynamicFieldData> currentFieldData = getAllDynamicFieldData(globalVariable.getNextDocument());
+                //
+                // Process teh OCR data for each OCR field
+                for(int i=0; i < allOcrDefinitions.size(); i++ ){
+                    // get the OCR text
+                    String matchedText;
+                    int matchIndex = ocrText.indexOf(allOcrDefinitions.get(i).getOcrMatchText());
+                    if(matchIndex != -1){
+                        int start = matchIndex + allOcrDefinitions.get(i).getOcrMatchText().length();
+                        int end = matchIndex + allOcrDefinitions.get(i).getOcrMatchText().length() + allOcrDefinitions.get(i).getOcrGrabLength();
+                        if(start < ocrText.length() && end < ocrText.length()) {
+                            // We have matched the text in OCR
+                            matchedText = ocrText.substring(start, end);
+                            Log.i(LOG_TAG, "OCR Text Matched " + matchedText + " for Key: " + allOcrDefinitions.get(i).getOcrMatchText());
+                            //
+                            // Add the matched text to the doc field in the document
+                            boolean matchFieldFound = false;
+                            for(int j=0; j < currentFieldData.size(); j++ ){
+                                //
+                                // if we find it add to it
+                                if(currentFieldData.get(j).getParentResourceId() == allOcrDefinitions.get(i).getId()){
+                                    //
+                                    // replace it in the document
+                                    matchFieldFound = true;
+                                    globalVariable.getNextDocument().getDynamicFieldData().get(j).setData(matchedText);
+                                }
+                            }
+                            //
+                            // If we did not add it then add it here
+                            if(!matchFieldFound){
+                                //
+                                // add the data
+                                DynamicFieldData data = new DynamicFieldData();
+                                data.setParentResourceId(globalVariable.getNextDocument().getId());
+                                data.setDynamicFieldDefinitionId(allOcrDefinitions.get(i).getId());
+                                data.setData(matchedText);
+                                globalVariable.getNextDocument().getDynamicFieldData().add(data);
+                                //
+                                // relfect the new data in teh list
+                                currentFieldData.add(data);
+                            }
+
+                        }
+                    }
+                }
+            } else {
+                Toast.makeText(getContext(), "Could not set up the OCR detector!", Toast.LENGTH_SHORT);
+
+            }
+
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Failed to load Image", Toast.LENGTH_SHORT)
+                    .show();
+            Log.e(LOG_TAG, e.toString());
+        }
+    }
+
+
     private void doOCRExtraction(String fileName) {
 
         try {
             Bitmap bitmap = FileUtils.decodeBitmapUri(getContext(), Uri.fromFile(new File(fileName)));
-            doOCRExtraction(bitmap);
+            doOCRExtraction2(bitmap);
         } catch (Exception e) {
             Toast.makeText(getContext(), "Failed to load Image", Toast.LENGTH_SHORT)
                     .show();
@@ -1363,6 +1332,9 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
         if(!document.getStatus().equals(docStatus)){
             document.setStatus(docStatus);
         }
+        //
+        // collate the pages
+        // document = collatePages(document);
 
         //
         // Commit the data to REST Service
@@ -1734,4 +1706,233 @@ public class TabbedDocumentDialog extends DialogFragment implements CreateDocNot
         });
     }
 
+    private Document collatePages(Document doc){
+        for(int i=0; i< doc.getPages().size(); i++){
+            doc.getPages().get(i).setPageNumber(i+1);
+        }
+
+        return doc;
+    }
+
+    private void attachDocumentPage() {
+        // Get the snapshot here or camera data
+
+        // TODO add settings for different cameras later, current setting calls scanner
+        // snapCameraPhoto(getContext());
+
+        // start gellery
+        //Intent intent = new Intent(Intent.ACTION_PICK,
+        //android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        //intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent,"Select Document Image"), IMG_RESULT_ATTACH);
+
+        //startActivityForResult(intent, IMG_RESULT_ATTACH);
+
+        globalVariable.setCurrFragment(getParentFragmentCustom());
+    }
+
+    /**
+     * Process the data coming from CV Camera
+     * @param resultCode - the activity result code
+     * @param data - any additional data from the Intent
+     */
+    private void processCameraPageData(int resultCode, Intent data){
+        if (resultCode == android.app.Activity.RESULT_OK) {
+            //
+            // remove any cached data
+            // globalVariable.getNextDocument().getImagePages().clear();
+            ImageUtils.removeCachedScannerImages(globalVariable);
+            if (globalVariable.isSmartCameraSync()) {
+                // check for gallery data transfer
+                ArrayList<String> galleryFiles = new ArrayList<>();
+                //
+                // Sort By
+                galleryFiles = new Utils(getContext()).getFilePaths(null);
+                for (int i = 0; i < galleryFiles.size(); i++) {
+                    //
+                    // Check for duplicated
+                    if(DocumentPOJOUtils.doesImagePageExistInCurrentDocument(globalVariable, new File(galleryFiles.get(i)))){
+                        // skip this
+                        continue;
+                    }
+
+                    // TODO OCR Extraction
+                    //if (i == 0 && globalVariable.getNextDocument().getSyncID() == null) {
+                        // extract the ocr from the first image
+                        doOCRExtraction(galleryFiles.get(i));
+                    //}
+                    saveImageToGallery(new File(galleryFiles.get(i)));
+                }
+                globalVariable.setSmartCameraSync(false);
+            }
+            //
+
+            // refreshUI();
+            refreshSummaryPageUI();
+            refreshGalleryPageUI();
+            adapter.notifyDataSetChanged();
+
+        } else {
+            // There was an error getting the camera data
+        }
+    }
+
+    /**
+     * Process the data coming from CV Camera
+     * @param resultCode - the activity result code
+     * @param data - any additional data from the Intent
+     */
+    private void processAttachementPageData(int resultCode, Intent data){
+        if (resultCode == android.app.Activity.RESULT_OK ) {
+            // Did we get any data?
+            if (null != data) {
+
+                String imageEncoded;
+                List<String> imagesEncodedList;
+
+                // Get the Image from data
+
+                String[] filePathColumn = {MediaStore.Images.Media.DATA};
+                imagesEncodedList = new ArrayList<String>();
+                if (data.getData() != null) {
+
+                    Uri mImageUri = data.getData();
+                    String wholeID = DocumentsContract.getDocumentId(mImageUri);
+                    // Split at colon, use second item in the array
+                    String id = wholeID.split(":")[1];
+                    String[] column = {MediaStore.Images.Media.DATA};
+
+                    // where id is equal to
+                    String sel = MediaStore.Images.Media._ID + "=?";
+
+                    // Get the cursor
+                    //Cursor cursor = getActivity().getContentResolver().query(mImageUri,
+                    //        filePathColumn, null, null, null);
+
+                    Cursor cursor = getActivity().getContentResolver().
+                            query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    column, sel, new String[]{id}, null);
+                    // Move to first row
+                    cursor.moveToFirst();
+
+                    int columnIndex = cursor.getColumnIndex(column[0]);
+                    imageEncoded = cursor.getString(columnIndex);
+                    imagesEncodedList.add(imageEncoded);
+
+                    ////
+                    InputStream inputStream = null;
+                    try {
+                        inputStream = getContext().getContentResolver().openInputStream(data.getData());
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+
+                    Bitmap bmp = BitmapFactory.decodeStream(bufferedInputStream);
+                    ////
+                    if (getContext().checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                        Log.v("Permissions","Permission is granted");
+                        //Toast.makeText(getContext(), "Permission is granted", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Log.v("Permissions","Permission is *NOT* granted");
+                        //Toast.makeText(getContext(), "Permission is *NOT* granted", Toast.LENGTH_SHORT).show();
+                    }
+                    //String savedFileLocation = ImageUtils.saveImage(BitmapFactory.decodeFile(imageEncoded)
+                    String savedFileLocation = ImageUtils.saveImage(bmp
+                            , globalVariable
+                            , getContext());
+                    // saveImageToGallery(new File(imageEncoded));
+                    doOCRExtraction(savedFileLocation);
+                    saveImageToGallery(new File(savedFileLocation));
+                    cursor.close();
+
+                } else {
+                    if (data.getClipData() != null) {
+                        ClipData mClipData = data.getClipData();
+                        ArrayList<Uri> mArrayUri = new ArrayList<Uri>();
+                        for (int i = 0; i < mClipData.getItemCount(); i++) {
+
+                            ClipData.Item item = mClipData.getItemAt(i);
+                            Uri uri = item.getUri();
+                            String wholeID = DocumentsContract.getDocumentId(uri);
+                            // Split at colon, use second item in the array
+                            String id = wholeID.split(":")[1];
+                            String[] column = {MediaStore.Images.Media.DATA};
+
+                            // where id is equal to
+                            String sel = MediaStore.Images.Media._ID + "=?";
+
+                            mArrayUri.add(uri);
+                            // Get the cursor
+                            //Cursor cursor = getActivity().getContentResolver().query(uri, filePathColumn, null, null, null);
+
+                            Cursor cursor = getActivity().getContentResolver().
+                                    query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                            column, sel, new String[]{id}, null);
+                            // Move to first row
+                            cursor.moveToFirst();
+
+                            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                            imageEncoded = cursor.getString(columnIndex);
+                            imagesEncodedList.add(imageEncoded);
+                            // save it
+                            String savedFileLocation = ImageUtils.saveImage(BitmapFactory.decodeFile(imageEncoded)
+                                    , globalVariable
+                                    , getContext());
+                            // saveImageToGallery(new File(imageEncoded));
+                            doOCRExtraction(savedFileLocation);
+                            saveImageToGallery(new File(savedFileLocation));
+                            cursor.close();
+                        }
+                        Log.v("LOG_TAG", "Selected Images " + mArrayUri.size());
+                    }
+                }
+                Log.v("LOG_TAG", "Selected Images converted " + imagesEncodedList.size());
+                // refreshUI();
+                refreshSummaryPageUI();
+                refreshGalleryPageUI();
+                adapter.notifyDataSetChanged();
+            } else {
+                Toast.makeText(getContext(), "You haven't picked Image",
+                        Toast.LENGTH_LONG).show();
+            }
+        } // End of Result OK
+    }
+
+
+    void recollateDocumentPages(){
+        List<GalleryDocumentPage> docPages = DocumentPOJOUtils.getNewestPageData(globalVariable);
+
+/*
+        for(int index=0; index< docPages.size(); index++){
+            GalleryDocumentPage page = docPages.get(index);
+
+            // set the inner page
+            Object innerPage = ((GalleryDocumentPage) page.getPage()).getPage();
+            if(  innerPage instanceof DocumentPage) {
+                for (int i = 0; i < globalVariable.getNextDocument().getDocumentPages().size(); i++) {
+                    if (((DocumentPage) globalVariable.getNextDocument().getDocumentPages().get(i).getPage()).getId()
+                            == ((DocumentPage) innerPage).getId()) {
+                        globalVariable.getNextDocument().getDocumentPages().get(i).setPageNumber(((DocumentPage) innerPage).getPageNumber());
+                        continue;
+                    }
+                }
+            }
+            if(innerPage instanceof File) {
+                for (int i = 0; i < globalVariable.getNextDocument().getImagePages().size(); i++) {
+                    if (globalVariable.getNextDocument().getImagePages().get(i).getPage().equals(innerPage)) {
+                        globalVariable.getNextDocument().getImagePages().get(i).setPageNumber(((GalleryDocumentPage) page.getPage()).getPageNumber());
+                        continue;
+                    }
+                }
+            }
+        }
+        */
+
+    }
 }

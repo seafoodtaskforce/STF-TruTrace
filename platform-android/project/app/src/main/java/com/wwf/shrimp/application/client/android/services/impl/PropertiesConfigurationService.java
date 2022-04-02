@@ -105,6 +105,8 @@ public class PropertiesConfigurationService implements ConfigurationService {
         configData.setRestUserUpdateProfileImage(readConfigurationProperty("rest.api.user.update.profile.image"));
         configData.setRestUserUpdateData(readConfigurationProperty("rest.api.user.update.data"));
         configData.setRestUserUpdateCredentials(readConfigurationProperty("rest.api.user.update.credentials"));
+        configData.setRestUserUpdateProfile(readConfigurationProperty("rest.api.user.update.profile"));
+        configData.setWebUserRegistrationURL(readConfigurationProperty("url.user.registration"));
 
 
         // notifications

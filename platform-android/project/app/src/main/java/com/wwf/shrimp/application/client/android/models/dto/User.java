@@ -13,6 +13,16 @@ import java.util.List;
  *
  */
 public class User extends ProfileEntity {
+
+	//
+	// Property Bag Keys
+	public static final String CONTACT_INFO_FIELD_EMAIL = "user.contact.email";
+	public static final String CONTACT_INFO_FIELD_NICKNAME = "user.contact.nickname";
+	public static final String CONTACT_INFO_FIELD_LINE_ID = "user.contact.lineid";
+	public static final String CONTACT_INFO_FIELD_PHONNE_NUMBER = "user.contact.phone.number";
+
+	//
+	// Other properties
 	private UserCredentials credentials;
 	private List<Role> roles = new ArrayList<Role>();
 	private UserContact contactInfo=new UserContact();

@@ -3,6 +3,7 @@ package com.wwf.shrimp.application.client.android;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 
 import com.daimajia.androidanimations.library.Techniques;
@@ -10,12 +11,18 @@ import com.viksaa.sssplash.lib.activity.AwesomeSplash;
 import com.viksaa.sssplash.lib.cnst.Flags;
 import com.viksaa.sssplash.lib.model.ConfigSplash;
 import com.wwf.shrimp.application.client.android.notifications.NotificationService;
+import com.wwf.shrimp.application.client.android.system.SessionData;
+
+import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 
 /**
  * Splash Activity for the application.
  * @author AleaActaEst
  */
 public class SplashActivity extends AwesomeSplash {
+
+    // global session data access
+    private SessionData globalVariable = null;
 
     @Override
     /**
@@ -26,6 +33,9 @@ public class SplashActivity extends AwesomeSplash {
 		/*
 		 * We don't have to override every property
 		 */
+
+        // create access to session
+        globalVariable  = (SessionData) getApplicationContext();
 
        //Customize Circular Reveal
         // configSplash.setBackgroundColor(R.color.purple_background); //any color you want form colors.xml
@@ -52,6 +62,8 @@ public class SplashActivity extends AwesomeSplash {
         configSplash.setAnimTitleTechnique(Techniques.Pulse);
         // configSplash.setTitleFont("fonts/myfont.ttf"); //provide string to your font located in assets/fonts/
 
+
+
     }
 
     @Override
@@ -61,7 +73,23 @@ public class SplashActivity extends AwesomeSplash {
     public void animationsFinished() {
 
         //
-        // Jump to the login activity
+        // Jump to the login activity if the user is not "remember me" logged in
+
+        //
+        // check shared preferences
+        SharedPreferences sharedPreferences;
+        sharedPreferences = getDefaultSharedPreferences(this);
+        String rememberMeUserName = sharedPreferences.getString(SessionData.USER_REMEMBER_ME_KEY, "");
+        String userToken;
+        if(!rememberMeUserName.isEmpty()){
+            //
+            // get the user's token
+            userToken = sharedPreferences.getString(SessionData.USER_TOKEN_REMEMBER_ME_KEY, "");
+            //
+            // the user already exists we can log them in
+            globalVariable.setRememberMeIsOn(true);
+
+        }
         Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
         SplashActivity.this.startActivity(intent);
         finish();

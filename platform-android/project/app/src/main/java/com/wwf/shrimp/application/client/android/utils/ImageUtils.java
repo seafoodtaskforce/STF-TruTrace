@@ -113,14 +113,15 @@ public class ImageUtils {
                 if(((File) page.getPage()).getAbsolutePath().contains(IMAGE_DIRECTORY)){
                     // Do nothing
                 }else{
-                    // remove everything else
-                    iter.remove();
+                    // remove everything else <TODO> was removed to facilitate proper collation
+                    //iter.remove();
                 }
             }
         }
         //
         // Re-collate the pages in the document
-        globalVariable.getNextDocument().collatePages();
+        // globalVariable.getNextDocument().collatePages();
+        // <TODO> Collation
 
     }
 

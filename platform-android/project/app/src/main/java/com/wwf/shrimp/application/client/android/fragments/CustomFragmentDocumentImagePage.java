@@ -1,22 +1,19 @@
 package com.wwf.shrimp.application.client.android.fragments;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.wwf.shrimp.application.client.android.R;
-import com.wwf.shrimp.application.client.android.adapters.DocumentPageImageAdapter;
 import com.wwf.shrimp.application.client.android.dialogs.TabbedDocumentDialog;
 import com.wwf.shrimp.application.client.android.models.dto.DocumentPage;
 import com.wwf.shrimp.application.client.android.system.SessionData;
 import com.wwf.shrimp.application.client.android.utils.DocumentPOJOUtils;
-import com.wwf.shrimp.application.client.android.utils.RESTUtils;
 
 import java.io.File;
 

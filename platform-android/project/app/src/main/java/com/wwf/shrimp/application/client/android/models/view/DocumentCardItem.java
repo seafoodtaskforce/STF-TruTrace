@@ -290,8 +290,9 @@ public class DocumentCardItem extends IdentifiableEntity{
     public void collatePages(){
         int leastPosition = 0;
         int minPos = Integer.MAX_VALUE;
+        int passCount = 0;
 
-        while(leastPosition < (imagePages.size() + documentPages.size()) ){
+        while(leastPosition < (imagePages.size() + documentPages.size()) & passCount < (imagePages.size() + documentPages.size()) ){
 
             boolean imageArray = false;
             int foundIndex = -1;
@@ -323,6 +324,8 @@ public class DocumentCardItem extends IdentifiableEntity{
                     documentPages.get(foundIndex).setPosition(leastPosition++);
                 }
             }
+
+            passCount++;
         }
     }
 }

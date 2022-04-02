@@ -2,10 +2,11 @@ package com.wwf.shrimp.application.client.android.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,16 +15,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.wwf.shrimp.application.client.android.R;
-import com.wwf.shrimp.application.client.android.models.dto.Document;
-import com.wwf.shrimp.application.client.android.models.dto.DynamicFieldDefinition;
-import com.wwf.shrimp.application.client.android.models.dto.TagData;
 import com.wwf.shrimp.application.client.android.models.view.DocumentCardItem;
 import com.wwf.shrimp.application.client.android.system.SessionData;
 import com.wwf.shrimp.application.client.android.utils.DateUtils;
 import com.wwf.shrimp.application.client.android.utils.DocumentPOJOUtils;
-import com.wwf.shrimp.application.client.android.utils.MappingUtilities;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -58,6 +55,9 @@ public class DocumentCardItemAdapter extends RecyclerView.Adapter<DocumentCardIt
         ImageView imageViewSyncStatus;
         ProgressBar progressBarBackendSync;
         TextView textViewDocumentStatus;
+        // Doc Info Expiry
+        TextView textViewProfileDocExpiry;
+        ImageView imageViewDocumentProfileExpiry;
 
 
 
@@ -67,6 +67,7 @@ public class DocumentCardItemAdapter extends RecyclerView.Adapter<DocumentCardIt
             this.textViewDocumentType = (TextView) itemView.findViewById(R.id.textViewDocumentType);
             this.textViewUserName = (TextView) itemView.findViewById(R.id.textViewUsername);
             this.textViewDocumentStatus = (TextView) itemView.findViewById(R.id.textViewDocumentStatus);
+            this.textViewProfileDocExpiry = (TextView) itemView.findViewById(R.id.textViewProfileDocExpiry);
 
             this.textViewTimestamp = (TextView) itemView.findViewById(R.id.textViewTimestamp);
             this.textViewCustomTag = (TextView) itemView.findViewById(R.id.textViewCustomTag);
@@ -77,6 +78,7 @@ public class DocumentCardItemAdapter extends RecyclerView.Adapter<DocumentCardIt
             this.imageViewDocumentAttached = (ImageView)itemView.findViewById(R.id.imageViewDocumentAttached);
             this.imageViewDocumentRecipients = (ImageView)itemView.findViewById(R.id.imageViewDocumentRecipients);
             this.imageViewDocumentInfo = (ImageView)itemView.findViewById(R.id.imageViewDocumentInfo);
+            this.imageViewDocumentProfileExpiry = (ImageView)itemView.findViewById(R.id.imageViewDocumentProfileExpiry);
             this.imageViewSyncStatus = (ImageView)itemView.findViewById(R.id.imageViewSyncStatus);
             this.progressBarBackendSync = (ProgressBar)itemView.findViewById(R.id.progressBarBackendSyncing);
 
@@ -117,6 +119,8 @@ public class DocumentCardItemAdapter extends RecyclerView.Adapter<DocumentCardIt
         ImageView imageViewDocumentInfo = holder.imageViewDocumentInfo;
         ImageView imageViewSyncStatus = holder.imageViewSyncStatus;
         ProgressBar progressBarBackendSync = holder.progressBarBackendSync;
+        ImageView imageViewDocumentProfileExpiry = holder.imageViewDocumentProfileExpiry;
+        TextView textViewProfileDocExpiry = holder.textViewProfileDocExpiry;
 
         textViewGroupTypeName.setText(""+dataSet.get(listPosition).getGroupType());
         //int stringDocTypeResource = context.getResources().getIdentifier(dataSet.get(listPosition).getDocumentType().getName()
@@ -181,8 +185,6 @@ public class DocumentCardItemAdapter extends RecyclerView.Adapter<DocumentCardIt
             textViewCustomTag.setVisibility(View.GONE);
         }
 
-
-
         //
         // linked documents visibility
         if(dataSet.get(listPosition).getLinkedDocuments().size() > 0){
@@ -221,6 +223,7 @@ public class DocumentCardItemAdapter extends RecyclerView.Adapter<DocumentCardIt
             imageViewDocumentAttached.setImageDrawable(res);
         }
 
+
         //
         // recipients documents visibility
         if(dataSet.get(listPosition).getRecipients().size() > 0){
@@ -241,16 +244,68 @@ public class DocumentCardItemAdapter extends RecyclerView.Adapter<DocumentCardIt
         }
 
         //
-        // doc info fields visibility
-        if(dataSet.get(listPosition).getDynamicFieldData().size() > 0){
-            String uri = "@drawable/ic_info_24dp";
+        // expiry date visibility
+        if(DocumentPOJOUtils.hasExpiryDate(globalVariable, dataSet.get(listPosition))){
+            String uri = "@drawable/ic_notification_doc_expiry";
+
+            //
+            // check if there is an expiry date
+            Date expiryDate = DocumentPOJOUtils.getExpiryDate(globalVariable, dataSet.get(listPosition));
+            String expiryDateAsString = DocumentPOJOUtils.getExpiryDateAsString(globalVariable, dataSet.get(listPosition));
 
             int imageResource = context.getResources().getIdentifier(uri, null, context.getPackageName());
 
             Drawable res = context.getResources().getDrawable(imageResource);
+            imageViewDocumentProfileExpiry.setImageDrawable(res);
+
+            //
+            // set teh text
+            long daysLeft = DocumentPOJOUtils.getDifferenceBetweenDatesDays(expiryDate, new Date());
+            if(daysLeft <=0) {
+                //
+                // Expired
+                imageViewDocumentProfileExpiry.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_red_dark),
+                        PorterDuff.Mode.MULTIPLY);
+                textViewProfileDocExpiry.setText("Expires On: " + expiryDateAsString + " " + "<EXPIRED>");
+                textViewProfileDocExpiry.setTextColor(Color.parseColor("#ff6433"));
+                textViewProfileDocExpiry.setVisibility(View.VISIBLE);
+                imageViewDocumentProfileExpiry.setVisibility(View.VISIBLE);
+            } else if(daysLeft <=7){
+                //
+                // Close to Expiry
+                imageViewDocumentProfileExpiry.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_red_dark),
+                        PorterDuff.Mode.MULTIPLY);
+                textViewProfileDocExpiry.setText("Expires On: " + expiryDateAsString + " " + "<Days Left: " + daysLeft + ">");
+                textViewProfileDocExpiry.setTextColor(Color.parseColor("#ff6433"));
+                textViewProfileDocExpiry.setVisibility(View.VISIBLE);
+                imageViewDocumentProfileExpiry.setVisibility(View.VISIBLE);
+            } else if(daysLeft > 7 && daysLeft < 60) {
+                textViewProfileDocExpiry.setText("Expires On: " + expiryDateAsString + " " + "<Days Left: " + daysLeft + ">");
+                imageViewDocumentProfileExpiry.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_orange_dark),
+                        PorterDuff.Mode.MULTIPLY);
+                textViewProfileDocExpiry.setTextColor(Color.parseColor("#ffbb33"));
+                textViewProfileDocExpiry.setVisibility(View.VISIBLE);
+                imageViewDocumentProfileExpiry.setVisibility(View.VISIBLE);
+            }
+        }else{
+            String uri = "@drawable/ic_notification_doc_expiry";
+
+            int imageResource = context.getResources().getIdentifier(uri, null, context.getPackageName());
+
+            Drawable res = context.getResources().getDrawable(imageResource);
+            imageViewDocumentProfileExpiry.setImageDrawable(res);
+            imageViewDocumentProfileExpiry.setVisibility(View.INVISIBLE);
+            textViewProfileDocExpiry.setVisibility(View.GONE);
+        }
+
+        //
+        // doc info fields visibility
+        if(dataSet.get(listPosition).getDynamicFieldData().size() > 0){
+            String uri = "@drawable/ic_info_24dp";
+            int imageResource = context.getResources().getIdentifier(uri, null, context.getPackageName());
+            Drawable res = context.getResources().getDrawable(imageResource);
             imageViewDocumentInfo.setImageDrawable(res);
             imageViewDocumentInfo.setVisibility(View.VISIBLE);
-
 
             //
             // Custom tag <TODO refactor to dof fields>
@@ -263,9 +318,7 @@ public class DocumentCardItemAdapter extends RecyclerView.Adapter<DocumentCardIt
             }
         }else{
             String uri = "@drawable/ic_info_24dp_inactive";
-
             int imageResource = context.getResources().getIdentifier(uri, null, context.getPackageName());
-
             Drawable res = context.getResources().getDrawable(imageResource);
             imageViewDocumentInfo.setImageDrawable(res);
         }

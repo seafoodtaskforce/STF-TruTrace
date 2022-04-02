@@ -1,20 +1,14 @@
 package com.wwf.shrimp.application.client.android.fragments;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.wwf.shrimp.application.client.android.DocumentAttachingActivity;
-import com.wwf.shrimp.application.client.android.DocumentLinkingActivity;
-import com.wwf.shrimp.application.client.android.DocumentRecipientsActivity;
-import com.wwf.shrimp.application.client.android.DocumentTaggingActivity;
 import com.wwf.shrimp.application.client.android.R;
 import com.wwf.shrimp.application.client.android.dialogs.TabbedDocumentDialog;
 import com.wwf.shrimp.application.client.android.models.dto.NoteData;

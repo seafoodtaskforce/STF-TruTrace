@@ -7,10 +7,10 @@
     android:orientation="vertical"
     android:tag="cards main container">
 
-    <android.support.v7.widget.CardView
+    <androidx.cardview.widget.CardView
         android:id="@+id/card_view"
         android:layout_width="match_parent"
-        android:layout_height="128dp"
+        android:layout_height="wrap_content"
         card_view:cardBackgroundColor="@color/white_text">
 
         <LinearLayout
@@ -75,7 +75,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignStart="@+id/textViewDocumentType"
                     android:layout_below="@+id/textViewDocumentType"
-                    android:text="TextView" />
+                    android:text="Doc Type" />
 
                 <TextView
                     android:id="@+id/textViewTimestamp"
@@ -84,19 +84,32 @@
                     android:layout_alignParentBottom="true"
                     android:layout_alignStart="@+id/textViewDocumentType"
                     android:layout_marginBottom="5dp"
-                    android:text="TextView" />
+                    android:layout_below="@+id/textViewProfileDocExpiry"
+                    android:text="Time Stamp" />
 
                 <TextView
                     android:id="@+id/textViewCustomTag"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
                     android:layout_below="@+id/textViewUsername"
+                    android:layout_alignParentRight="true"
                     android:layout_marginRight="24dp"
                     android:paddingBottom="@dimen/md_button_padding_vertical"
                     android:text="ppppppppppppppppppppppppppppppppppppppp"
                     android:textAlignment="textEnd"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/textViewProfileDocExpiry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/textViewCustomTag"
+                    android:layout_alignStart="@+id/textViewDocumentType"
+                    android:layout_alignParentRight="true"
+                    android:paddingBottom="@dimen/md_button_padding_vertical"
+                    android:text="Expires On: 03/23/2021 Days Left: 32"
+                    android:textStyle="bold"
+                    android:visibility="gone" />/>
 
                 <View
                     android:id="@+id/viewDivider"
@@ -125,6 +138,7 @@
                     android:layout_toEndOf="@+id/textViewTimestamp"
                     android:layout_marginBottom="@dimen/small_space"
                     android:layout_marginLeft="10dp"
+                    android:layout_below="@+id/textViewProfileDocExpiry"
                     card_view:srcCompat="@drawable/ic_document_tag" />
 
                 <ImageView
@@ -134,6 +148,7 @@
                     android:layout_alignParentBottom="true"
                     android:layout_toEndOf="@+id/imageViewDocumentTagged"
                     android:layout_marginBottom="@dimen/small_space"
+                    android:layout_below="@+id/textViewProfileDocExpiry"
                     card_view:srcCompat="@drawable/ic_document_link" />
 
 
@@ -141,9 +156,10 @@
                     android:id="@+id/imageViewDocumentAttached"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:layout_below="@+id/textViewProfileDocExpiry"
                     android:layout_alignParentBottom="true"
-                    android:layout_toEndOf="@+id/imageViewDocumentLinked"
                     android:layout_marginBottom="@dimen/small_space"
+                    android:layout_toEndOf="@+id/imageViewDocumentLinked"
                     card_view:srcCompat="@drawable/ic_document_link" />
 
                 <ImageView
@@ -153,6 +169,7 @@
                     android:layout_alignParentBottom="true"
                     android:layout_toEndOf="@+id/imageViewDocumentAttached"
                     android:layout_marginBottom="@dimen/small_space"
+                    android:layout_below="@+id/textViewProfileDocExpiry"
                     card_view:srcCompat="@drawable/ic_info_24dp" />
 
                 <ImageView
@@ -162,7 +179,19 @@
                     android:layout_alignParentBottom="true"
                     android:layout_marginBottom="@dimen/small_space"
                     android:layout_toEndOf="@+id/imageViewDocumentInfo"
+                    android:layout_below="@+id/textViewProfileDocExpiry"
                     card_view:srcCompat="@drawable/ic_group_add_black_24dp" />
+
+                <ImageView
+                    android:id="@+id/imageViewDocumentProfileExpiry"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginBottom="@dimen/small_space"
+                    android:layout_toEndOf="@+id/imageViewDocumentRecipients"
+                    android:tint="@android:color/black"
+                    android:layout_below="@+id/textViewProfileDocExpiry"
+                    card_view:srcCompat="@drawable/ic_notification_doc_expiry" />
 
                 <ProgressBar
                     android:id="@+id/progressBarBackendSyncing"
@@ -191,12 +220,13 @@
                     android:layout_marginRight="5dp"
                     android:layout_marginBottom="5dp"
                     android:layout_alignParentBottom="true"
-                    android:text="TextView" />
+                    android:layout_below="@+id/textViewProfileDocExpiry"
+                    android:text="Doc-Status" />
 
             </RelativeLayout>
 
         </LinearLayout>
 
-    </android.support.v7.widget.CardView>
+    </androidx.cardview.widget.CardView>
 
 </LinearLayout>

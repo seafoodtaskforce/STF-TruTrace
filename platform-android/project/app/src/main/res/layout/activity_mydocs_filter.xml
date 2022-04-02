@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MyDocsFilterActivity">
+
+    <TextView
+        android:id="@+id/tv_activityLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:background="@color/colorPrimary"
+        android:padding="6dp"
+        android:text="@string/document_manage_my_documents_filter"
+        android:textColor="@android:color/background_light"
+        android:textStyle="bold" />
+
+    <RelativeLayout
+        android:id="@+id/layoutFilterContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/tv_activityLabel"
+        android:layout_above="@+id/buttonSetMyDocsFilter">
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/dividerBottom"
+        android:layout_below="@id/layoutFilterContent"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@+id/buttonSetMyDocsFilter"
+        android:background="@android:color/darker_gray"/>
+
+    <Button
+        android:id="@+id/buttonSetMyDocsFilter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/document_my_docs_filter_set"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_toLeftOf="@+id/recyclerViewChosenTags"
+        style="?android:attr/borderlessButtonStyle"/>
+
+    <Button
+        android:id="@+id/buttonCancelMyDocsFilter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/buttonSetMyDocsFilter"
+        android:layout_toStartOf="@+id/buttonSetMyDocsFilter"
+        android:text="@string/document_my_docs_filter_cancel"
+        style="?android:attr/borderlessButtonStyle"/>
+
+    <Button
+        android:id="@+id/buttonClearMyDocsFilter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@+id/buttonCancelMyDocsFilter"
+        android:layout_toStartOf="@+id/buttonCancelMyDocsFilter"
+        android:text="@string/document_my_docs_filter_clear"
+        style="?android:attr/borderlessButtonStyle"/>
+
+</RelativeLayout>

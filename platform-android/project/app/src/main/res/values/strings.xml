@@ -26,6 +26,12 @@
     <string name="profile_update_password_button_save">Save</string>
     <string name="profile_update_error_passwords_do_not_match">Your Passwords Do Not Match</string>
     <string name="profile_update_error_passwords_cannot_be_empty">Password Is Empty</string>
+    <string name="profile_update_email_text_header">Change Email</string>
+    <string name="profile_update_error_email_wrong_format">The Email Address provided is invalid format</string>
+    <string name="profile_update_nickname_text_header">Change Nickname</string>
+    <string name="profile_update_phone_number_text_header">Change Phone Number</string>
+    <string name="profile_update_lineid_text_header">Change LIneId</string>
+
 
     <string name="profile.email.header">Email</string>
     <string name="profile.phone.header">Phone Number</string>
@@ -207,6 +213,9 @@
     <string name="document_filter_label_number_of_records">Number Of Records:</string>
     <string name="document_filter_button_dismiss">X</string>
     <string name="document_filter_label_none">N/A</string>
+    <string name="action_filter_profile_documents">Filter Profile Docs</string>
+    <string name="action_filter_my_documents">Filter My Documents</string>
+    <string name="document_manage_my_documents_filter">Manage My Docs Filter</string>
 
     <!-- Tagging Options -->
     <string name="document_tag_management">Manage Tags</string>
@@ -273,6 +282,8 @@
 
     <!-- Open CV Note Scanner Custom -->
     <string name="processing_open_note_scanner_autocrop_failure">Attempting Background Crop</string>
+    <string name="processing_open_note_scanner_autocrop_failure_fail">Background Crop FAIL</string>
+    <string name="processing_open_note_scanner_autocrop_failure_success">Background Crop SUCCESS</string>
 
     <!-- Open CV Note Scanner -->
     <string name="title_activity_open_note_scanner">WWF Document Scanner</string>
@@ -308,6 +319,10 @@
     <string name="action_tag">Tag</string>
     <string name="storage_folder">Storage Folder</string>
     <string name="storage_folder_summary">Sets where the scanned documents should be stored</string>
+    <string name="document_my_docs_filter_cancel">Cancel</string>
+    <string name="document_my_docs_filter_set">Set</string>
+    <string name="document_my_docs_filter_clear">Clear</string>
+
 
     <!-- Notifications Alert -->
     <string name="alert_document_header_submission">Document Submission</string>

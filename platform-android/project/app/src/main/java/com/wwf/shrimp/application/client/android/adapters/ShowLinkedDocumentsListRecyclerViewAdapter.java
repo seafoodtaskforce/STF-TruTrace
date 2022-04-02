@@ -2,23 +2,21 @@ package com.wwf.shrimp.application.client.android.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.viethoa.RecyclerViewFastScroller;
 import com.wwf.shrimp.application.client.android.R;
 import com.wwf.shrimp.application.client.android.adapters.helpers.LinkedDocumentItemDataHelper;
 import com.wwf.shrimp.application.client.android.adapters.helpers.LinkedDocumentItemSelectionDataHelper;
-import com.wwf.shrimp.application.client.android.adapters.helpers.TagItemDataHelper;
-import com.wwf.shrimp.application.client.android.adapters.helpers.TagItemSelectionDataHelper;
+import com.wwf.shrimp.application.client.android.system.SessionData;
 import com.wwf.shrimp.application.client.android.utils.DateUtils;
-import com.wwf.shrimp.application.client.android.utils.MappingUtilities;
+import com.wwf.shrimp.application.client.android.utils.DocumentPOJOUtils;
 
 import java.util.List;
 
@@ -34,6 +32,8 @@ public class ShowLinkedDocumentsListRecyclerViewAdapter extends RecyclerView.Ada
     private SelectedLinkedDocumentsListRecyclerViewAdapter selectedAdapter;
     private Context mContext;
     private int selectedPos = RecyclerView.NO_POSITION;
+    // global session data access
+    private SessionData globalVariable = null;
 
     public void setSelectedAdapter(SelectedLinkedDocumentsListRecyclerViewAdapter selectedAdapter) {
         this.selectedAdapter = selectedAdapter;
@@ -48,6 +48,7 @@ public class ShowLinkedDocumentsListRecyclerViewAdapter extends RecyclerView.Ada
     public ShowLinkedDocumentsListRecyclerViewAdapter(List<LinkedDocumentItemDataHelper.LinkedDocumentDataCard> dataset, Context context) {
         mDataArray = dataset;
         mContext = context;
+        this.globalVariable = (SessionData) context.getApplicationContext();
     }
 
     @Override
@@ -96,7 +97,11 @@ public class ShowLinkedDocumentsListRecyclerViewAdapter extends RecyclerView.Ada
                                 mDataArray.get(position).getId(),
                                 mDataArray.get(position).getLinkedDocText(),
                                 mDataArray.get(position).getOwner(),
-                                mDataArray.get(position).getDocumentType());
+                                mDataArray.get(position).getDocumentType(),
+                                mDataArray.get(position).getDynamicFieldData()
+                );
+
+
                 item.setSyncId(mDataArray.get(position).getSyncId());
 
                 if(linkCheckBox.isChecked()){
@@ -121,8 +126,13 @@ public class ShowLinkedDocumentsListRecyclerViewAdapter extends RecyclerView.Ada
 
         //
         // Custom tag
-        if(mDataArray.get(position).getCustomTag() != null && mDataArray.get(position).getCustomTag().length() > 0){
+        String formattedDocField = DocumentPOJOUtils.getFormattedDocFields(mDataArray.get(position).getDynamicFieldData(), globalVariable);
+        if(formattedDocField != null && formattedDocField.length() > 0){
+        //if(mDataArray.get(position).getCustomTag() != null && mDataArray.get(position).getCustomTag().length() > 0){
             holder.mTextViewCustomTag.setVisibility(View.VISIBLE);
+            // show the data
+            holder.mTextViewCustomTag.setText(formattedDocField);
+
         }else{
             holder.mTextViewCustomTag.setVisibility(View.GONE);
         }

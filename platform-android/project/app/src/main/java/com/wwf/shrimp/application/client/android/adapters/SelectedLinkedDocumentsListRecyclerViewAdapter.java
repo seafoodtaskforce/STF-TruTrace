@@ -1,6 +1,6 @@
 package com.wwf.shrimp.application.client.android.adapters;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,7 +59,9 @@ public class SelectedLinkedDocumentsListRecyclerViewAdapter extends RecyclerView
                         = new LinkedDocumentItemDataHelper.LinkedDocumentDataCard(
                                 mDataArray.get(position).getLinkedDocText(),
                                 mDataArray.get(position).getOwner(),
-                                true );
+                                true,
+                                mDataArray.get(position).getDynamicFieldData()
+                        );
                 item.setId(mDataArray.get(position).getId());
                 item.setSyncId(mDataArray.get(position).getSyncId());
 

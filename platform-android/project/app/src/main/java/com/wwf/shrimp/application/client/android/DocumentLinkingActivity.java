@@ -3,12 +3,12 @@ package com.wwf.shrimp.application.client.android;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -39,12 +39,10 @@ import com.wwf.shrimp.application.client.android.utils.RESTUtils;
 import com.wwf.shrimp.application.client.android.utils.dialogs.ErrorConnectingDialogUtility;
 import com.wwf.shrimp.application.client.android.utils.listeners.ClickListener;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -660,7 +658,7 @@ public class DocumentLinkingActivity extends AppCompatActivity {
 
         for(int i=0; i< docs.size(); i++){
             Document doc = docs.get(i);
-            LinkedDocumentItemDataHelper.LinkedDocumentDataCard item = new LinkedDocumentItemDataHelper.LinkedDocumentDataCard(doc.getDocumentType(), doc.getOwner(), false);
+            LinkedDocumentItemDataHelper.LinkedDocumentDataCard item = new LinkedDocumentItemDataHelper.LinkedDocumentDataCard(doc.getDocumentType(), doc.getOwner(), false, doc.getDynamicFieldData());
             item.setId(doc.getId());
             item.setTimestamp(doc.getCreationTimestamp());
             item.setDocumentType(doc.getType());
@@ -698,7 +696,13 @@ public class DocumentLinkingActivity extends AppCompatActivity {
             //String documentType = getResources().getString(docTypeID);
 
             String documentType = globalVariable.getInternationalizedResourceString(docs.get(i).getType().getName());
-            LinkedDocumentItemSelectionDataHelper.LinkedDocumentDataCard item = new LinkedDocumentItemSelectionDataHelper.LinkedDocumentDataCard(doc.getId(), documentType, doc.getOwner(), doc.getType());
+            LinkedDocumentItemSelectionDataHelper.LinkedDocumentDataCard item
+                    = new LinkedDocumentItemSelectionDataHelper.LinkedDocumentDataCard(
+                            doc.getId(),
+                            documentType,
+                            doc.getOwner(),
+                            doc.getType(),
+                            doc.getDynamicFieldData());
             item.setSyncId(doc.getSyncID());
 
             result.add(item);

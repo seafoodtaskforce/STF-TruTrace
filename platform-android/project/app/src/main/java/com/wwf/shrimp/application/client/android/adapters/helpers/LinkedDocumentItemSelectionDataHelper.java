@@ -1,6 +1,10 @@
 package com.wwf.shrimp.application.client.android.adapters.helpers;
 
 import com.wwf.shrimp.application.client.android.models.dto.DocumentType;
+import com.wwf.shrimp.application.client.android.models.dto.DynamicFieldData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by AleaActaEst on 11/09/2017.
@@ -14,12 +18,22 @@ public class LinkedDocumentItemSelectionDataHelper {
         private long id;
         private String syncId;
         private DocumentType docType;
+        private List<DynamicFieldData> dynamicFieldData = new ArrayList<DynamicFieldData>();
 
-        public LinkedDocumentDataCard(long id, String linkedDocText, String owner, DocumentType docType){
+        public List<DynamicFieldData> getDynamicFieldData() {
+            return dynamicFieldData;
+        }
+
+        public void setDynamicFieldData(List<DynamicFieldData> dynamicFieldData) {
+            this.dynamicFieldData = dynamicFieldData;
+        }
+
+        public LinkedDocumentDataCard(long id, String linkedDocText, String owner, DocumentType docType, List<DynamicFieldData> dynamicFieldData){
             this.linkedDocText = linkedDocText;
             this.id = id;
             this.owner = owner;
             this.docType = docType;
+            this.dynamicFieldData = dynamicFieldData;
         }
 
 

@@ -5,6 +5,7 @@ public class GalleryDocumentPage {
     private Object page;
     private boolean deleted = false;
     private int position;
+    private int pageNumber;
 
     public GalleryDocumentPage(Object page) {
         this.page = page;
@@ -43,5 +44,13 @@ public class GalleryDocumentPage {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
     }
 }

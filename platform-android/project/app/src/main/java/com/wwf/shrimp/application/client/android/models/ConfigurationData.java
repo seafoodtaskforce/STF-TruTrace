@@ -73,6 +73,12 @@ public class ConfigurationData {
     private String restUserUpdateProfileImage;
     private String restUserUpdateData;
     private String restUserUpdateCredentials;
+    private String restUserUpdateProfile;
+
+    /**
+     * User Misc
+     */
+    private String webUserRegistrationURL;
 
 
     /**
@@ -463,5 +469,21 @@ public class ConfigurationData {
 
     public void setRestDocumentFetchRecipientsForUserURL(String restDocumentFetchRecipientsForUserURL) {
         this.restDocumentFetchRecipientsForUserURL = restDocumentFetchRecipientsForUserURL;
+    }
+
+    public String getWebUserRegistrationURL() {
+        return webUserRegistrationURL;
+    }
+
+    public void setWebUserRegistrationURL(String webUserRegistrationURL) {
+        this.webUserRegistrationURL = webUserRegistrationURL;
+    }
+
+    public String getRestUserUpdateProfile() {
+        return restUserUpdateProfile;
+    }
+
+    public void setRestUserUpdateProfile(String restUserUpdateProfile) {
+        this.restUserUpdateProfile = restUserUpdateProfile;
     }
 }

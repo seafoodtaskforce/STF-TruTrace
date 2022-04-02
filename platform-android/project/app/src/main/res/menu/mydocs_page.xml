@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".FullScreenViewActivity">
+
+    <item
+        android:id="@+id/action_doc_filter"
+        android:title="@string/action_filter_my_documents"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_filter_no_checkmark"
+        app:showAsAction="always" />
+
+</menu>

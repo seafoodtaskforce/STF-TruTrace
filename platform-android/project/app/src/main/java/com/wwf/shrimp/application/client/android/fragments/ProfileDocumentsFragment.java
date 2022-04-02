@@ -8,15 +8,15 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.content.ContextCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -52,7 +52,7 @@ import com.wwf.shrimp.application.client.android.utils.DocumentPOJOUtils;
 import com.wwf.shrimp.application.client.android.utils.RESTUtils;
 import com.wwf.shrimp.application.client.android.utils.dialogs.ErrorConnectingDialogUtility;
 import com.wwf.shrimp.application.client.android.utils.listeners.ClickListener;
-import java.io.IOException;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -173,7 +173,7 @@ public class ProfileDocumentsFragment extends Fragment implements View.OnClickLi
         backgroundDimmer.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                return false;
+                return true;
             }
         });
 
@@ -839,7 +839,7 @@ public class ProfileDocumentsFragment extends Fragment implements View.OnClickLi
         for(int i=0; i< documents.size(); i++){
             // if the owner is not current user then skip
             if(!documents.get(i).getOwner().equals(globalVariable.getCurrentUser().getCredentials().getUsername())
-                    || documents.get(i).getType().getDocumentDesignation().equals("Passthrough")){
+                    || documents.get(i).getType().getDocumentDesignation().equals(DocumentType.DESIGNATION_PASSTHROUGH)){
                 continue;
             }
 
@@ -852,6 +852,11 @@ public class ProfileDocumentsFragment extends Fragment implements View.OnClickLi
             // }
 
         }
+
+        //
+        // Add these documents to the session data
+        globalVariable.setProfileDocs(filteredDocuments);
+
 
         //
         // Convert documents to internal representation

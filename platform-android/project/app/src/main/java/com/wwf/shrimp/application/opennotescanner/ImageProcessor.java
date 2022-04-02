@@ -80,7 +80,7 @@ public class ImageProcessor extends Handler {
     //
     // throttle variable
     long lastThrottleTime = 0;
-    long throttleTime = 2000;
+    long throttleTime = 200000;
     long startThrottleTime;
     boolean startOfCycle = true;
     int cycleCount = 0;

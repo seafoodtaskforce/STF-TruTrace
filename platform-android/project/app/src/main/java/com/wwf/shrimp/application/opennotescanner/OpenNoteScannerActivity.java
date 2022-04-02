@@ -26,12 +26,12 @@ import android.os.HandlerThread;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Display;
@@ -84,7 +84,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -211,6 +210,7 @@ public class OpenNoteScannerActivity extends AppCompatActivity
         detector = new TextRecognizer.Builder(getApplicationContext()).build();
 
         mThis = this;
+
 
         mSharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -598,6 +598,7 @@ public class OpenNoteScannerActivity extends AppCompatActivity
 
         if (mImageProcessor == null) {
             mImageProcessor = new ImageProcessor(mImageThread.getLooper(), new Handler(), this, 2000, globalVariable);
+            mImageProcessor.setThrottle();
         }
         this.setImageProcessorBusy(false);
 
@@ -929,6 +930,9 @@ public class OpenNoteScannerActivity extends AppCompatActivity
         if (safeToTakePicture && !pageLimitReached) {
             runOnUiThread(resetShutterColor);
             safeToTakePicture = false;
+
+            // preconditions
+            if( mCamera == null) return false;
             mCamera.autoFocus(new Camera.AutoFocusCallback() {
                 @Override
                 public void onAutoFocus(boolean success, Camera camera) {
@@ -962,7 +966,7 @@ public class OpenNoteScannerActivity extends AppCompatActivity
         sendImageProcessorMessage("pictureTaken", mat);
 
         // TODO creating automatic picture taking
-        // scanClicked = false;
+        scanClicked = false;
 
          safeToTakePicture = true;
 
@@ -1073,7 +1077,7 @@ public class OpenNoteScannerActivity extends AppCompatActivity
          */
     if(scannedDocument.quadrilateral == null){
         // Toast.makeText(mThis, R.string.processing_open_note_scanner_autocrop_failure, Toast.LENGTH_SHORT).show();
-        // TODO Background crop
+        // TODO Background crop <commented out>
         // doBackgroundCrop(fileName);
     }else{
         // doOCRExtraction(fileName);
@@ -1314,9 +1318,9 @@ public class OpenNoteScannerActivity extends AppCompatActivity
                     public void run() {
                         Boolean cropSuccess = backgroundCropMap.get(fileName);
                         if(cropSuccess.booleanValue() == false){
-                            // Toast.makeText(mThis, "Background Crop Failed", Toast.LENGTH_LONG).show();
+                            Toast.makeText(mThis, R.string.processing_open_note_scanner_autocrop_failure_fail, Toast.LENGTH_SHORT).show();
                         }else{
-                            // Toast.makeText(mThis, "Background Crop Success", Toast.LENGTH_LONG).show();
+                            Toast.makeText(mThis, R.string.processing_open_note_scanner_autocrop_failure_success, Toast.LENGTH_SHORT).show();
                             // doOCRExtraction(fileName);
                             // doOCRExtraction(fileName);
                         }

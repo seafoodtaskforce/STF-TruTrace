@@ -1,6 +1,6 @@
 package com.wwf.shrimp.application.client.android.utils;
 
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.util.Log;
 
 import com.wwf.shrimp.application.client.android.R;
@@ -12,7 +12,9 @@ import com.wwf.shrimp.application.client.android.fragments.MyDocumentsFragment;
 import com.wwf.shrimp.application.client.android.fragments.ProfileDocumentsFragment;
 import com.wwf.shrimp.application.client.android.models.dto.Document;
 import com.wwf.shrimp.application.client.android.models.dto.DocumentPage;
+import com.wwf.shrimp.application.client.android.models.dto.DocumentType;
 import com.wwf.shrimp.application.client.android.models.dto.DynamicFieldData;
+import com.wwf.shrimp.application.client.android.models.dto.DynamicFieldDefinition;
 import com.wwf.shrimp.application.client.android.models.dto.NoteData;
 import com.wwf.shrimp.application.client.android.models.dto.Organization;
 import com.wwf.shrimp.application.client.android.models.dto.TagData;
@@ -24,12 +26,14 @@ import com.wwf.shrimp.application.client.android.system.SessionData;
 import com.wwf.shrimp.application.opennotescanner.helpers.Utils;
 
 import java.io.File;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-
-import static com.wwf.shrimp.application.client.android.fragments.AllDocumentsFragment.RECYCLER_ADAPTER_KEY;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utility for Document POJO functionality such as mapping to other entities.
@@ -241,6 +245,131 @@ public class DocumentPOJOUtils {
     }
 
     /**
+     * get all the dynamic fields for the current document
+     * @return - list of document fields; empty if none found.
+     */
+    public static List<DynamicFieldDefinition> getAllDynamicFieldsForDocument(SessionData globalVariable, DocumentCardItem doc) {
+        List<DynamicFieldDefinition> result = new ArrayList<DynamicFieldDefinition>();
+        long docTypeId = doc.getDocumentType().getId();
+
+        for(int i=0; i< globalVariable.getCurrentUser().getDynamicFieldDefinitions().size() ;i++){
+            if(globalVariable.getCurrentUser().getDynamicFieldDefinitions().get(i).getDocTypeId() == docTypeId){
+                result.add(globalVariable.getCurrentUser().getDynamicFieldDefinitions().get(i));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * get all the dynamic fields for the current document
+     * @return - list of document fields; empty if none found.
+     */
+    public static List<DynamicFieldDefinition> getAllOCRDynamicFieldsForDocument(SessionData globalVariable, DocumentCardItem doc) {
+        List<DynamicFieldDefinition> result = new ArrayList<DynamicFieldDefinition>();
+        long docTypeId = doc.getDocumentType().getId();
+
+        for(int i=0; i< globalVariable.getCurrentUser().getDynamicFieldDefinitions().size() ;i++){
+            if(globalVariable.getCurrentUser().getDynamicFieldDefinitions().get(i).getDocTypeId() == docTypeId){
+                if( globalVariable.getCurrentUser().getDynamicFieldDefinitions().get(i).getOcrGrabLength() > 0) {
+                    result.add(globalVariable.getCurrentUser().getDynamicFieldDefinitions().get(i));
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * get all the dynamic fields for the input document
+     * @return - list of document fields; empty if none found.
+     */
+    public static List<DynamicFieldData> getAllDynamicFieldData(DocumentCardItem doc) {
+        List<DynamicFieldData> result = new ArrayList<DynamicFieldData>();
+
+        for(int i=0; i< doc.getDynamicFieldData().size() ;i++){
+            //if(globalVariable.getCurrentUser().getDynamicFieldData().get(i)){
+            result.add(doc.getDynamicFieldData().get(i));
+            //}
+        }
+
+        return result;
+    }
+
+    /**
+     * Will check the if this document has an expiry data field
+     * @param doc - the document to get the expiry field for
+     * @return - true if the document has an expiry date; false of not
+     */
+    public static boolean hasExpiryDate(SessionData globalVariable, DocumentCardItem doc) {
+        List<DynamicFieldDefinition> definitions = DocumentPOJOUtils.getAllDynamicFieldsForDocument(globalVariable, doc);
+
+        if(!doc.getDocumentType().getDocumentDesignation().equals(DocumentType.DESIGNATION_PROFILE)) {
+            return false;
+        }
+        List<DynamicFieldData> fields = doc.getDynamicFieldData();
+        for(int i=0; i< fields.size() ;i++){
+            for(int j=0; j< definitions.size() ;j++) {
+                if (fields.get(i).getDynamicFieldDefinitionId() == definitions.get(j).getId()
+                        && definitions.get(j).getFieldTypeId() == DynamicFieldDefinition.EXPIRY_DATE_FIELD_TYPE) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Will check the if this document has an expiry data field
+     * @param doc - the document to get the expiry field for
+     * @return - null of the date is not found; an actual date otherwise
+     */
+    public static Date getExpiryDate(SessionData globalVariable, DocumentCardItem doc) {
+        List<DynamicFieldDefinition> definitions = DocumentPOJOUtils.getAllDynamicFieldsForDocument(globalVariable, doc);
+
+        if(!doc.getDocumentType().getDocumentDesignation().equals(DocumentType.DESIGNATION_PROFILE)) {
+            return null;
+        }
+        List<DynamicFieldData> fields = doc.getDynamicFieldData();
+        for(int i=0; i< fields.size() ;i++){
+            for(int j=0; j< definitions.size() ;j++) {
+                if (fields.get(i).getDynamicFieldDefinitionId() == definitions.get(j).getId()
+                        && definitions.get(j).getFieldTypeId() == DynamicFieldDefinition.EXPIRY_DATE_FIELD_TYPE) {
+                    return DateUtils.formatStringToDateOnly(fields.get(i).getData());
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Will check the if this document has an expiry data field
+     * @param doc - the document to get the expiry field for
+     * @return - null of the date is not found; an actual date otherwise
+     */
+    public static String getExpiryDateAsString(SessionData globalVariable, DocumentCardItem doc) {
+        List<DynamicFieldDefinition> definitions = DocumentPOJOUtils.getAllDynamicFieldsForDocument(globalVariable, doc);
+
+        if(!doc.getDocumentType().getDocumentDesignation().equals(DocumentType.DESIGNATION_PROFILE)) {
+            return null;
+        }
+        List<DynamicFieldData> fields = doc.getDynamicFieldData();
+        for(int i=0; i< fields.size() ;i++){
+            for(int j=0; j< definitions.size() ;j++) {
+                if (fields.get(i).getDynamicFieldDefinitionId() == definitions.get(j).getId()
+                        && definitions.get(j).getFieldTypeId() == DynamicFieldDefinition.EXPIRY_DATE_FIELD_TYPE) {
+                    return fields.get(i).getData();
+                }
+            }
+        }
+        return null;
+    }
+
+    public static long getDifferenceBetweenDatesDays(Date date1, Date date2) {
+        long diff = date1.getTime() - date2.getTime();
+        return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
+    }
+
+
+    /**
      * Helper method to get and format the main doc field for the document
      * @param fields - the document fields
      * @return - the formatted doc field string or empty string if not found
@@ -355,6 +484,12 @@ public class DocumentPOJOUtils {
         return mPosition;
     }
 
+    /**
+     * Convert the inner Document Card based data into the JSON ready Document DTO data
+     * @param item - the document card item internal to the application
+     * @param globalVariable - the session context data
+     * @return - the equivalent Document entity
+     */
     public static Document convertDTO(DocumentCardItem item, SessionData globalVariable){
         Document document = new Document();
         long organizationId=0;
@@ -391,6 +526,8 @@ public class DocumentPOJOUtils {
         for(int i=0; i<item.getDocumentPages().size(); i++){
             ((DocumentPage)item.getDocumentPages().get(i).getPage()).setPageSynced(true);
             document.getPages().add((DocumentPage)item.getDocumentPages().get(i).getPage());
+            // set page number
+            document.getPages().get(document.getPages().size()-1).setPageNumber(item.getDocumentPages().get(i).getPageNumber());
         }
 
         // create image encoding for each page
@@ -414,13 +551,18 @@ public class DocumentPOJOUtils {
 
             //
             // assign page number to the encoded page for the backend
-            page.setPageNumber(document.getPages().size());
-            Log.d(LOG_TAG, "Create a new document - page designation " +
-                    page.getPageNumber());
+            // page.setPageNumber(document.getPages().size());
+            page.setPageNumber(item.getImagePages().get(i).getPageNumber());
+            //  Log.d(LOG_TAG, "Create a new document - page designation " +
+            //        page.getPageNumber());
 
             // add to document
             document.getPages().add(page);
         }
+
+        // recollate pages
+        // <TODO> check if need to recollate
+        //document.setPages(DocumentPOJOUtils.collateDocPages(document.getPages()));
 
         document.setAttachedDocuments(item.getAttachedDocuments());
         document.setLinkedDocuments(item.getLinkedDocuments());
@@ -429,6 +571,107 @@ public class DocumentPOJOUtils {
         document.setDynamicFieldData(item.getDynamicFieldData());
 
         return document;
+    }
+
+    public static List<DocumentPage> collateDocPages(List<DocumentPage> pages) {
+        int pageCounter = 1;
+
+        // sort the pages first based on position
+
+        for(int i=0; i< pages.size(); i++){
+            pages.get(i).setPageNumber(pageCounter++);
+        }
+
+        return pages;
+    }
+
+    public static List<GalleryDocumentPage> collateGalleryDocPages(List<GalleryDocumentPage> pages) {
+        int pageCounter = 1;
+
+        // sort the pages first based on position
+
+        for(int i=0; i< pages.size(); i++){
+            pages.get(i).setPageNumber(pageCounter++);
+        }
+
+        return pages;
+    }
+
+    public static List<GalleryDocumentPage>  collatePages(List<GalleryDocumentPage> pageData){
+        // sort the entities by their type
+        Collections.sort(pageData, new Comparator<GalleryDocumentPage>() {
+            @Override
+            public int compare(GalleryDocumentPage lhs, GalleryDocumentPage rhs) {
+                // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
+                if(lhs.getPageNumber() < rhs.getPageNumber()){
+                    return -1;
+                }else if(lhs.getPageNumber() > rhs.getPageNumber()){
+                    return 1;
+                }else {
+                    return 0;
+                }
+            }
+        });
+        return pageData;
+    }
+
+    public static List<GalleryDocumentPage>  collateInnerDocPages(List<GalleryDocumentPage> pageData){
+        // sort the entities by their type
+        Collections.sort(pageData, new Comparator<GalleryDocumentPage>() {
+            @Override
+            public int compare(GalleryDocumentPage lhs, GalleryDocumentPage rhs) {
+
+                int lhsPageNumber = 0;
+                int rhsPageNumber = 0;
+                // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
+                if(((GalleryDocumentPage) ((GalleryDocumentPage)lhs).getPage()).getPage() instanceof DocumentPage){
+                    GalleryDocumentPage innerPage = (GalleryDocumentPage) ((GalleryDocumentPage)lhs).getPage();
+                    lhsPageNumber= innerPage.getPageNumber();
+                }
+                if(((GalleryDocumentPage) ((GalleryDocumentPage)lhs).getPage()).getPage() instanceof File) {
+                    GalleryDocumentPage innerPage = (GalleryDocumentPage) ((GalleryDocumentPage)lhs).getPage();
+                    lhsPageNumber= innerPage.getPageNumber();
+                }
+                if(((GalleryDocumentPage) ((GalleryDocumentPage)rhs).getPage()).getPage() instanceof DocumentPage){
+                    GalleryDocumentPage innerPage = (GalleryDocumentPage) ((GalleryDocumentPage)rhs).getPage();
+                    rhsPageNumber= innerPage.getPageNumber();
+                }
+                if(((GalleryDocumentPage) ((GalleryDocumentPage)rhs).getPage()).getPage() instanceof File) {
+                    GalleryDocumentPage innerPage = (GalleryDocumentPage) ((GalleryDocumentPage)rhs).getPage();
+                    rhsPageNumber= innerPage.getPageNumber();
+                }
+                if(lhsPageNumber < rhsPageNumber){
+                    return -1;
+                }else if(lhsPageNumber > rhsPageNumber){
+                    return 1;
+                }else {
+                    return 0;
+                }
+            }
+        });
+        return DocumentPOJOUtils.reindexDocPages(pageData);
+    }
+
+    public static List<GalleryDocumentPage>  reindexDocPages(List<GalleryDocumentPage> pageData){
+        int pageCounter = 1;
+
+        // sort the pages first based on position
+
+        for(int i=0; i< pageData.size(); i++){
+            if(((GalleryDocumentPage) ((GalleryDocumentPage)pageData.get(i)).getPage()).getPage() instanceof DocumentPage){
+                GalleryDocumentPage innerPage = (GalleryDocumentPage) ((GalleryDocumentPage)pageData.get(i)).getPage();
+                innerPage.setPageNumber(pageCounter++);
+                continue;
+            }
+
+            if(((GalleryDocumentPage) ((GalleryDocumentPage)pageData.get(i)).getPage()).getPage() instanceof File) {
+                GalleryDocumentPage innerPage = (GalleryDocumentPage) ((GalleryDocumentPage)pageData.get(i)).getPage();
+                innerPage.setPageNumber(pageCounter++);
+                continue;
+            }
+        }
+
+        return pageData;
     }
 
     /**
@@ -586,7 +829,9 @@ public class DocumentPOJOUtils {
         if(notes == null || notes.size() == 0) return result;
 
         String[] headerData = notes.get(0).getNote().split(DocumentPOJOUtils.DOC_NOTE_HEADER_DELIMITER);
-        result = headerData[0];
+        if(headerData != null && headerData.length > 0) {
+            result = headerData[0];
+        }
 
         return result;
     }
@@ -599,7 +844,7 @@ public class DocumentPOJOUtils {
         String[] headerData = notes.get(0).getNote().split(DocumentPOJOUtils.DOC_NOTE_HEADER_DELIMITER);
         if(headerData != null && headerData.length > 1){
             result = headerData[1];
-        }else{
+        }else if(headerData != null && headerData.length > 0){
             result = headerData[0];
         }
 
@@ -774,7 +1019,10 @@ public class DocumentPOJOUtils {
     public static List<GalleryDocumentPage> convertDocumentPagesToGalleryPages(List<DocumentPage> pages ){
         List<GalleryDocumentPage> result = new ArrayList<GalleryDocumentPage>();
         for(int i=0; i< pages.size(); i++){
-            result.add(new GalleryDocumentPage(pages.get(i), false, i));
+            // create a new page
+            GalleryDocumentPage page = new GalleryDocumentPage(pages.get(i), false, i);
+            page.setPageNumber(pages.get(i).getPageNumber());
+            result.add(page);
         }
 
         return result;
@@ -787,9 +1035,39 @@ public class DocumentPOJOUtils {
                 result = globalVariable.getCurrentUser().getDynamicFieldDefinitions().get(i).getDisplayName();
             }
         }
+        return result;
+    }
+
+    public static List<GalleryDocumentPage> getNewestPageData(SessionData globalVariable) {
+        List<GalleryDocumentPage> pageData = new ArrayList<>();
+        // populate the data
+        for(int i=0; i< globalVariable.getNextDocument().getDocumentPages().size(); i++){
+            pageData.add(new GalleryDocumentPage(globalVariable.getNextDocument().getDocumentPages().get(i),
+                    globalVariable.getNextDocument().getDocumentPages().get(i).isDeleted()));
+        }
+        for(int i=0; i< globalVariable.getNextDocument().getImagePages().size(); i++){
+            pageData.add(new GalleryDocumentPage(globalVariable.getNextDocument().getImagePages().get(i),
+                    globalVariable.getNextDocument().getImagePages().get(i).isDeleted()));
+        }
+
+        //
+        // recollate pages
+        pageData = DocumentPOJOUtils.collateInnerDocPages(pageData);
+
+        return pageData;
+    }
+
+    public static boolean doesImagePageExistInCurrentDocument(SessionData globalVariable, File imagePage){
+        boolean result = false;
+
+        for(int i=0; i< globalVariable.getNextDocument().getImagePages().size(); i++){
+            File filePage = (File) ((GalleryDocumentPage) ((GalleryDocumentPage)globalVariable.getNextDocument().getImagePages().get(i))).getPage();
+            if(filePage.equals(imagePage)){
+                result = true;
+            }
+        }
 
         return result;
 
     }
-
 }

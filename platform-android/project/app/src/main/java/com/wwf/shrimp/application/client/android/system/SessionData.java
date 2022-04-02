@@ -6,17 +6,19 @@ import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.wwf.shrimp.application.client.android.R;
 import com.wwf.shrimp.application.client.android.adapters.DocumentCardItemAdapter;
-import com.wwf.shrimp.application.client.android.fragments.MyDocumentsFragment;
 import com.wwf.shrimp.application.client.android.fragments.ProfileDocumentsFragment;
 import com.wwf.shrimp.application.client.android.listeners.ConnectivityReceiver;
 import com.wwf.shrimp.application.client.android.models.ConfigurationData;
 import com.wwf.shrimp.application.client.android.models.dto.AppResource;
+import com.wwf.shrimp.application.client.android.models.dto.Document;
 import com.wwf.shrimp.application.client.android.models.dto.DocumentType;
 import com.wwf.shrimp.application.client.android.models.dto.Organization;
 import com.wwf.shrimp.application.client.android.models.dto.User;
 import com.wwf.shrimp.application.client.android.models.dto.search.DocumentSearchCriteria;
 import com.wwf.shrimp.application.client.android.models.view.DocumentCardItem;
-import android.support.v4.app.Fragment;
+import com.wwf.shrimp.application.client.android.models.view.FilterDTO;
+
+import androidx.fragment.app.Fragment;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -42,11 +44,22 @@ public class SessionData extends Application {
     public static final int DOCUMENT_READ_ONLY= 4;
     public static final int DOCUMENT_CONTEXT_EDIT= 8;
 
+    public static final String USER_REMEMBER_ME_KEY = "user_name";
+    public static final String USER_TOKEN_REMEMBER_ME_KEY = "user_token";
+
+
     public static final String MISSING_RESOURCE_VALUE= "MISSING VALUE";
 
     private static SessionData mInstance;
 
     private Map<String, AppResource> appResources = new HashMap<String, AppResource>();
+
+    private Object changedField = null;
+
+    /**
+     * Latest profile docs for this user
+     */
+    private List<Document> profileDocs = new ArrayList<Document>();
 
     /**
      * GPS Data service
@@ -161,6 +174,27 @@ public class SessionData extends Application {
     private String notificationDocSessionId = null;
 
     private int numberofGalleryPagesToDelete = 0;
+
+    /**
+     * Wil hold the filter data for the my docs information
+     */
+    private FilterDTO myDocsFilter = new FilterDTO();
+
+    /**
+     * Wil hold the filter data for the profile docs information
+     */
+    private FilterDTO profileDocsFilter = new FilterDTO();
+
+    /**
+     * Flag to check of the current document is editable
+     */
+    private boolean documentEditableFlag = true;
+
+    /**
+     * Flag to skip login if the user is already in the remember me preferences
+     */
+    private boolean rememberMeIsOn= false;
+
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -366,6 +400,7 @@ public class SessionData extends Application {
         this.currFragment = null;
         this.currentUser = null;
         this.documentSearchFilterData = new DocumentSearchCriteria[]{null, null};
+        this.setRememberMeIsOn(false);
 
     }
 
@@ -435,6 +470,14 @@ public class SessionData extends Application {
         }
     }
 
+    public List<Document> getProfileDocs() {
+        return profileDocs;
+    }
+
+    public void setProfileDocs(List<Document> profileDocs) {
+        this.profileDocs = profileDocs;
+    }
+
     public String getInternationalizedResourceString(String key){
         String value;
         String language = Locale.getDefault().getLanguage();
@@ -450,6 +493,45 @@ public class SessionData extends Application {
 
     public static String generateResourceKey(String key, String language){
         return key +"."+ language;
+    }
 
+    public Object getChangedField() {
+        return changedField;
+    }
+
+    public void setChangedField(Object changedField) {
+        this.changedField = changedField;
+    }
+
+    public FilterDTO getMyDocsFilter() {
+        return myDocsFilter;
+    }
+
+    public void setMyDocsFilter(FilterDTO myDocsFilter) {
+        this.myDocsFilter = myDocsFilter;
+    }
+
+    public FilterDTO getProfileDocsFilter() {
+        return profileDocsFilter;
+    }
+
+    public void setProfileDocsFilter(FilterDTO profileDocsFilter) {
+        this.profileDocsFilter = profileDocsFilter;
+    }
+
+    public boolean isDocumentEditableFlag() {
+        return documentEditableFlag;
+    }
+
+    public void setDocumentEditableFlag(boolean documentEditableFlag) {
+        this.documentEditableFlag = documentEditableFlag;
+    }
+
+    public boolean isRememberMeIsOn() {
+        return rememberMeIsOn;
+    }
+
+    public void setRememberMeIsOn(boolean rememberMeIsOn) {
+        this.rememberMeIsOn = rememberMeIsOn;
     }
 }

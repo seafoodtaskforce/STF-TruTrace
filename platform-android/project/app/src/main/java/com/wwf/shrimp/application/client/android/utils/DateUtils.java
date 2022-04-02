@@ -16,6 +16,7 @@ public class DateUtils {
     public static final String DATE_FORMAT = "dd/MM/yy HH:mm";
     public static final String DATE_FORMAT2 = "yyyy-MM-dd HH:mm";
     public static final String DATE_ONLY_FORMAT = "yyyy-MM-dd";
+    public static final String DATE_ONLY_FORMAT2 = "dd/MM/yy";
 
 
     /**
@@ -82,6 +83,13 @@ public class DateUtils {
         Date result=null;
 
         SimpleDateFormat formatter = new SimpleDateFormat(DATE_ONLY_FORMAT);
+
+        // figure out the format of the date coming in
+        if(dateInString.contains("-")){
+            formatter = new SimpleDateFormat(DATE_ONLY_FORMAT);
+        }else if(dateInString.contains("/")){
+            formatter = new SimpleDateFormat(DATE_ONLY_FORMAT2);
+        }
         try {
             result = formatter.parse(dateInString);
         } catch (ParseException e) {

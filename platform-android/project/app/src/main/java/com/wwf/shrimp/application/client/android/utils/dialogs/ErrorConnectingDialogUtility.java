@@ -2,7 +2,7 @@ package com.wwf.shrimp.application.client.android.utils.dialogs;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 
 import com.wwf.shrimp.application.client.android.R;
 
@@ -14,7 +14,7 @@ import com.wwf.shrimp.application.client.android.R;
 public class ErrorConnectingDialogUtility {
 
     public static void showServerSystemErrorDialog(Context context){
-        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(context);
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(context);
 
         // Set up its view
         builder.setTitle(R.string.error_system_general);
@@ -22,14 +22,14 @@ public class ErrorConnectingDialogUtility {
         builder.setPositiveButton(R.string.dialog_general_OK, null);
 
         // create alert dialog
-        android.support.v7.app.AlertDialog alertDialog = builder.create();
+        androidx.appcompat.app.AlertDialog alertDialog = builder.create();
         alertDialog.show();
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#00838F"));
 
     }
 
     public static void showUnsyncedDocumentErrorDialog(Context context){
-        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(context);
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(context);
 
         // Set up its view
         builder.setTitle(R.string.error_system_general);
@@ -37,7 +37,7 @@ public class ErrorConnectingDialogUtility {
         builder.setPositiveButton(R.string.dialog_general_OK, null);
 
         // create alert dialog
-        android.support.v7.app.AlertDialog alertDialog = builder.create();
+        androidx.appcompat.app.AlertDialog alertDialog = builder.create();
         alertDialog.show();
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#00838F"));
 

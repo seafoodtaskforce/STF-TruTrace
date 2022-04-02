@@ -1,6 +1,6 @@
 package com.wwf.shrimp.application.client.android.adapters;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,8 +10,6 @@ import android.widget.TextView;
 import com.wwf.shrimp.application.client.android.R;
 import com.wwf.shrimp.application.client.android.adapters.helpers.RecipientDataHelper;
 import com.wwf.shrimp.application.client.android.adapters.helpers.RecipientSelectionDataHelper;
-import com.wwf.shrimp.application.client.android.adapters.helpers.TagItemDataHelper;
-import com.wwf.shrimp.application.client.android.adapters.helpers.TagItemSelectionDataHelper;
 import com.wwf.shrimp.application.client.android.system.SessionData;
 
 import java.util.List;
@@ -79,6 +77,10 @@ public class SelectedRecipientListRecyclerViewAdapter extends RecyclerView.Adapt
 
     public void removeItem(RecipientSelectionDataHelper.RecipientCard item){
         mDataArray.remove(item);
+    }
+
+    public void clear(){
+        mDataArray.clear();
     }
 
 

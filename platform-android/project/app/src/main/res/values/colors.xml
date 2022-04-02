@@ -25,6 +25,7 @@
     <color name="colorFAB2">#F2AB00</color>     <!-- Captain Statement Color -->
     <color name="colorFAB1">#0033cc</color>     <!-- MCPD Color -->
     <color name="colorFABMenu">#33cc33</color>
+    <color name="colorFABFilterMenu">#D00099CC</color>
 
     <color name="colorFAB5Pressed">#e250fb</color>
     <color name="colorFAB4Pressed">#e6e600</color>

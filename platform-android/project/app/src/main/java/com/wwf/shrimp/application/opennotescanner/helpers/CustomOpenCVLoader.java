@@ -119,7 +119,7 @@ public class CustomOpenCVLoader extends OpenCVLoader {
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                                 installIntent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-                                uri = android.support.v4.content.FileProvider.getUriForFile(ctxt,ctxt.getApplicationContext().getPackageName() + ".genericfileprovider", apkFile);
+                                uri = androidx.core.content.FileProvider.getUriForFile(ctxt,ctxt.getApplicationContext().getPackageName() + ".genericfileprovider", apkFile);
                             } else {
                                 installIntent = new Intent(Intent.ACTION_VIEW);
                                 uri = Uri.fromFile(apkFile);
@@ -268,8 +268,8 @@ public class CustomOpenCVLoader extends OpenCVLoader {
             mAskInstallDialog = askInstallOpenCV.create();
 
             mAskInstallDialog.show();
-            mAskInstallDialog.getButton(android.support.v7.app.AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#00838F"));
-            mAskInstallDialog.getButton(android.support.v7.app.AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#00838F"));
+            mAskInstallDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#00838F"));
+            mAskInstallDialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#00838F"));
 
         } else {
             // initialize opencv

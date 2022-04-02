@@ -104,13 +104,14 @@
                     android:layout_marginTop="20dp"
                     android:orientation="vertical">
 
-                    <LinearLayout
+                    <RelativeLayout
                         android:id="@+id/linearLayoutUserEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/textViewUserEmailHeader"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/profile.email.header"
@@ -123,6 +124,7 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-light"
                             android:text="joey@sharenofood.com"
+                            android:layout_below="@id/textViewUserEmailHeader"
                             android:textColor="@color/black"
                             android:textSize="18sp"
                             android:inputType="textEmailAddress"/>
@@ -133,9 +135,19 @@
                             android:layout_marginTop="15dp"
                             android:background="@color/grey" />
 
-                    </LinearLayout>
+                        <ImageView
+                            android:id="@+id/imageViewEmailEdit"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_below="@id/textViewUserEmailHeader"
+                            android:layout_marginEnd="0dp"
+                            android:layout_marginBottom="8dp"
+                            app:srcCompat="@android:drawable/ic_menu_edit" />
 
-                    <LinearLayout
+                    </RelativeLayout>
+
+                    <RelativeLayout
                         android:id="@+id/linearLayoutUserPhoneNumber"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -143,7 +155,7 @@
                         android:orientation="vertical">
 
                         <TextView
-
+                            android:id="@+id/textViewUserPhoneNumberHeader"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/profile.phone.header"
@@ -155,6 +167,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-light"
+                            android:layout_below="@id/textViewUserPhoneNumberHeader"
                             android:text="+1-202-555-0157"
                             android:textColor="@color/black"
                             android:textSize="18sp"/>
@@ -165,9 +178,19 @@
                             android:layout_marginTop="15dp"
                             android:background="@color/grey" />
 
-                    </LinearLayout>
+                        <ImageView
+                            android:id="@+id/imageViewPhoneNumberEdit"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_below="@id/textViewUserPhoneNumberHeader"
+                            android:layout_marginEnd="0dp"
+                            android:layout_marginBottom="8dp"
+                            app:srcCompat="@android:drawable/ic_menu_edit" />
 
-                    <LinearLayout
+                    </RelativeLayout>
+
+                    <RelativeLayout
                         android:id="@+id/linearLayoutUserLineId"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -175,7 +198,7 @@
                         android:orientation="vertical">
 
                         <TextView
-
+                            android:id="@+id/textViewUserLineIdHeader"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/profiler.lineid.header"
@@ -187,6 +210,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-light"
+                            android:layout_below="@id/textViewUserLineIdHeader"
                             android:text="Line Id"
                             android:textColor="@color/black"
                             android:textSize="18sp"/>
@@ -197,17 +221,27 @@
                             android:layout_marginTop="15dp"
                             android:background="@color/grey" />
 
-                    </LinearLayout>
+                        <ImageView
+                            android:id="@+id/imageViewLIneIdEdit"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_below="@id/textViewUserLineIdHeader"
+                            android:layout_marginEnd="0dp"
+                            android:layout_marginBottom="8dp"
+                            app:srcCompat="@android:drawable/ic_menu_edit" />
 
-                    <LinearLayout
-                        android:id="@+id/linearLayoutUserNickName"
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/linearLayoutUserNickname"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="15dp"
                         android:orientation="vertical">
 
                         <TextView
-
+                            android:id="@+id/textViewUserNicknameHeader"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/profile.nickname.header"
@@ -215,11 +249,12 @@
                             android:textSize="13sp" />
 
                         <TextView
-                            android:id="@+id/textViewUserNickName"
+                            android:id="@+id/textViewUserNickname"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="sans-serif-light"
                             android:text="facebook.com/joeytrib"
+                            android:layout_below="@id/textViewUserNicknameHeader"
                             android:textColor="@color/black"
                             android:textSize="18sp"
                             android:inputType="textPersonName"
@@ -231,7 +266,17 @@
                             android:layout_marginTop="15dp"
                             android:background="@color/grey" />
 
-                    </LinearLayout>
+                        <ImageView
+                            android:id="@+id/imageViewNicknameEdit"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_below="@id/textViewUserNicknameHeader"
+                            android:layout_marginEnd="0dp"
+                            android:layout_marginBottom="8dp"
+                            app:srcCompat="@android:drawable/ic_menu_edit" />
+
+                    </RelativeLayout>
 
                     <RelativeLayout
                         android:id="@+id/linearLayoutUserPassword"

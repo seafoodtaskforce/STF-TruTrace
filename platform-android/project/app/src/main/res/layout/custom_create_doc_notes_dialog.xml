@@ -16,7 +16,7 @@
         android:textColor="@color/black"
         android:text="Document Rejection Notes" />
 
-    <android.support.design.widget.TextInputLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/notesHeaderWrapper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -37,10 +37,10 @@
             android:paddingTop="@dimen/fab_labels_margin"
             android:paddingRight="10dp"
             android:textColor="@color/black" />
-    </android.support.design.widget.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
 
-    <android.support.design.widget.TextInputLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/notesDetailsWrapper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -61,7 +61,7 @@
             android:paddingTop="@dimen/fab_labels_margin"
             android:paddingRight="10dp" />
 
-    </android.support.design.widget.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout
         android:id="@+id/linearLayout_bottom_bar"

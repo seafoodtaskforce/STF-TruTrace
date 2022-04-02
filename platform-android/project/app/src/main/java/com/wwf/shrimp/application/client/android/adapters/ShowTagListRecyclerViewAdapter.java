@@ -1,16 +1,14 @@
 package com.wwf.shrimp.application.client.android.adapters;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.viethoa.RecyclerViewFastScroller;
 import com.wwf.shrimp.application.client.android.R;
-import com.wwf.shrimp.application.client.android.adapters.helpers.RecipientSelectionDataHelper;
 import com.wwf.shrimp.application.client.android.adapters.helpers.TagItemDataHelper;
 import com.wwf.shrimp.application.client.android.adapters.helpers.TagItemSelectionDataHelper;
 import com.wwf.shrimp.application.client.android.system.SessionData;

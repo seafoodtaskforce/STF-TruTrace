@@ -1,8 +1,17 @@
 package com.wwf.shrimp.application.client.android.utils;
 
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -16,6 +25,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import com.wwf.shrimp.application.client.android.DocumentTaggingActivity;
+import com.wwf.shrimp.application.client.android.R;
 import com.wwf.shrimp.application.client.android.fragments.AllDocumentsFragment;
 import com.wwf.shrimp.application.client.android.fragments.MyDocumentsFragment;
 import com.wwf.shrimp.application.client.android.fragments.ProfileDocumentsFragment;
@@ -183,7 +193,7 @@ public class RESTUtils {
                 Log.d("POST Request","Updated Document: FAILURE: ");
                 //
                 // Let the user know
-                Toast.makeText(globalData, "Something Went Wrong. Unable to Update the Document. Please try again.", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(globalData, "Something Went Wrong. Unable to Update the Document. Please try again.", Toast.LENGTH_SHORT).show();
                 call.cancel();
             }
 
@@ -193,7 +203,7 @@ public class RESTUtils {
                 if(!response.isSuccessful()){
                     //
                     // Let the user know
-                    Toast.makeText(globalData, "Something Went Wrong. Unable to Update the Document. Please try again.", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(globalData, "Something Went Wrong. Unable to Update the Document. Please try again.", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -731,8 +741,64 @@ public class RESTUtils {
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(Call call, final Response response) throws IOException {
+                Handler mHandler = new Handler(Looper.getMainLooper()) {
+                    @Override
+                    public void handleMessage(Message message) {
+                        // This is where you do your work in the UI thread.
+                        // Your worker tells you in the message what to do.
+                        String responseMessage = response.message();
+                        if(responseMessage.toUpperCase().equals("OK")) {
+                            responseMessage = "Saved Successfully!";
+                        }
 
+                        Toast.makeText(globalData, responseMessage, Toast.LENGTH_LONG).show();
+                        //
+                        // Handle Email Data
+                        if(propertyBagKey != null && propertyBagKey.equals(User.CONTACT_INFO_FIELD_EMAIL)) {
+                            // set the new email value
+                            globalData.getCurrentUser().getContactInfo().setEmailAddress((String)globalData.getChangedField());
+
+                            //View rootView = ((Activity)SessionData.getInstance().getApplicationContext()).getWindow().findViewById(android.R.id.content);
+                            //View v = rootView.findViewById(R.id.textViewUserEmail);
+                            //v.invalidate();
+                        }
+                        //
+                        // Handle Nickname Data
+                        if(propertyBagKey != null && propertyBagKey.equals(User.CONTACT_INFO_FIELD_NICKNAME)) {
+                            // set the new email value
+                            globalData.getCurrentUser().getContactInfo().setNickName((String)globalData.getChangedField());
+
+                            //View rootView = ((Activity)SessionData.getInstance().getApplicationContext()).getWindow().findViewById(android.R.id.content);
+                            //View v = rootView.findViewById(R.id.textViewUserNickname);
+                            //v.invalidate();
+                        }
+
+                        //
+                        // Handle LIne Id Data
+                        if(propertyBagKey != null && propertyBagKey.equals(User.CONTACT_INFO_FIELD_LINE_ID)) {
+                            // set the new email value
+                            globalData.getCurrentUser().getContactInfo().setLineId((String)globalData.getChangedField());
+
+                            //View rootView = ((Activity)SessionData.getInstance().getApplicationContext()).getWindow().findViewById(android.R.id.content);
+                            //View v = rootView.findViewById(R.id.textViewUserNickname);
+                            //v.invalidate();
+                        }
+
+                        //
+                        // Handle Phone Number Data
+                        if(propertyBagKey != null && propertyBagKey.equals(User.CONTACT_INFO_FIELD_PHONNE_NUMBER)) {
+                            // set the new email value
+                            globalData.getCurrentUser().getContactInfo().setCellNumber((String)globalData.getChangedField());
+
+                            //View rootView = ((Activity)SessionData.getInstance().getApplicationContext()).getWindow().findViewById(android.R.id.content);
+                            //View v = rootView.findViewById(R.id.textViewUserNickname);
+                            //v.invalidate();
+                        }
+                    }
+                };
+                Message message = mHandler.obtainMessage();
+                message.sendToTarget();
             }
         });
     }

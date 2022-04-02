@@ -1,33 +1,27 @@
 package com.wwf.shrimp.application.client.android;
 
 import android.graphics.Bitmap;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.fragment.app.DialogFragment;
+import androidx.core.graphics.drawable.RoundedBitmapDrawable;
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.wwf.shrimp.application.client.android.dialogs.EditProfileLineIdDialog;
+import com.wwf.shrimp.application.client.android.dialogs.EditProfileNicknameDialog;
 import com.wwf.shrimp.application.client.android.dialogs.EditProfilePasswordDialog;
-import com.wwf.shrimp.application.client.android.dialogs.TabbedDocumentDialog;
-import com.wwf.shrimp.application.client.android.fragments.ProfileDocumentsFragment;
-import com.wwf.shrimp.application.client.android.models.dto.DocumentType;
+import com.wwf.shrimp.application.client.android.dialogs.EditProfileEmailDialog;
+import com.wwf.shrimp.application.client.android.dialogs.EditProfilePhoneNumberDialog;
 import com.wwf.shrimp.application.client.android.models.dto.User;
-import com.wwf.shrimp.application.client.android.models.view.DocumentCardItem;
 import com.wwf.shrimp.application.client.android.system.SessionData;
-
-import java.util.Date;
 
 /**
  * Activity which will profile documents to be managed
@@ -43,10 +37,18 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
     private TextView textViewUserEmail;
     private TextView textViewUserPhoneNumber;
     private TextView textViewUserLineId;
-    private TextView textViewUserNickName;
+    private TextView textViewUserNickname;
     private TextView textViewUserPassword;
     private RelativeLayout linearLayoutUserPassword;
+    private RelativeLayout linearLayoutUserEmail;
+    private RelativeLayout linearLayoutUserNickname;
+    private RelativeLayout linearLayoutUserLineId;
+    private RelativeLayout linearLayoutUserPhoneNumber;
     private ImageView imageViewPasswordEdit;
+    private ImageView imageViewEmailEdit;
+    private ImageView imageViewNicknameEdit;
+    private ImageView imageViewLineIdEdit;
+    private ImageView imageViewPhoneNumberEdit;
 
 
 
@@ -69,15 +71,37 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
         textViewUserEmail = findViewById(R.id.textViewUserEmail);
         textViewUserPhoneNumber = findViewById(R.id.textViewUserPhoneNumber);
         textViewUserLineId = findViewById(R.id.textViewUserLineId);
-        textViewUserNickName = findViewById(R.id.textViewUserNickName);
+        textViewUserPhoneNumber = findViewById(R.id.textViewUserPhoneNumber);
+        textViewUserNickname = findViewById(R.id.textViewUserNickname);
         textViewUserPassword = findViewById(R.id.textViewUserPassword);
         linearLayoutUserPassword = findViewById(R.id.linearLayoutUserPassword);
+        linearLayoutUserEmail = findViewById(R.id.linearLayoutUserEmail);
+        linearLayoutUserNickname = findViewById(R.id.linearLayoutUserNickname);
+        linearLayoutUserLineId = findViewById(R.id.linearLayoutUserLineId);
+        linearLayoutUserPhoneNumber = findViewById(R.id.linearLayoutUserPhoneNumber);
         imageViewPasswordEdit = findViewById(R.id.imageViewPasswordEdit);
+        imageViewEmailEdit = findViewById(R.id.imageViewEmailEdit);
+        imageViewNicknameEdit = findViewById(R.id.imageViewNicknameEdit);
+        imageViewLineIdEdit = findViewById(R.id.imageViewLIneIdEdit);
+        imageViewPhoneNumberEdit = findViewById(R.id.imageViewPhoneNumberEdit);
+
+
 
         //
         // set the on click handler
         textViewUserPassword.setOnClickListener(this);
         linearLayoutUserPassword.setOnClickListener(this);
+        textViewUserEmail.setOnClickListener(this);
+        linearLayoutUserEmail.setOnClickListener(this);
+        textViewUserNickname.setOnClickListener(this);
+        linearLayoutUserNickname.setOnClickListener(this);
+        textViewUserLineId.setOnClickListener(this);
+        linearLayoutUserLineId.setOnClickListener(this);
+        textViewUserPhoneNumber.setOnClickListener(this);
+        linearLayoutUserPhoneNumber.setOnClickListener(this);
+
+
+
 
         //
         // get the  url to get the image
@@ -106,7 +130,7 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
         textViewUserEmail.setText(globalVariable.getCurrentUser().getContactInfo().getEmailAddress());
         textViewUserPhoneNumber.setText(globalVariable.getCurrentUser().getContactInfo().getCellNumber());
         textViewUserLineId.setText(globalVariable.getCurrentUser().getContactInfo().getLineId());
-        textViewUserNickName.setText(globalVariable.getCurrentUser().getContactInfo().getNickName());
+        textViewUserNickname.setText(globalVariable.getCurrentUser().getContactInfo().getNickName());
         textViewUserPassword.setText("********");
     }
 
@@ -123,7 +147,14 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
             organizationId = user.getUserOrganizations().get(0).getId();
             groupId = user.getUserGroups().get(0).getId();
         }
+
+        //
         // get the clicked elements
+        //
+        //
+
+        //
+        // Password Edit
         if(v.getId() == textViewUserPassword.getId()
                 || v.getId() == linearLayoutUserPassword.getId()
                 || v.getId() == imageViewPasswordEdit.getId()){
@@ -131,6 +162,50 @@ public class ProfileActivity extends AppCompatActivity implements View.OnClickLi
             // Create an instance of the dialog fragment and show it
             DialogFragment dialog = new EditProfilePasswordDialog();
             dialog.show(getSupportFragmentManager(), "EditProfilePasswordDialog");
+        }
+
+        //
+        // Email Edit
+        if(v.getId() == textViewUserEmail.getId()
+                || v.getId() == linearLayoutUserEmail.getId()
+                || v.getId() == imageViewEmailEdit.getId()){
+            Toast.makeText(this, "Editing Email", Toast.LENGTH_SHORT).show();
+            // Create an instance of the dialog fragment and show it
+            DialogFragment dialog = new EditProfileEmailDialog();
+            dialog.show(getSupportFragmentManager(), "EditProfileEmailDialog");
+        }
+
+        //
+        // Nickname Edit
+        if(v.getId() == textViewUserNickname.getId()
+                || v.getId() == linearLayoutUserNickname.getId()
+                || v.getId() == imageViewNicknameEdit.getId()){
+            Toast.makeText(this, "Editing Nickname", Toast.LENGTH_SHORT).show();
+            // Create an instance of the dialog fragment and show it
+            DialogFragment dialog = new EditProfileNicknameDialog();
+            dialog.show(getSupportFragmentManager(), "EditProfileNicknameDialog");
+        }
+
+        //
+        // Line Id Edit
+        if(v.getId() == textViewUserLineId.getId()
+                || v.getId() == linearLayoutUserLineId.getId()
+                || v.getId() == imageViewLineIdEdit.getId()){
+            Toast.makeText(this, "Editing LineId", Toast.LENGTH_SHORT).show();
+            // Create an instance of the dialog fragment and show it
+            DialogFragment dialog = new EditProfileLineIdDialog();
+            dialog.show(getSupportFragmentManager(), "EditProfileLineIdDialog");
+        }
+
+        //
+        // Line Id Edit
+        if(v.getId() == textViewUserPhoneNumber.getId()
+                || v.getId() == linearLayoutUserPhoneNumber.getId()
+                || v.getId() == imageViewPhoneNumberEdit.getId()){
+            Toast.makeText(this, "Editing PhoneNumber", Toast.LENGTH_SHORT).show();
+            // Create an instance of the dialog fragment and show it
+            DialogFragment dialog = new EditProfilePhoneNumberDialog();
+            dialog.show(getSupportFragmentManager(), "EditProfilePhoneNumberDialog");
         }
     }
 }

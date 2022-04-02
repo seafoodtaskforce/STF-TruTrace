@@ -1,14 +1,13 @@
 package com.wwf.shrimp.application.client.android.notifications;
 
 import android.app.IntentService;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
+
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -92,13 +91,14 @@ public class NotificationService extends IntentService {
                 globalVariable.setConnected(false);
                 Log.i(LOG_TAG, "LOST Internet Connectivity");
             }
-            //Toast.makeText(this, "No Connection!!!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "LOST Internet Connectivity.", Toast.LENGTH_SHORT).show();
             return;
         }
         if(RESTUtils.checkConnection() == true){
             if(globalVariable.isConnected() == false){
                 globalVariable.setConnected(true);
                 Log.i(LOG_TAG, "Internet connectivity is back ON.");
+                Toast.makeText(this, "Internet connectivity is back ON.", Toast.LENGTH_SHORT).show();
 
             }
             // get the next outstanding documents

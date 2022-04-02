@@ -25,6 +25,11 @@
     <string name="profile_update_password_button_save">บันทึก</string>
     <string name="profile_update_error_passwords_do_not_match">รหัสผ่านไม่ตรงกัน</string>
     <string name="profile_update_error_passwords_cannot_be_empty">รหัสผ่านต้องไม่ว่างเปล่า</string>
+    <string name="profile_update_email_text_header">Change Email</string>
+    <string name="profile_update_error_email_wrong_format">The Email Address provided is invalid format</string>
+    <string name="profile_update_nickname_text_header">Change Nickname</string>
+    <string name="profile_update_phone_number_text_header">Change Phone Number</string>
+    <string name="profile_update_lineid_text_header">Change LIneId</string>
 
     <string name="profile.email.header">อีเมล</string>
     <string name="profile.phone.header">หมายเลขโทรศัพท์</string>
@@ -206,6 +211,13 @@
     <string name="document_filter_label_number_of_records">จำนวนของบันทึก</string>
     <string name="document_filter_button_dismiss">X</string>
     <string name="document_filter_label_none">ไม่มีข้อมูล</string>
+    <string name="action_filter_profile_documents">Filter Profile Docs</string>
+    <string name="action_filter_my_documents">Filter My Documents</string>
+    <string name="document_my_docs_filter_cancel">Cancel</string>
+    <string name="document_my_docs_filter_set">Set</string>
+    <string name="document_my_docs_filter_clear">Clear</string>
+    <string name="document_manage_my_documents_filter">Manage My Docs Filter</string>
+
 
     <!-- Tagging Options -->
     <string name="document_tag_management">การจัดการป้ายชี้บ่งข้อมูล</string>
@@ -269,6 +281,8 @@
 
     <!-- Open CV Note Scanner Custom -->
     <string name="processing_open_note_scanner_autocrop_failure">การตัดพื้นหลัง</string>
+    <string name="processing_open_note_scanner_autocrop_failure_fail">การครอบตัดรูปภาพพื้นหลังล้มเหลว</string>
+    <string name="processing_open_note_scanner_autocrop_failure_success">ภาพพื้นหลังครอบตัดความสำเร็จ</string>
 
     <!-- Open CV Note Scanner -->
     <string name="title_activity_open_note_scanner">การสแกนเอกสารของWWF</string>

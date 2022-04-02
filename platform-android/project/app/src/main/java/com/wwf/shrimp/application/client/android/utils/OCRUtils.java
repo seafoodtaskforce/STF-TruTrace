@@ -79,4 +79,25 @@ public class OCRUtils {
 
         return result;
     }
+
+    public static String getFullOCRText(SparseArray<TextBlock> textBlocks) {
+        String result = null;
+
+        String blocks = "";
+        //
+        // D0 the actual tag extraction
+        for (int index = 0; index < textBlocks.size(); index++) {
+            //extract scanned text blocks here
+            TextBlock tBlock = textBlocks.valueAt(index);
+            blocks = blocks + tBlock.getValue();
+            for (Text line : tBlock.getComponents()) {
+                //extract scanned text lines here
+                for (Text element : line.getComponents()) {
+                    Log.i(LOG_TAG, "OCR Text Extracted <token> " + element.getValue());
+                        result = result + element.getValue();
+                }
+            }
+        }
+        return blocks;
+    }
 }

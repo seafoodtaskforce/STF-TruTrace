@@ -4,16 +4,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -34,7 +33,6 @@ import com.wwf.shrimp.application.client.android.utils.DocumentPOJOUtils;
 import com.wwf.shrimp.application.client.android.utils.RESTUtils;
 import com.wwf.shrimp.application.client.android.utils.listeners.ClickListener;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -543,6 +541,7 @@ public class DocumentTaggingActivity extends AppCompatActivity implements Dialog
         }
         return tags;
     }
+
     private List<TagItemDataHelper.TagDataCard> convertTags(List<TagData> tags){
         List<TagItemDataHelper.TagDataCard> result = new ArrayList<>();
 

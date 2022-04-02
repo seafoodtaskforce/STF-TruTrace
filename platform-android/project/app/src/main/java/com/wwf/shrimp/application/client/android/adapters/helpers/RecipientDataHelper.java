@@ -66,7 +66,7 @@ public class RecipientDataHelper {
 
             RecipientCard that = (RecipientCard) o;
 
-            if (checkState != that.checkState) return false;
+            //if (checkState != that.checkState) return false;
             if (id != that.id) return false;
             return userName != null ? userName.equals(that.userName) : that.userName == null;
 

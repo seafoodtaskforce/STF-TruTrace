@@ -5,6 +5,7 @@ public class DynamicFieldDefinition  extends IdentifiableEntity {
     public final static long NUMERIC_FIELD_TYPE = 2;
     public final static long ALPHA_NUMERIC_FIELD_TYPE = 3;
     public final static long DATE_FIELD_TYPE = 4;
+    public final static long EXPIRY_DATE_FIELD_TYPE =5;
 
     private long orgID ;
     private long docTypeId;
@@ -16,6 +17,9 @@ public class DynamicFieldDefinition  extends IdentifiableEntity {
     private int maxLength;
     private boolean isRequired;
     private int ordinal;
+    private boolean isDocId;
+    private String ocrMatchText="";
+    private int ocrGrabLength=0;
 
     public long getOrgID() {
         return orgID;
@@ -73,7 +77,29 @@ public class DynamicFieldDefinition  extends IdentifiableEntity {
         this.ordinal = ordinal;
     }
 
+    public boolean isDocId() {
+        return isDocId;
+    }
 
+    public void setDocId(boolean docId) {
+        isDocId = docId;
+    }
+
+    public String getOcrMatchText() {
+        return ocrMatchText;
+    }
+
+    public void setOcrMatchText(String ocrMatchText) {
+        this.ocrMatchText = ocrMatchText;
+    }
+
+    public int getOcrGrabLength() {
+        return ocrGrabLength;
+    }
+
+    public void setOcrGrabLength(int ocrGrabLength) {
+        this.ocrGrabLength = ocrGrabLength;
+    }
 
     public long getFieldTypeId() {
         return fieldTypeId;

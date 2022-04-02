@@ -1,12 +1,11 @@
 package com.wwf.shrimp.application.client.android.adapters;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.viethoa.RecyclerViewFastScroller;
 import com.wwf.shrimp.application.client.android.R;
@@ -55,7 +54,7 @@ public class ShowRecipientListRecyclerViewAdapter extends RecyclerView.Adapter<S
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
 
         holder.mTextViewRecipientName.setText(mDataArray.get(position).getUserName());
         holder.mTextViewRecipientOrganization.setText(mDataArray.get(position).getOrganizationName());
@@ -75,6 +74,10 @@ public class ShowRecipientListRecyclerViewAdapter extends RecyclerView.Adapter<S
                         break;
                     }
                 }
+
+                //
+                Object o = resetNameBasedCheckBoxesExcept(recipientCheckBox, v);
+                //
                 // set the item data in the array
                 mDataArray.get(position).setCheckState(recipientCheckBox.isChecked());
                 // add or remove the item from the other adapter
@@ -94,6 +97,8 @@ public class ShowRecipientListRecyclerViewAdapter extends RecyclerView.Adapter<S
                 }else{
 
                     // add a new item to the selected adapter list
+                    resetAllItemsExcept(position);
+                    selectedAdapter.clear();
                     selectedAdapter.addNewItem(item);
                     recipientCheckBox.setChecked(true);
                 }
@@ -111,6 +116,8 @@ public class ShowRecipientListRecyclerViewAdapter extends RecyclerView.Adapter<S
                         , Toast.LENGTH_SHORT).show();
                  */
 
+                Object o = resetCheckBoxesExcept(recipientCheckBox, v);
+
                 // set the item data in the array
                 mDataArray.get(position).setCheckState(recipientCheckBox.isChecked());
                 // add or remove the item from the other adapter
@@ -124,6 +131,8 @@ public class ShowRecipientListRecyclerViewAdapter extends RecyclerView.Adapter<S
 
                 if(recipientCheckBox.isChecked()){
                     // add a new item to the selected adapter list
+                    resetAllItemsExcept(position);
+                    selectedAdapter.clear();
                     selectedAdapter.addNewItem(item);
                 }else{
                     // remove the item
@@ -157,6 +166,63 @@ public class ShowRecipientListRecyclerViewAdapter extends RecyclerView.Adapter<S
     public void resetItem(RecipientDataHelper.RecipientCard item){
         int index = mDataArray.indexOf(item);
         mDataArray.get(index).setCheckState(false);
+    }
+
+    public void resetAllItemsExcept(int pos){
+        for(int i=0; i< mDataArray.size(); i++){
+            if(pos != i){
+                mDataArray.get(i).setCheckState(false);
+            }
+        }
+    }
+    public CheckBox resetNameBasedCheckBoxesExcept(CheckBox recipientCheckBox, View v){
+
+        //
+        // Go though all checkboxes
+        ViewGroup row = (ViewGroup) v.getParent().getParent().getParent().getParent();
+        //ViewGroup card = (ViewGroup) row.getChildAt(0);
+        //ViewGroup layout = (ViewGroup) card.getChildAt(0);
+        //CheckBox checkBox = (CheckBox) layout.getChildAt(1);
+
+        for (int itemPos = 0; itemPos < row.getChildCount(); itemPos++) {
+            ViewGroup card = (ViewGroup) row.getChildAt(itemPos);
+            ViewGroup layout = (ViewGroup) card.getChildAt(0);
+            CheckBox checkBox = (CheckBox) layout.getChildAt(1);
+
+            if (checkBox instanceof CheckBox) {
+                if(recipientCheckBox == checkBox){
+                    // skip it
+                }else{
+                    checkBox.setChecked(false);
+                }
+            }
+        }
+        return null;
+    }
+
+    public CheckBox resetCheckBoxesExcept(CheckBox recipientCheckBox, View v){
+
+        //
+        // Go though all checkboxes
+        ViewGroup row = (ViewGroup) v.getParent().getParent().getParent();
+        //ViewGroup card = (ViewGroup) row.getChildAt(0);
+        //ViewGroup layout = (ViewGroup) card.getChildAt(0);
+        //CheckBox checkBox = (CheckBox) layout.getChildAt(1);
+
+        for (int itemPos = 0; itemPos < row.getChildCount(); itemPos++) {
+            ViewGroup card = (ViewGroup) row.getChildAt(itemPos);
+            ViewGroup layout = (ViewGroup) card.getChildAt(0);
+            CheckBox checkBox = (CheckBox) layout.getChildAt(1);
+
+            if (checkBox instanceof CheckBox) {
+                if(recipientCheckBox == checkBox){
+                    // skip it
+                }else{
+                    checkBox.setChecked(false);
+                }
+            }
+        }
+        return null;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

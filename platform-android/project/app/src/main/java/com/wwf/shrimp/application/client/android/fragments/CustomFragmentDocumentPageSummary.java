@@ -4,7 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,8 @@ import com.wwf.shrimp.application.client.android.utils.DocumentPOJOUtils;
  * @author AleaActaEst
  */
 public class CustomFragmentDocumentPageSummary extends Fragment {
+
+    private static final String LOG_TAG = "Doc PAGE SUMMARY";
     private int dataMode = TabbedDocumentDialog.DATA_MODE_LOCAL;
     // global session data
     private SessionData globalVariable;
@@ -71,6 +74,7 @@ public class CustomFragmentDocumentPageSummary extends Fragment {
     ImageView imageViewEditLinkedDocs;
     ImageView imageViewEditAttachedDocs;
     ImageView imageViewEditDynamicFields;
+    ImageView imageViewPeekDynamicFields;
 
     public static CustomFragmentDocumentPageSummary createInstance(int dataMode)
     {
@@ -107,6 +111,9 @@ public class CustomFragmentDocumentPageSummary extends Fragment {
         this.imageViewEditLinkedDocs =(ImageView) view.findViewById(R.id.imageViewEditLinkedDocs);
         this.imageViewEditAttachedDocs =(ImageView) view.findViewById(R.id.imageViewEditAttachedDocs);
         this.imageViewEditDynamicFields =(ImageView) view.findViewById(R.id.imageViewEditDynamicFields);
+        this.imageViewPeekDynamicFields =(ImageView) view.findViewById(R.id.imageViewPeekDynamicFields);
+
+
 
 
         //
@@ -157,6 +164,17 @@ public class CustomFragmentDocumentPageSummary extends Fragment {
                 }
             }
         });
+        imageViewPeekDynamicFields.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (v.equals(imageViewPeekDynamicFields)) {
+                    globalVariable.setDocumentEditableFlag(false);
+                    Intent intent = new Intent(getActivity(), DocumentDynamicFieldsActivity.class);
+                    startActivity(intent);
+                }
+            }
+        });
+
+
 
         return view;
     }
@@ -216,7 +234,7 @@ public class CustomFragmentDocumentPageSummary extends Fragment {
 
         //
         // check for edit buttons, only my own docs can be edited.
-        if(!globalVariable.getCurrentUser().getName().equals(globalVariable.getNextDocument().getUsername())
+        if(!globalVariable.getCurrentUser().getName().toLowerCase().equals(globalVariable.getNextDocument().getUsername().toLowerCase())
                 || globalVariable.getNextDocumentStackSize() > 1
                 || globalVariable.getNextDocument().getStatus().equals(Document.STATUS_SUBMITTED)
                 || globalVariable.getNextDocument().getStatus().equals(Document.STATUS_RESUBMITTED)
@@ -229,6 +247,19 @@ public class CustomFragmentDocumentPageSummary extends Fragment {
             this.imageViewEditLinkedDocs.setVisibility(View.INVISIBLE);
             this.imageViewEditAttachedDocs.setVisibility(View.INVISIBLE);
             this.imageViewEditDynamicFields.setVisibility(View.INVISIBLE);
+            if(globalVariable.getNextDocument().getDynamicFieldData().size() > 0) {
+                this.imageViewPeekDynamicFields.setVisibility(View.VISIBLE);
+            } else {
+                this.imageViewPeekDynamicFields.setVisibility(View.INVISIBLE);
+            }
+            //
+            //
+            Log.i(LOG_TAG, "Buttons <edit> are INVISIBLE");
+        }else{
+            //
+            //
+            Log.i(LOG_TAG, "Buttons <edit> are VISIBLE");
+            this.imageViewPeekDynamicFields.setVisibility(View.INVISIBLE);
         }
 
 

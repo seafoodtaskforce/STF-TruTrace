@@ -3,12 +3,12 @@ package com.wwf.shrimp.application.client.android;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -23,13 +23,9 @@ import com.google.gson.reflect.TypeToken;
 import com.viethoa.RecyclerViewFastScroller;
 import com.viethoa.models.AlphabetItem;
 import com.wwf.shrimp.application.client.android.adapters.SelectedAttachedDocumentsListRecyclerViewAdapter;
-import com.wwf.shrimp.application.client.android.adapters.SelectedLinkedDocumentsListRecyclerViewAdapter;
 import com.wwf.shrimp.application.client.android.adapters.ShowAttachedDocumentsListRecyclerViewAdapter;
-import com.wwf.shrimp.application.client.android.adapters.ShowLinkedDocumentsListRecyclerViewAdapter;
 import com.wwf.shrimp.application.client.android.adapters.helpers.AttachedDocumentItemDataHelper;
 import com.wwf.shrimp.application.client.android.adapters.helpers.AttachedDocumentItemSelectionDataHelper;
-import com.wwf.shrimp.application.client.android.adapters.helpers.LinkedDocumentItemDataHelper;
-import com.wwf.shrimp.application.client.android.adapters.helpers.LinkedDocumentItemSelectionDataHelper;
 import com.wwf.shrimp.application.client.android.dialogs.TabbedDocumentDialog;
 import com.wwf.shrimp.application.client.android.fragments.AllDocumentsFragment;
 import com.wwf.shrimp.application.client.android.fragments.MyDocumentsFragment;
@@ -40,12 +36,10 @@ import com.wwf.shrimp.application.client.android.models.dto.DocumentType;
 import com.wwf.shrimp.application.client.android.models.view.DocumentCardItem;
 import com.wwf.shrimp.application.client.android.models.view.DocumentContext;
 import com.wwf.shrimp.application.client.android.system.SessionData;
-import com.wwf.shrimp.application.client.android.utils.MappingUtilities;
 import com.wwf.shrimp.application.client.android.utils.RESTUtils;
 import com.wwf.shrimp.application.client.android.utils.dialogs.ErrorConnectingDialogUtility;
 import com.wwf.shrimp.application.client.android.utils.listeners.ClickListener;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -587,13 +581,23 @@ public class DocumentAttachingActivity extends AppCompatActivity {
                     // filter documents first to only get your own docs
                     // and not the current doc
                     documentCardItem = globalVariable.getNextDocument();
+                    List<Document> outBoxBackingDocs = new ArrayList<Document>();
                     int startingSize = documents.size();
                     for(int i=0; i< startingSize; i++){
                         if(documents.get(i).getOwner().equals(globalVariable.getCurrentUser().getCredentials().getUsername())){
                             myDocuments.add(documents.get(i));
+                            if(documents.get(i).getType().getDocumentDesignation().equals(DocumentType.DESIGNATION_PROFILE)){
+                                outBoxBackingDocs.add(documents.get(i));
+                            }
                         }
                     }
                     documents = myDocuments;
+
+                    //
+                    // get the attached docs out of box for the backing docs for this user
+                    globalVariable.getNextDocument().setAttachedDocuments(outBoxBackingDocs);
+
+
                 }
                 if(documents.size() ==0){
                     Toast.makeText(globalVariable.getBaseContext(), "There are *NO* backing documents", Toast.LENGTH_SHORT).show();

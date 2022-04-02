@@ -7,32 +7,32 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
-import android.support.v4.view.ViewPager;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.RoundedBitmapDrawable;
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
+import androidx.viewpager.widget.ViewPager;
+import com.google.android.material.navigation.NavigationView;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -62,6 +62,8 @@ import com.wwf.shrimp.application.client.android.utils.dialogs.QuitApplicationlD
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 
 /**
  * Home page activity which is the main page that the user will see after they login.
@@ -223,6 +225,23 @@ public class HomePageActivity extends AppCompatActivity
         // start the notifications listener
         scheduleNotificationsAlarm();
 
+        //
+        // check of the user preferences should be set
+        SharedPreferences sharedPreferences;
+        sharedPreferences = getDefaultSharedPreferences(this);
+        String rememberMeUserName = sharedPreferences.getString(SessionData.USER_REMEMBER_ME_KEY, "");
+        String userToken;
+        if(globalVariable.isRememberMeIsOn()){
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            // user name
+            editor.putString(SessionData.USER_REMEMBER_ME_KEY, globalVariable.getCurrentUser().getName());
+            editor.apply();
+
+            // token
+            editor.putString(SessionData.USER_TOKEN_REMEMBER_ME_KEY, globalVariable.getCurrentUser().getCredentials().getToken().getTokenValue());
+            editor.apply();
+        }
+
     }
 
     @Override
@@ -339,7 +358,7 @@ public class HomePageActivity extends AppCompatActivity
             String logout_dialog_button_confirm = getResources().getString(R.string.logout_dialog_button_confirm);
             String logout_dialog_button_cancel = getResources().getString(R.string.logout_dialog_button_cancel);
 
-            android.support.v7.app.AlertDialog.Builder alertDialogBuilder = new android.support.v7.app.AlertDialog.Builder(this);
+            androidx.appcompat.app.AlertDialog.Builder alertDialogBuilder = new androidx.appcompat.app.AlertDialog.Builder(this);
             alertDialogBuilder
                     .setTitle(logout_dialog_title)
                     .setMessage(logout_dialog_text)
@@ -362,7 +381,7 @@ public class HomePageActivity extends AppCompatActivity
                     });
 
             // create alert dialog
-            android.support.v7.app.AlertDialog alertDialog = alertDialogBuilder.create();
+            androidx.appcompat.app.AlertDialog alertDialog = alertDialogBuilder.create();
 
             // show it
             alertDialog.show();
@@ -579,51 +598,4 @@ public class HomePageActivity extends AppCompatActivity
         }
         return false;
     }
-
-    // Showing the status in Snackbar
-    private void showSnack(boolean isConnected) {
-        String message;
-        int color;
-        if (isConnected) {
-            message = "Good! Connected to Internet";
-            color = Color.WHITE;
-        } else {
-            message = "Sorry! Not connected to internet";
-            color = Color.RED;
-        }
-
-        Snackbar snackbar = Snackbar
-                .make(coordinatorLayout, "Welcome to AndroidHive", Snackbar.LENGTH_LONG);
-
-        snackbar.show();
-
-        View sbView = snackbar.getView();
-        TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
-        textView.setTextColor(color);
-        snackbar.show();
-    }
-
-    public void showSettingsAlert() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
-        // Setting Dialog Title
-        alertDialog.setTitle("Error!");
-
-        // Setting Dialog Message
-        alertDialog.setMessage("Please ");
-
-        // On pressing Settings button
-        alertDialog.setPositiveButton(
-                getResources().getString(R.string.document_acceptance_workflow_button_accept),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(
-                                Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        startActivity(intent);
-                    }
-                });
-
-        alertDialog.show();
-    }
-
 }
