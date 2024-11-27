@@ -105,7 +105,7 @@
     "ngx-popper": "^6.2.0",
     "ngx-smart-popover": "^1.0.8",
     "ngx-uploader": "2.2.5",
-    "node-sass": "^4.12.0",
+    "node-sass": "^7.0.0",
     "normalize.css": "6.0.0",
     "photoviewer": "^3.4.0",
     "popper.js": "^1.15.0",
