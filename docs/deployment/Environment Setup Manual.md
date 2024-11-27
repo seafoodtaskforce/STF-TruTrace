@@ -9,7 +9,7 @@ We will need to make sure first that the proper environment is setup before we c
 
 **NOTE:** This manual does not require you to setup up any coding/development environment. To look more at the coding environment please refer to the Full-Scope Deployment Document.
 
-# Java Environment #
+# Java Environment # !need to specify compatible versions?
 You will need Java installed on your system first. If you do not then follow the appropriate link: 
 
 
